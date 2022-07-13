@@ -1,0 +1,23 @@
+{
+  "build": {
+    "core": "naked",
+    "extra_flags": "",
+    "f_cpu": "18000000L",
+    "size_iram": 256,
+    "size_xram": "0x10000",
+    "size_code": "0x10000",
+    "size_heap": 0,
+    "mcu": "DS80C323",
+    "cpu": "mcs51",
+    "variant": "DS80C323"
+  },
+  "debug": {},
+  "frameworks": [],
+  "upload": {
+    "maximum_ram_size": 65536,
+    "maximum_size": 65536
+  },
+  "name": "Generic DM5680",
+  "url": "http://www.divimath.com/dm5680-en/",
+  "vendor": "Divimath"
+}
