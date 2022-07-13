@@ -3,7 +3,7 @@
 #include "global.h"
 #include "uart.h"
 #include "print.h"
-#include "Monitor.h"
+#include "monitor.h"
 #include "isr.h"
 #include "hardware.h"
 #include "i2c.h"
