@@ -4,8 +4,6 @@
 #include "isr.h"
 #include "uart.h"
 
-BIT_TYPE int0_req = 0;
-BIT_TYPE int1_req = 0;
 uint8_t btn1_tflg = 0;
 uint8_t pwr_sflg = 0;    //power autoswitch flag
 uint8_t pwr_tflg = 0;
@@ -64,67 +62,4 @@ void CPU_init(void)
                     // [0]   enable INT0   interupt   0
     IP    = 0x10;   // UART0=higher priority, Timer 0 = low
     
-}
-
-void Timer0_isr(void) INTERRUPT(1)
-{
-    TH0 = 138;
-
-    #ifdef USE_SMARTAUDIO
-    if(SA_config) {
-        if(suart_tx_en) {
-            //TH0 = 139;
-            suart_txint();
-        }
-        else
-            suart_rxint();
-    }
-    #endif
-    
-    timer_ms10x++;
-}
-
-void Timer1_isr(void) INTERRUPT(3)
-{
-}		 
-
-
-void Ext0_isr(void) INTERRUPT(0)
-{
-	int0_req = 1;
-}
-
-void Ext1_isr(void) INTERRUPT(2)
-{
-	int1_req = 1;
-}
-
-void UART0_isr() INTERRUPT(4)
-{
-	if( RI ) {			//RX int
-		RI = 0;
-		RS_buf[RS_in++] = SBUF0;
-		if( RS_in>=BUF_MAX ) RS_in = 0;
-        if(RS_in == RS_out) RS0_ERR = 1;
-	}
-
-	if( TI ) {			//TX int
-		TI = 0;
-		RS_Xbusy=0;
-	}
-}
-
-void UART1_isr() INTERRUPT(6)
-{
-    
-	if( RI1 ) {			//RX int
-		RI1 = 0;
-		RS_buf1[RS_in1++] = SBUF1;
-		if( RS_in1>=BUF_MAX ) RS_in1 = 0;
-	}
-
-	if( TI1 ) {			//TX int
-		TI1 = 0;
-		RS_Xbusy1=0;
-	}
 }
