@@ -15,8 +15,9 @@ if(CMAKE_BUILD_TYPE STREQUAL "")
 endif()
 
 # Compilation Flags
-set(COMMON_DEBUG_FLAGS "-DSDCC")
-set(COMMON_RELEASE_FLAGS "")
+set(COMMON_FLAGS "-c --model-large")
+set(COMMON_DEBUG_FLAGS ${COMMON_FLAGS})
+set(COMMON_RELEASE_FLAGS ${COMMON_FLAGS})
 set(CMAKE_C_FLAGS_DEBUG ${COMMON_DEBUG_FLAGS})
 set(CMAKE_C_FLAGS_RELEASE ${COMMON_RELEASE_FLAGS})
 
@@ -24,7 +25,7 @@ set(CMAKE_C_FLAGS_RELEASE ${COMMON_RELEASE_FLAGS})
 file(GLOB_RECURSE SRCS CONFIGURE_DEPENDS src/*.c*)
 
 # Platform Attributes
-set(BINARY_SUFFIX ".bin")
+set(BINARY_SUFFIX ".ihx")
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(INCLUDE_PATHS "")
   set(LIBRARY_PATHS
@@ -51,7 +52,6 @@ link_directories(
 
 # Target
 add_executable(${PROJECT_NAME}
-  src/STARTUP.A51
   ${SRCS}
 )
 
@@ -60,10 +60,5 @@ set_target_properties(
   ${PROJECT_NAME}
     PROPERTIES 
       SUFFIX "${BINARY_SUFFIX}"
-)
-
-# Linker
-target_link_libraries(${PROJECT_NAME}
-  -Wl,-rpath,lib/${PLATFORM_TYPE}/
 )
 
