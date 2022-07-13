@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.5)
 project(hdzero-vtx C)
 
 # Project: Settings
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/../bin")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
 
 # Configurable Parameters
 if(CMAKE_BUILD_TYPE STREQUAL "")
