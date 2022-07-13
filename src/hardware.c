@@ -3,7 +3,7 @@
 #include "global.h"
 #include "uart.h"
 #include "print.h"
-#include "Monitor.h"
+#include "monitor.h"
 #include "isr.h"
 #include "hardware.h"
 #include "i2c.h"
@@ -199,7 +199,7 @@ void CFG_Back()
 
 void GetVtxParameter()
 {
-    unsigned char code *ptr = 0xFFE8;
+    RO_TYPE_REV(unsigned char, code) *ptr = 0xFFE8;
     uint8_t i, j;
     uint8_t tab[FREQ_MAX+1][POWER_MAX+1];
     uint8_t flash_vld = 1;

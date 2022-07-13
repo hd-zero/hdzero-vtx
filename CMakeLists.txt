@@ -4,11 +4,9 @@
 
 # Project: Identity
 cmake_minimum_required(VERSION 3.5)
-project(hdzero-vtx LANGUAGES C)
+project(hdzero-vtx C)
 
 # Project: Settings
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/../bin")
 
 # Configurable Parameters
@@ -17,14 +15,13 @@ if(CMAKE_BUILD_TYPE STREQUAL "")
 endif()
 
 # Compilation Flags
-set(COMMON_DEBUG_FLAGS "")
+set(COMMON_DEBUG_FLAGS "-DSDCC")
 set(COMMON_RELEASE_FLAGS "")
 set(CMAKE_C_FLAGS_DEBUG ${COMMON_DEBUG_FLAGS})
 set(CMAKE_C_FLAGS_RELEASE ${COMMON_RELEASE_FLAGS})
 
 # Source Files
 file(GLOB_RECURSE SRCS CONFIGURE_DEPENDS src/*.c*)
-list(FILTER SRCS EXCLUDE REGEX "_keil.*")
 
 # Platform Attributes
 set(BINARY_SUFFIX ".bin")

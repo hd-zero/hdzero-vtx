@@ -14,15 +14,14 @@
 ///////////////////////////////////////////////
 // Global variables for this module only.
 // DO NOT TRY to use it outside the scope
-C51_XDAT uint8_t 			incnt = 0;		// in char count
-C51_XDAT uint8_t 			monstr[MAX_CMD_LEN];		// buffer for input string
-C51_XDAT uint8_t C51_XDAT   *argv[7];		// command line arguments
-C51_XDAT uint8_t 			argc  = 0;		// command line cnt
-C51_XDAT uint8_t 			last_argc = 0;
-
-C51_XDAT uint8_t 			comment=0;
-		 bit			    echo  = 1;
-         bit                verbose = 1;
+RO_TYPE(C51_XDAT, uint8_t) 			incnt = 0;		// in char count
+RO_TYPE(C51_XDAT, uint8_t) 			monstr[MAX_CMD_LEN];		// buffer for input string
+RO_TYPE_2(C51_XDAT, uint8_t, C51_XDAT)   *argv[7];		// command line arguments
+RO_TYPE(C51_XDAT, uint8_t) 			argc  = 0;		// command line cnt
+RO_TYPE(C51_XDAT, uint8_t) 			last_argc = 0;
+RO_TYPE(C51_XDAT, uint8_t) 			comment=0;
+BIT(echo)  = 1;
+BIT(verbose) = 1;
 
 
 #ifdef _DEBUG_MODE

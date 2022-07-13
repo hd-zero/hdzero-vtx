@@ -1,12 +1,11 @@
-#include "common.h"
 #include "hardware.h"
-#include "print.h"
-#include "global.h"
-#include "monitor.h"
-#include "i2c.h"
-#include "i2c_device.h"
 #include "dm6300.h"
 #include "spi.h"
+#include "print.h"
+#include "global.h"
+#if 0
+#include "monitor.h"
+#endif
 
 int16_t auxadc_offset = 0;
 uint32_t init6300_fcnt = 0;

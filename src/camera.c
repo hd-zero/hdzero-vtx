@@ -701,57 +701,57 @@ void SaveCamCfg_Menu(void)
     }
 }
 
-void SetCamCfg(cameraConfig_t cfg, uint8_t INIT)
+void SetCamCfg(cameraConfig_t* cfg, uint8_t INIT)
 {
     uint8_t i,j;
 
-    if(cameraID == 0)
+    if(cfg == 0 || cameraID == 0)
         return;
     if(INIT)
     {
-        Runcam_SetBrightness(cfg.brightness);
-        Runcam_SetSharpness(cfg.sharpness);
-        Runcam_SetSaturation(cfg.saturation);
-        Runcam_SetContrast(cfg.contrast);
-        Runcam_SetHVFlip(cfg.hvFlip);
-        Runcam_SetNightMode(cfg.nightMode);
-        Runcam_SetWB(cfg.wbRed, cfg.wbBlue, cfg.wbMode);
+        Runcam_SetBrightness(cfg->brightness);
+        Runcam_SetSharpness(cfg->sharpness);
+        Runcam_SetSaturation(cfg->saturation);
+        Runcam_SetContrast(cfg->contrast);
+        Runcam_SetHVFlip(cfg->hvFlip);
+        Runcam_SetNightMode(cfg->nightMode);
+        Runcam_SetWB(cfg->wbRed, cfg->wbBlue, cfg->wbMode);
     }
     else
     {
-        if(camCfg_Cur.brightness != cfg.brightness)
-            Runcam_SetBrightness(cfg.brightness);
+        if(camCfg_Cur.brightness != cfg->brightness)
+            Runcam_SetBrightness(cfg->brightness);
 
-        if(camCfg_Cur.sharpness != cfg.sharpness)
-            Runcam_SetSharpness(cfg.sharpness);
+        if(camCfg_Cur.sharpness != cfg->sharpness)
+            Runcam_SetSharpness(cfg->sharpness);
 
-        if(camCfg_Cur.saturation != cfg.saturation)
-            Runcam_SetSaturation(cfg.saturation);
+        if(camCfg_Cur.saturation != cfg->saturation)
+            Runcam_SetSaturation(cfg->saturation);
 
-        if(camCfg_Cur.contrast != cfg.contrast)
-            Runcam_SetContrast(cfg.contrast);
+        if(camCfg_Cur.contrast != cfg->contrast)
+            Runcam_SetContrast(cfg->contrast);
 
-        if(camCfg_Cur.hvFlip != cfg.hvFlip)
-            Runcam_SetHVFlip(cfg.hvFlip);
+        if(camCfg_Cur.hvFlip != cfg->hvFlip)
+            Runcam_SetHVFlip(cfg->hvFlip);
 
-        if(camCfg_Cur.nightMode != cfg.nightMode)
-            Runcam_SetNightMode(cfg.nightMode);
+        if(camCfg_Cur.nightMode != cfg->nightMode)
+            Runcam_SetNightMode(cfg->nightMode);
 
         j = 0;
-        if(camCfg_Cur.wbMode != cfg.wbMode)
+        if(camCfg_Cur.wbMode != cfg->wbMode)
             j = 1;
         else
         {
             for(i=0;i<WBMODE_MAX;i++)
             {
-                if(camCfg_Cur.wbRed[i] != cfg.wbRed[i])
+                if(camCfg_Cur.wbRed[i] != cfg->wbRed[i])
                     j |= 1;
-                if(camCfg_Cur.wbBlue[i] != cfg.wbBlue[i])
+                if(camCfg_Cur.wbBlue[i] != cfg->wbBlue[i])
                     j |= 1;
             }
         }
         if(j==1)
-            Runcam_SetWB(cfg.wbRed, cfg.wbBlue, cfg.wbMode);
+            Runcam_SetWB(cfg->wbRed, cfg->wbBlue, cfg->wbMode);
 
     }
     #ifdef _DEBUG_MODE
@@ -766,7 +766,7 @@ void CameraInit()
 
     GetCamCfg_EEP();
     GetCamCfg(1);
-    SetCamCfg(camCfg, 1);
+    SetCamCfg(&camCfg, 1);
 }
 
 #if(0)
@@ -870,7 +870,7 @@ uint8_t camStatusUpdate(uint8_t op)
                     camProfile = camProfile_Menu;
                     GetCamCfg(0);
                     GetCamCfg_Menu(0);
-                    SetCamCfg(camCfg_Menu, 0);
+                    SetCamCfg(&camCfg_Menu, 0);
                 }
             }
             else if(op == BTN_RIGHT)
@@ -885,7 +885,7 @@ uint8_t camStatusUpdate(uint8_t op)
                         camProfile = camProfile_Menu;
                         GetCamCfg(0);
                         GetCamCfg_Menu(0);
-                        SetCamCfg(camCfg_Menu, 0);
+                        SetCamCfg(&camCfg_Menu, 0);
                     }
                 }
                 else// if(cameraID == RUNCAM_MICRO_V2)
@@ -897,7 +897,7 @@ uint8_t camStatusUpdate(uint8_t op)
                         camProfile = camProfile_Menu;
                         GetCamCfg(0);
                         GetCamCfg_Menu(0);
-                        SetCamCfg(camCfg_Menu, 0);
+                        SetCamCfg(&camCfg_Menu, 0);
                     }
                 }
             }
@@ -1411,7 +1411,7 @@ uint8_t camStatusUpdate(uint8_t op)
                         }
                     }
                 }
-                SetCamCfg(camCfg_Menu, 0);
+                SetCamCfg(&camCfg_Menu, 0);
             }
         break;
             
@@ -1428,7 +1428,7 @@ uint8_t camStatusUpdate(uint8_t op)
                 camMenuStatus = CAM_STATUS_IDLE;
                 msp_tx_cnt = 0;
                 ret = 1;
-                SetCamCfg(camCfg, 0);
+                SetCamCfg(&camCfg, 0);
             }
         break;
 
