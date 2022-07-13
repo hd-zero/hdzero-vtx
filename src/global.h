@@ -24,6 +24,4 @@ void uint8ToString(uint8_t dec, uint8_t* Str);
 
 void WAIT(uint32_t ms);
 
-void memcopy(uint8_t* dst, uint8_t* src, uint32_t len);
-
 #endif //_GLOBAL_H_
