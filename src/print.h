@@ -3,8 +3,8 @@
 
 #include <stdarg.h>
 
-//void DoPrint( const char CODE_P *fmt, va_list ap );
-void Printf( const char CODE_P *fmt, ... );
+//void DoPrint(const char *fmt, va_list ap );
+void Printf(const char *fmt, ...);
 
 //void Puts( char *ptr );
 
