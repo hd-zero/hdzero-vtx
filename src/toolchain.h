@@ -11,6 +11,8 @@
 #define SFR_DEF(name, loc) __sfr __at(loc) name
 #define SBIT_DEF(name, loc) __sbit __at(loc) name
 
+#define INTERRUPT(num) __interrupt(num)
+
 #else // Keil
 
 #define IDATA_SEG idata
@@ -20,6 +22,8 @@
 
 #define SFR_DEF(name, loc) sfr name = loc
 #define SBIT_DEF(name, loc) sbit name = loc
+
+#define INTERRUPT(num) interrupt num
 
 #endif
 
