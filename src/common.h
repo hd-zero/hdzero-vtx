@@ -14,19 +14,10 @@
 
 // system
 #define KEILC
-#define C51_XDAT xdata
-#define C51_IDAT idata
-#define C51_CODE code
-#define C51_ROM  code
-#define C51_BIT  bit
-#define CODE_P
-#define PDATA_P
-#define IDATA_P
-#define DATA_P
 #define assert(c)
 #define dbg_pt(a)   DBG_PIN0 = a
 
-#define EXTEND_BUF
+//#define EXTEND_BUF
 //#define EXTEND_BUF1
 
 // mode

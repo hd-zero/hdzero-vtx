@@ -16,14 +16,14 @@ endif()
 
 # Compilation Flags
 set(CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_C_FLAGS "-c --model-large")
-set(CMAKE_C_LINK_FLAGS "--model-large")
+set(CMAKE_C_FLAGS "--model-large")
+set(CMAKE_EXE_LINKER_FLAGS "--model-large")
 
 # Source Files
 file(GLOB_RECURSE SRCS CONFIGURE_DEPENDS src/*.c*)
 
 # Platform Attributes
-set(BINARY_SUFFIX ".ihx")
+set(BINARY_SUFFIX ".hex")
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(INCLUDE_PATHS "")
   set(LIBRARY_PATHS

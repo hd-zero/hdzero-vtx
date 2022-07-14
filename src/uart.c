@@ -4,21 +4,21 @@
 #include "print.h"
 #include "smartaudio_protocol.h"
 
-EEPROM(C51_XDAT, uint8_t) RS_buf[BUF_MAX];
+EEPROM(xdata, uint8_t) RS_buf[BUF_MAX];
 #ifdef EXTEND_BUF
-EEPROM(C51_XDAT, uint16_t) RS_in=0, RS_out=0;
+EEPROM(xdata, uint16_t) RS_in=0, RS_out=0;
 BIT(RS_Xbusy)=0;
 #else
-EEPROM(C51_XDAT, uint8_t) RS_in=0, RS_out=0;
+EEPROM(xdata, uint8_t) RS_in=0, RS_out=0;
 BIT(RS_Xbusy)=0;
 #endif
 
-EEPROM(C51_XDAT, uint8_t) RS_buf1[BUF1_MAX];
+EEPROM(xdata, uint8_t) RS_buf1[BUF1_MAX];
 #ifdef EXTEND_BUF1
-EEPROM(C51_XDAT, uint16_t) RS_in1=0, RS_out1=0;
+EEPROM(xdata, uint16_t) RS_in1=0, RS_out1=0;
 BIT(RS_Xbusy1)=0;
 #else
-EEPROM(C51_XDAT, uint8_t) RS_in1=0, RS_out1=0;
+EEPROM(xdata, uint8_t) RS_in1=0, RS_out1=0;
 BIT(RS_Xbusy1)=0;
 #endif
 				 
@@ -92,8 +92,8 @@ uint8_t RS_rx1_len(void)
 ////////////////////////////////////////////////////////////////////////////
 //SUART TX
 #ifdef USE_SMARTAUDIO
-EEPROM(C51_XDAT, uint8_t) SUART_rbuf[SUART_BUF_MAX];
-EEPROM(C51_XDAT, uint8_t) SUART_rin=0, SUART_rout=0,SUART_rERR=0;
+EEPROM(xdata, uint8_t) SUART_rbuf[SUART_BUF_MAX];
+EEPROM(xdata, uint8_t) SUART_rin=0, SUART_rout=0,SUART_rERR=0;
 
 void suart_rxint()  //ISR
 {

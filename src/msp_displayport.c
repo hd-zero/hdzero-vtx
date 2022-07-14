@@ -43,7 +43,7 @@ uint8_t fc_lock = 0;
 uint8_t disp_mode;  //DISPLAY_OSD | DISPLAY_CMS;
 uint8_t osd_ready;
 
-uint8_t fc_variant[4] = {"BTFL"};
+EEPROM(pdata,uint8_t) fc_variant[4] = {"BTFL"};
 uint8_t fontType = 0x00;
 uint8_t resolution = SD_3016;
 uint8_t resolution_last = HD_5018;
@@ -460,12 +460,12 @@ uint8_t get_tx_data_osd(uint8_t index) //prepare osd+data to VTX
     
     }
     */
-    uint8_t mask[7] = {0};
+    EEPROM(pdata,uint8_t) mask[7] = {0};
     uint8_t i,t1;
     uint8_t ptr;
     uint8_t hmax;
     uint8_t len_mask;
-    uint8_t page[7] = {0};
+    EEPROM(pdata,uint8_t) page[7] = {0};
     uint8_t page_byte = 0;
     uint8_t num = 0;
     
@@ -787,13 +787,17 @@ void parseMspVtx_V2(uint16_t cmd_u16)
         DM6300_SetChannel(RF_FREQ);
         needSaveEEP = 1;
     }
+#ifdef _DEBUG_MODE
     Printf("\r\nparse_vtx_config pwr:%bx, pit:%bx", nxt_pwr, fc_pit_rx);
+#endif
 
     //update pit
     if(fc_pit_rx != last_pit)
     {
         PIT_MODE = fc_pit_rx & 1;
+#ifdef _DEBUG_MODE
         Printf("\r\nPIT_MODE = %bx", PIT_MODE);
+#endif
         if(PIT_MODE)
         {
             DM6300_SetPower(POWER_MAX+1, RF_FREQ, pwr_offset);
@@ -876,11 +880,11 @@ void parseMspVtx_V2(uint16_t cmd_u16)
 
 uint8_t parse_displayport(uint8_t len)
 {
-    uint8_t row,col;
+    uint8_t row=0,col=0;
     uint8_t state_osd = MSP_OSD_SUBCMD;
     uint8_t ptr = 0;
     uint8_t ret = 0;
-    uint8_t page_extend;
+    uint8_t page_extend=0;
     
     while(ptr != 64){
         switch(state_osd){
@@ -1351,8 +1355,8 @@ void vtx_menu_init()
 {
     uint8_t i;
     uint8_t offset = (resolution == HD_5018) ? 8 : 0;
-    uint8_t hourString[4];
-    uint8_t minuteString[2];
+    EEPROM(pdata,uint8_t) hourString[4];
+    EEPROM(pdata,uint8_t) minuteString[2];
     
     disp_mode = DISPLAY_CMS;
     clear_screen();
@@ -1421,7 +1425,7 @@ void update_vtx_menu_param(uint8_t vtx_state)
     uint8_t i;
     uint8_t offset = (resolution == HD_5018) ? 8 : 0;
     uint8_t hourString[4];
-    uint8_t minuteString[2];
+    EEPROM(pdata,uint8_t) minuteString[2];
 
     //state
     for(i=0;i<7;i++){
@@ -1633,7 +1637,7 @@ void InitVtxTable()
 {
     uint8_t i,j;
     uint8_t crc;
-    uint8_t BandTable[6][31] = {
+    static EEPROM(xdata,uint8_t) BandTable[6][31] = {
         /*BOSCAM_A*/
         {/*0x24,0x4d,0x3c,*/0x1d,0xe3,0x01,0x08,'B','O','S','C','A','M','_','A','A',0x01,0x08,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,},
         /*BOSCAM_B*/
@@ -1647,15 +1651,15 @@ void InitVtxTable()
         /*IMD6*/
         {/*0x24,0x4d,0x3c,*/0x1d,0xe3,0x06,0x08,'I','M','D','6',' ',' ',' ',' ','I',0x01,0x08,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,},
     };
-    uint8_t PowerTable[5][9] = {
+    static EEPROM(pdata,uint8_t) PowerTable[5][9] = {
         {/*0x24,0x4d,0x3c,*/0x07,0xe4,0x01,0x0e,0x00,0x03,'2','5',' '},//25mW
         {/*0x24,0x4d,0x3c,*/0x07,0xe4,0x02,0x17,0x00,0x03,'2','0','0'},//200mW
         {/*0x24,0x4d,0x3c,*/0x07,0xe4,0x03,0x00,0x00,0x03,'0',' ',' '},//0mW
         {/*0x24,0x4d,0x3c,*/0x07,0xe4,0x04,0x00,0x00,0x03,'0',' ',' '},//0mW
         {/*0x24,0x4d,0x3c,*/0x07,0xe4,0x05,0x00,0x00,0x03,'0',' ',' '},//0mW
     };
-    uint8_t power500mW[9] = {0x07,0xe4,0x03,0x1b,0x00,0x03,'5','0','0'}; //500mW
-    uint8_t power1W[9]    = {0x07,0xe4,0x04,0x1e,0x00,0x03,'M','A','X'}; //MAX
+    static EEPROM(pdata,uint8_t) power500mW[9] = {0x07,0xe4,0x03,0x1b,0x00,0x03,'5','0','0'}; //500mW
+    static EEPROM(pdata,uint8_t) power1W[9]    = {0x07,0xe4,0x04,0x1e,0x00,0x03,'M','A','X'}; //MAX
     
     #ifdef _DEBUG_MODE
     Printf("\r\nInitVtxTable");

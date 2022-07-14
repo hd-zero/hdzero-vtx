@@ -88,7 +88,6 @@ void Timer1_isr(void) INTERRUPT(3)
 {
 }		 
 
-
 void Ext0_isr(void) INTERRUPT(0)
 {
 	int0_req = 1;

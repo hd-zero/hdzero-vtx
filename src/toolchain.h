@@ -13,11 +13,11 @@
 
 #define EEPROM(a,b) CONCAT(__,a) b
 #define EEPROM_2(a,b,c) CONCAT(__,a) b
-#define EEPROM_3(a,b) CONCAT(__,b) a
+#define EEPROM_3(a,b) a CONCAT(__,b)
 #define SFR(a,b) __sfr __at(b) a
 #define SBIT(a,b) __sbit __at(b) a
 #define BIT(a) __bit a
-#define INTERRUPT(x) __interrupt(x) __using(x)
+#define INTERRUPT(x) __interrupt x
 
 #else
 

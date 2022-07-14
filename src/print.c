@@ -1,11 +1,12 @@
-#include "common.h"
-#include "uart.h"
 #include "print.h"
+
+#ifdef _DEBUG_MODE
+
+#include "uart.h"
 
 uint16_t global_cnt;
 uint16_t global_value;
 
-#ifdef _DEBUG_MODE
 void DoPrint( const char CODE_P *fmt, va_list ap )
 {
 	char  ch;
@@ -151,18 +152,15 @@ void DoPrint( const char CODE_P *fmt, va_list ap )
 		}
 	}
 }
-#endif
 
 
-void Printf( const char CODE_P *fmt, ... )
+void Printf( const char *fmt, ... )
 {
-#ifdef _DEBUG_MODE
-	va_list ap;
+    va_list ap;
 
-	va_start(ap, fmt);
-	DoPrint( fmt, ap );
-	va_end( ap );
-#endif
+    va_start(ap, fmt);
+    DoPrint( fmt, ap );
+   va_end( ap );
 }
 
 /*void Puts( char *ptr )
@@ -170,3 +168,6 @@ void Printf( const char CODE_P *fmt, ... )
 	while(*ptr!='\0')
 		_outchar(*ptr++);
 }*/
+
+#endif
+

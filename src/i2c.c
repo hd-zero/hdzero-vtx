@@ -207,7 +207,9 @@ uint8_t RUNCAM_Write(uint8_t cam_id, uint32_t addr, uint32_t val)
     value = I2C_write_byte(cam_id);// slave
     if(value){
         I2C_stop();
+#ifdef _DEBUG_MODE
         Printf("\r\nerror");
+#endif
         return 1;
     }
     
