@@ -7,6 +7,7 @@
 #define XDATA_SEG __xdata
 
 #define SFR_DEF(name, loc) __sfr __at(loc) name
+#define SBIT_DEF(name, loc) __sbit __at(loc) name
 
 #else // Keil
 
@@ -14,6 +15,7 @@
 #define XDATA_SEG xdata
 
 #define SFR_DEF(name, loc) sfr name = loc
+#define SBIT_DEF(name, loc) sbit name = loc
 
 #endif
 

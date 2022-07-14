@@ -70,99 +70,99 @@ SFR_DEF(EIP,       0xF8);
 // Bit define
 
 /*  P0  */
-sbit P0_7     = P0^7;
-sbit P0_6     = P0^6;
-sbit P0_5     = P0^5;
-sbit P0_4     = P0^4;
-sbit P0_3     = P0^3;
-sbit P0_2     = P0^2;
-sbit P0_1     = P0^1;
-sbit P0_0     = P0^0;
+SBIT_DEF(P0_7,     P0^7);
+SBIT_DEF(P0_6,     P0^6);
+SBIT_DEF(P0_5,     P0^5);
+SBIT_DEF(P0_4,     P0^4);
+SBIT_DEF(P0_3,     P0^3);
+SBIT_DEF(P0_2,     P0^2);
+SBIT_DEF(P0_1,     P0^1);
+SBIT_DEF(P0_0,     P0^0);
 
 /*  P1  */
-sbit P1_7     = P1^7;
-sbit P1_6     = P1^6;
-sbit P1_5     = P1^5;
-sbit P1_4     = P1^4;
-sbit P1_3     = P1^3;
-sbit P1_2     = P1^2;
-sbit P1_1     = P1^1;
-sbit P1_0     = P1^0;
+SBIT_DEF(P1_7,     P1^7);
+SBIT_DEF(P1_6,     P1^6);
+SBIT_DEF(P1_5,     P1^5);
+SBIT_DEF(P1_4,     P1^4);
+SBIT_DEF(P1_3,     P1^3);
+SBIT_DEF(P1_2,     P1^2);
+SBIT_DEF(P1_1,     P1^1);
+SBIT_DEF(P1_0,     P1^0);
 
 /*  P2  */
-sbit P2_7     = P2^7;
-sbit P2_6     = P2^6;
-sbit P2_5     = P2^5;
-sbit P2_4     = P2^4;
-sbit P2_3     = P2^3;
-sbit P2_2     = P2^2;
-sbit P2_1     = P2^1;
-sbit P2_0     = P2^0;
+SBIT_DEF(P2_7,     P2^7);
+SBIT_DEF(P2_6,     P2^6);
+SBIT_DEF(P2_5,     P2^5);
+SBIT_DEF(P2_4,     P2^4);
+SBIT_DEF(P2_3,     P2^3);
+SBIT_DEF(P2_2,     P2^2);
+SBIT_DEF(P2_1,     P2^1);
+SBIT_DEF(P2_0,     P2^0);
 
 /*  P3  */
-sbit P3_7     = P3^7;
-sbit P3_6     = P3^6;
-sbit P3_5     = P3^5;
-sbit P3_4     = P3^4;
-sbit P3_3     = P3^3;
-sbit P3_2     = P3^2;
-sbit P3_1     = P3^1;
-sbit P3_0     = P3^0;
+SBIT_DEF(P3_7,     P3^7);
+SBIT_DEF(P3_6,     P3^6);
+SBIT_DEF(P3_5,     P3^5);
+SBIT_DEF(P3_4,     P3^4);
+SBIT_DEF(P3_3,     P3^3);
+SBIT_DEF(P3_2,     P3^2);
+SBIT_DEF(P3_1,     P3^1);
+SBIT_DEF(P3_0,     P3^0);
 
 /*  TCON  */
-sbit TF1      = TCON^7;
-sbit TR1      = TCON^6;
-sbit TF0      = TCON^5;
-sbit TR0      = TCON^4;
-sbit IE1      = TCON^3;
-sbit IT1      = TCON^2;
-sbit IE0      = TCON^1;
-sbit IT0      = TCON^0;
+SBIT_DEF(TF1,      TCON^7);
+SBIT_DEF(TR1,      TCON^6);
+SBIT_DEF(TF0,      TCON^5);
+SBIT_DEF(TR0,      TCON^4);
+SBIT_DEF(IE1,      TCON^3);
+SBIT_DEF(IT1,      TCON^2);
+SBIT_DEF(IE0,      TCON^1);
+SBIT_DEF(IT0,      TCON^0);
 
 /*  IE  */
-sbit EA       = IE^7;
-sbit ES1      = IE^6;
-sbit ET2      = IE^5;
-sbit ES0      = IE^4;
-sbit ET1      = IE^3;
-sbit EX1      = IE^2;
-sbit ET0      = IE^1;
-sbit EX0      = IE^0;
+SBIT_DEF(EA,       IE^7);
+SBIT_DEF(ES1,      IE^6);
+SBIT_DEF(ET2,      IE^5);
+SBIT_DEF(ES0,      IE^4);
+SBIT_DEF(ET1,      IE^3);
+SBIT_DEF(EX1,      IE^2);
+SBIT_DEF(ET0,      IE^1);
+SBIT_DEF(EX0,      IE^0);
 
 /*  IP  */
-sbit PS1      = IP^6;
-sbit PT2      = IP^5;
-sbit PS0      = IP^4;
-sbit PT1      = IP^3;
-sbit PX1      = IP^2;
-sbit PT0      = IP^1;
-sbit PX0      = IP^0;
+SBIT_DEF(PS1,      IP^6);
+SBIT_DEF(PT2,      IP^5);
+SBIT_DEF(PS0,      IP^4);
+SBIT_DEF(PT1,      IP^3);
+SBIT_DEF(PX1,      IP^2);
+SBIT_DEF(PT0,      IP^1);
+SBIT_DEF(PX0,      IP^0);
 
 /*  SCON0  */
-sbit SM0      = SCON0^7;
-sbit SM1      = SCON0^6;
-sbit SM2      = SCON0^5;
-sbit REN      = SCON0^4;
-sbit TB8      = SCON0^3;
-sbit RB8      = SCON0^2;
-sbit TI       = SCON0^1;
-sbit RI       = SCON0^0;
+SBIT_DEF(SM0,      SCON0^7);
+SBIT_DEF(SM1,      SCON0^6);
+SBIT_DEF(SM2,      SCON0^5);
+SBIT_DEF(REN,      SCON0^4);
+SBIT_DEF(TB8,      SCON0^3);
+SBIT_DEF(RB8,      SCON0^2);
+SBIT_DEF(TI,       SCON0^1);
+SBIT_DEF(RI,       SCON0^0);
 
 /*  SCON1  */
-sbit SM10     = SCON1^7;
-sbit SM11     = SCON1^6;
-sbit SM12     = SCON1^5;
-sbit REN1     = SCON1^4;
-sbit TB18     = SCON1^3;
-sbit RB18     = SCON1^2;
-sbit TI1      = SCON1^1;
-sbit RI1      = SCON1^0;
+SBIT_DEF(SM10,     SCON1^7);
+SBIT_DEF(SM11,     SCON1^6);
+SBIT_DEF(SM12,     SCON1^5);
+SBIT_DEF(REN1,     SCON1^4);
+SBIT_DEF(TB18,     SCON1^3);
+SBIT_DEF(RB18,     SCON1^2);
+SBIT_DEF(TI1,      SCON1^1);
+SBIT_DEF(RI1,      SCON1^0);
 
 /*  EIF  */
-//sbit INT6F    = EIF^4;
-//sbit INT5F    = EIF^3;
-//sbit INT4F    = EIF^2;
-//sbit INT3F    = EIF^1;
-//sbit INT2F    = EIF^0;
+//SBIT_DEF(INT6F,    EIF^4);
+//SBIT_DEF(INT5F,    EIF^3);
+//SBIT_DEF(INT4F,    EIF^2);
+//SBIT_DEF(INT3F,    EIF^1);
+//SBIT_DEF(INT2F,    EIF^0);
 
 #endif
