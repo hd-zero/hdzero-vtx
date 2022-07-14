@@ -11,5 +11,5 @@ void MonWrite(uint8_t mode);
 void MonRead(uint8_t mode);
 void chg_vtx(void);
 extern XDATA_SEG uint8_t   *argv[7];	
-extern bit verbose;
+extern BIT_TYPE verbose;
 #endif //_MONITOR_H_

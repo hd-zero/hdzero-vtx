@@ -21,8 +21,8 @@ XDATA_SEG uint8_t 			argc  = 0;		// command line cnt
 XDATA_SEG uint8_t 			last_argc = 0;
 
 XDATA_SEG uint8_t 			comment=0;
-bit			    echo  = 1;
-bit                verbose = 1;
+BIT_TYPE			    echo  = 1;
+BIT_TYPE                verbose = 1;
 
 
 #ifdef _DEBUG_MODE
