@@ -1476,8 +1476,8 @@ void camMenuDrawBracket(void)
             preset = 0;
     }
 
-    osd_buf[CAM_STATUS_PROFILE][offset+15] = ' ';
-    osd_buf[CAM_STATUS_PROFILE][offset+29] = ' ';
+    osd_buf[CAM_STATUS_PROFILE][offset+17] = '<';
+    osd_buf[CAM_STATUS_PROFILE][offset+29] = '>';
 
     if(preset == 0)
     {
@@ -1614,29 +1614,28 @@ void camMenuStringUpdate(uint8_t status)
     if(status > CAM_STATUS_SAVE_EXIT)
         return;
 
-    camMenuDrawBracket();
     //Profile
     if(cameraID == RUNCAM_MICRO_V1)
     {
         if(camProfile_Menu == 0)
-            strcpy(osd_buf[CAM_STATUS_PROFILE]+offset+19, "   MICRO V1");
+            strcpy(osd_buf[CAM_STATUS_PROFILE]+offset+18, "   MICRO V1");
         else
-            strcpy(osd_buf[CAM_STATUS_PROFILE]+offset+19, " MICRO V1 M");
+            strcpy(osd_buf[CAM_STATUS_PROFILE]+offset+18, " MICRO V1 M");
     }
     else
     {
         if(camProfile_Menu == 0)
-            strcpy(osd_buf[CAM_STATUS_PROFILE]+offset+19, "   MICRO V2");
+            strcpy(osd_buf[CAM_STATUS_PROFILE]+offset+18, "   MICRO V2");
         else if(camProfile_Menu == 1)
-            strcpy(osd_buf[CAM_STATUS_PROFILE]+offset+19, "    NANO V2");
+            strcpy(osd_buf[CAM_STATUS_PROFILE]+offset+18, "    NANO V2");
         else if(camProfile_Menu == 2)
-            strcpy(osd_buf[CAM_STATUS_PROFILE]+offset+19, "  NANO LITE");
+            strcpy(osd_buf[CAM_STATUS_PROFILE]+offset+18, "  NANO LITE");
         else if(camProfile_Menu == 3)
-            strcpy(osd_buf[CAM_STATUS_PROFILE]+offset+19, " MICRO V2 M");
+            strcpy(osd_buf[CAM_STATUS_PROFILE]+offset+18, " MICRO V2 M");
         else if(camProfile_Menu == 4)
-            strcpy(osd_buf[CAM_STATUS_PROFILE]+offset+19, "  NANO V2 M");
+            strcpy(osd_buf[CAM_STATUS_PROFILE]+offset+18, "  NANO V2 M");
         else if(camProfile_Menu == 5)
-            strcpy(osd_buf[CAM_STATUS_PROFILE]+offset+19, "NANO LITE M");
+            strcpy(osd_buf[CAM_STATUS_PROFILE]+offset+18, "NANO LITE M");
     }
 
     //Brightness
@@ -1714,4 +1713,6 @@ void camMenuStringUpdate(uint8_t status)
         uint8ToString(camCfg_Menu.wbBlue[camCfg_Menu.wbMode-1], Str);
         strcpy(osd_buf[CAM_STATUS_WBBLUE]+offset+24, Str);
     }
+
+    camMenuDrawBracket();
 }
