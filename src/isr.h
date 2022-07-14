@@ -10,7 +10,7 @@ extern uint8_t pwr_tflg;
 extern uint8_t cfg_tflg;
 extern uint8_t temp_tflg;
 extern uint16_t  seconds;
-extern RO_TYPE_REV(uint16_t, idata) timer_ms10x;
+extern EEPROM_3(uint16_t, idata) timer_ms10x;
 extern uint8_t timer_4hz;
 extern uint8_t timer_8hz;
 extern uint8_t timer_16hz;

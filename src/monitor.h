@@ -12,6 +12,6 @@ void Monitor(void);
 void MonWrite(uint8_t mode);
 void MonRead(uint8_t mode);
 void chg_vtx(void);
-extern RO_TYPE_2(C51_XDAT, uint8_t, C51_XDAT) *argv[7];
+extern EEPROM_2(C51_XDAT, uint8_t, C51_XDAT) *argv[7];
 extern BIT(verbose);
 #endif //_MONITOR_H_

@@ -14,12 +14,12 @@
 ///////////////////////////////////////////////
 // Global variables for this module only.
 // DO NOT TRY to use it outside the scope
-RO_TYPE(C51_XDAT, uint8_t) 			incnt = 0;		// in char count
-RO_TYPE(C51_XDAT, uint8_t) 			monstr[MAX_CMD_LEN];		// buffer for input string
-RO_TYPE_2(C51_XDAT, uint8_t, C51_XDAT)   *argv[7];		// command line arguments
-RO_TYPE(C51_XDAT, uint8_t) 			argc  = 0;		// command line cnt
-RO_TYPE(C51_XDAT, uint8_t) 			last_argc = 0;
-RO_TYPE(C51_XDAT, uint8_t) 			comment=0;
+EEPROM(C51_XDAT, uint8_t) 			incnt = 0;		// in char count
+EEPROM(C51_XDAT, uint8_t) 			monstr[MAX_CMD_LEN];		// buffer for input string
+EEPROM_2(C51_XDAT, uint8_t, C51_XDAT)   *argv[7];		// command line arguments
+EEPROM(C51_XDAT, uint8_t) 			argc  = 0;		// command line cnt
+EEPROM(C51_XDAT, uint8_t) 			last_argc = 0;
+EEPROM(C51_XDAT, uint8_t) 			comment=0;
 BIT(echo)  = 1;
 BIT(verbose) = 1;
 

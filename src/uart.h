@@ -43,19 +43,19 @@ uint8_t RS_rx1_len(void);
 uint8_t RS_rx1(void);
 
 extern BIT(RS_Xbusy);
-extern RO_TYPE(C51_XDAT, uint8_t) RS_buf[BUF_MAX];
+extern EEPROM(C51_XDAT, uint8_t) RS_buf[BUF_MAX];
 #ifdef EXTEND_BUF
-extern RO_TYPE(C51_XDAT, uint16_t) RS_in, RS_out;
+extern EEPROM(C51_XDAT, uint16_t) RS_in, RS_out;
 #else
-extern RO_TYPE(C51_XDAT, uint8_t) RS_in, RS_out;
+extern EEPROM(C51_XDAT, uint8_t) RS_in, RS_out;
 #endif
 
 extern BIT(RS_Xbusy1);
-extern RO_TYPE(C51_XDAT, uint8_t) RS_buf1[BUF1_MAX];
+extern EEPROM(C51_XDAT, uint8_t) RS_buf1[BUF1_MAX];
 #ifdef EXTEND_BUF1
-extern RO_TYPE(C51_XDAT, uint16_t) RS_in1, RS_out1;
+extern EEPROM(C51_XDAT, uint16_t) RS_in1, RS_out1;
 #else
-extern RO_TYPE(C51_XDAT, uint8_t) RS_in1, RS_out1;
+extern EEPROM(C51_XDAT, uint8_t) RS_in1, RS_out1;
 #endif
 
 #ifdef USE_SMARTAUDIO

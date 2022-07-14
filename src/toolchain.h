@@ -3,6 +3,7 @@
 
 #define XSTR(s) STR(s)
 #define STR(s) #s
+#define CONCAT(a,b) a ## b
 
 #ifdef SDCC
 
@@ -10,9 +11,9 @@
 #include <mcs51reg.h>
 #include <mcs51/msc1210.h>
 
-#define RO_TYPE(a,b) b
-#define RO_TYPE_2(a,b,c) b
-#define RO_TYPE_REV(a,b) a
+#define EEPROM(a,b) CONCAT(__,a) b
+#define EEPROM_2(a,b,c) CONCAT(__,a) b
+#define EEPROM_3(a,b) CONCAT(__,b) a
 #define SFR(a,b) __sfr __at(b) a
 #define SBIT(a,b) __sbit __at(b) a
 #define BIT(a) __bit a
@@ -20,9 +21,9 @@
 
 #else
 
-#define RO_TYPE(a,b) a b
-#define RO_TYPE_2(a,b,c) a b c
-#define RO_TYPE_REV(a,b) RO_TYPE(a,b)
+#define EEPROM(a,b) a b
+#define EEPROM_2(a,b,c) a b c
+#define EEPROM_3(a,b) EEPROM(a,b)
 #define SFR(a,b) sfr a = b
 #define SBIT(a,b) sbit a = b
 #define BIT(a) bit a

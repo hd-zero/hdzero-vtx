@@ -16,6 +16,8 @@ endif()
 
 # Compilation Flags
 set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_C_FLAGS "-c --model-large")
+set(CMAKE_C_LINK_FLAGS "--model-large")
 
 # Source Files
 file(GLOB_RECURSE SRCS CONFIGURE_DEPENDS src/*.c*)

@@ -14,7 +14,7 @@ uint8_t temp_tflg = 0;
 uint8_t timer_4hz = 0;
 uint8_t timer_8hz = 0;
 uint8_t timer_16hz = 0;
-RO_TYPE_REV(uint16_t, idata) timer_ms10x = 0;
+EEPROM_3(uint16_t, idata) timer_ms10x = 0;
 uint16_t seconds = 0;
 uint8_t RS0_ERR = 0;
 
