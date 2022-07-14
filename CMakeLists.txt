@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.5)
 project(hdzero-vtx C)
 
 # Project: Settings
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../bin")
 
 # Configurable Parameters
 if(CMAKE_BUILD_TYPE STREQUAL "")
@@ -15,11 +15,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "")
 endif()
 
 # Compilation Flags
-set(COMMON_FLAGS "-c --model-large")
-set(COMMON_DEBUG_FLAGS ${COMMON_FLAGS})
-set(COMMON_RELEASE_FLAGS ${COMMON_FLAGS})
-set(CMAKE_C_FLAGS_DEBUG ${COMMON_DEBUG_FLAGS})
-set(CMAKE_C_FLAGS_RELEASE ${COMMON_RELEASE_FLAGS})
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # Source Files
 file(GLOB_RECURSE SRCS CONFIGURE_DEPENDS src/*.c*)
