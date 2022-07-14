@@ -1,68 +1,70 @@
 #ifndef __SFR_DEF_H_
 #define __SFR_DEF_H_
 
+#include "toolchain.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 // SFR
 
-sfr P0        = 0x80;   /* Port 0                    */
-sfr SP        = 0x81;   /* Stack Pointer             */
-sfr DPL0      = 0x82;   /* Data Pointer 0 Low byte   */
-sfr DPH0      = 0x83;   /* Data Pointer 0 High byte  */
-sfr DPL1      = 0x84;   /* Data Pointer 1 Low byte   */
-sfr DPH1      = 0x85;   /* Data Pointer 1 High byte  */
-sfr DPS       = 0x86;
-sfr PCON      = 0x87;   /* Power Configuration       */
+SFR_DEF(P0,        0x80);   /* Port 0                    */
+SFR_DEF(SP,        0x81);   /* Stack Pointer             */
+SFR_DEF(DPL0,      0x82);   /* Data Pointer 0 Low byte   */
+SFR_DEF(DPH0,      0x83);   /* Data Pointer 0 High byte  */
+SFR_DEF(DPL1,      0x84);   /* Data Pointer 1 Low byte   */
+SFR_DEF(DPH1,      0x85);   /* Data Pointer 1 High byte  */
+SFR_DEF(DPS,       0x86);
+SFR_DEF(PCON,      0x87);   /* Power Configuration       */
 
-sfr TCON      = 0x88;   /* Timer 0,1 Configuration   */
-sfr TMOD      = 0x89;   /* Timer 0,1 Mode            */
-sfr TL0       = 0x8A;   /* Timer 0 Low byte counter  */
-sfr TL1       = 0x8B;   /* Timer 1 Low byte counter  */
-sfr TH0       = 0x8C;   /* Timer 0 High byte counter */
-sfr TH1       = 0x8D;   /* Timer 1 High byte counter */
-sfr CKCON     = 0x8E;   /* XDATA Wait States         */
+SFR_DEF(TCON,      0x88);   /* Timer 0,1 Configuration   */
+SFR_DEF(TMOD,      0x89);   /* Timer 0,1 Mode            */
+SFR_DEF(TL0,       0x8A);   /* Timer 0 Low byte counter  */
+SFR_DEF(TL1,       0x8B);   /* Timer 1 Low byte counter  */
+SFR_DEF(TH0,       0x8C);   /* Timer 0 High byte counter */
+SFR_DEF(TH1,       0x8D);   /* Timer 1 High byte counter */
+SFR_DEF(CKCON,     0x8E);   /* XDATA Wait States         */
 
-sfr P1        = 0x90;   /* Port 1                    */
-sfr EIF       = 0x91;
-sfr WTST      = 0x92;   /* Program Wait States       */
-sfr DPX0      = 0x93;   /* Data Page Pointer 0       */
-sfr DPX1      = 0x95;   /* Data Page Pointer 1       */
+SFR_DEF(P1,        0x90);   /* Port 1                    */
+SFR_DEF(EIF,       0x91);
+SFR_DEF(WTST,      0x92);   /* Program Wait States       */
+SFR_DEF(DPX0,      0x93);   /* Data Page Pointer 0       */
+SFR_DEF(DPX1,      0x95);   /* Data Page Pointer 1       */
 
-sfr SCON0     = 0x98;   /* Serial 0 Configuration    */
-sfr SBUF0     = 0x99;   /* Serial 0 I/O Buffer       */
+SFR_DEF(SCON0,     0x98);   /* Serial 0 Configuration    */
+SFR_DEF(SBUF0,     0x99);   /* Serial 0 I/O Buffer       */
 
-sfr P2        = 0xA0;   /* Port 2                    */
+SFR_DEF(P2,        0xA0);   /* Port 2                    */
 
-sfr IE        = 0xA8;   /* Interrupt Enable          */
+SFR_DEF(IE,        0xA8);   /* Interrupt Enable          */
 
-sfr P3        = 0xB0;   /* Port 3                    */
+SFR_DEF(P3,        0xB0);   /* Port 3                    */
 
-sfr IP        = 0xB8;
+SFR_DEF(IP,        0xB8);
 
-sfr SCON1     = 0xC0;   /* Serial 1 Configuration    */
-sfr SBUF1     = 0xC1;   /* Serial 1 I/O Buffer       */
+SFR_DEF(SCON1,     0xC0);   /* Serial 1 Configuration    */
+SFR_DEF(SBUF1,     0xC1);   /* Serial 1 I/O Buffer       */
 
-sfr T2CON     = 0xC8;
-sfr T2IF      = 0xC9;
-sfr RLDL      = 0xCA;
-sfr RLDH      = 0xCB;
-sfr TL2       = 0xCC;
-sfr TH2       = 0xCD;
-sfr CCEN      = 0xCE;
+SFR_DEF(T2CON,     0xC8);
+SFR_DEF(T2IF,      0xC9);
+SFR_DEF(RLDL,      0xCA);
+SFR_DEF(RLDH,      0xCB);
+SFR_DEF(TL2,       0xCC);
+SFR_DEF(TH2,       0xCD);
+SFR_DEF(CCEN,      0xCE);
 
-sfr PSW       = 0xD0;   /* Program Status Word       */
+SFR_DEF(PSW,       0xD0);   /* Program Status Word       */
 
-sfr WDCON     = 0xD8;
+SFR_DEF(WDCON,     0xD8);
 
-sfr ACC       = 0xE0;   /* Accumulator               */
+SFR_DEF(ACC,       0xE0);   /* Accumulator               */
 
-sfr EIE       = 0xE8;   /* External Interrupt Enable */
-sfr STATUS    = 0xE9;   /* Status register           */
-sfr MXAX      = 0xEA;   /* MOVX @Ri High address     */
-sfr TA        = 0xEB;
+SFR_DEF(EIE,       0xE8);   /* External Interrupt Enable */
+SFR_DEF(STATUS,    0xE9);   /* Status register           */
+SFR_DEF(MXAX,      0xEA);   /* MOVX @Ri High address     */
+SFR_DEF(TA,        0xEB);
 
-sfr B         = 0xF0;   /* B Working register        */
+SFR_DEF(B,         0xF0);   /* B Working register        */
 
-sfr EIP       = 0xF8;
+SFR_DEF(EIP,       0xF8);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Bit define
