@@ -460,12 +460,12 @@ uint8_t get_tx_data_osd(uint8_t index) //prepare osd+data to VTX
     
     }
     */
-    EEPROM(pdata,uint8_t) mask[7] = {0};
+    uint8_t mask[7] = {0};
     uint8_t i,t1;
     uint8_t ptr;
     uint8_t hmax;
     uint8_t len_mask;
-    EEPROM(pdata,uint8_t) page[7] = {0};
+    uint8_t page[7] = {0};
     uint8_t page_byte = 0;
     uint8_t num = 0;
     
@@ -1355,8 +1355,8 @@ void vtx_menu_init()
 {
     uint8_t i;
     uint8_t offset = (resolution == HD_5018) ? 8 : 0;
-    EEPROM(pdata,uint8_t) hourString[4];
-    EEPROM(pdata,uint8_t) minuteString[2];
+    static EEPROM(pdata,uint8_t) hourString[4];
+    static EEPROM(pdata,uint8_t) minuteString[2];
     
     disp_mode = DISPLAY_CMS;
     clear_screen();
@@ -1425,7 +1425,7 @@ void update_vtx_menu_param(uint8_t vtx_state)
     uint8_t i;
     uint8_t offset = (resolution == HD_5018) ? 8 : 0;
     uint8_t hourString[4];
-    EEPROM(pdata,uint8_t) minuteString[2];
+    static EEPROM(pdata,uint8_t) minuteString[2];
 
     //state
     for(i=0;i<7;i++){
@@ -1658,9 +1658,12 @@ void InitVtxTable()
         {/*0x24,0x4d,0x3c,*/0x07,0xe4,0x04,0x00,0x00,0x03,'0',' ',' '},//0mW
         {/*0x24,0x4d,0x3c,*/0x07,0xe4,0x05,0x00,0x00,0x03,'0',' ',' '},//0mW
     };
+
+#if defined(VTX_L) || defined(VTX_M)
     static EEPROM(pdata,uint8_t) power500mW[9] = {0x07,0xe4,0x03,0x1b,0x00,0x03,'5','0','0'}; //500mW
     static EEPROM(pdata,uint8_t) power1W[9]    = {0x07,0xe4,0x04,0x1e,0x00,0x03,'M','A','X'}; //MAX
-    
+#endif
+
     #ifdef _DEBUG_MODE
     Printf("\r\nInitVtxTable");
     #endif
