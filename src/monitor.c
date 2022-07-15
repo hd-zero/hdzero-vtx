@@ -22,8 +22,8 @@ XDATA_SEC uint8_t *argv[7];		// command line arguments
 XDATA_SEC uint8_t argc  = 0;		// command line cnt
 XDATA_SEC uint8_t last_argc = 0;
 XDATA_SEC uint8_t comment=0;
-BIT echo  = 1;
-BIT verbose = 1;
+BIT_TYPE echo  = 1;
+BIT_TYPE verbose = 1;
 
 void MonHelp(void)
 {
