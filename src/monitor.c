@@ -1,9 +1,11 @@
-#include "common.h"
+#include "monitor.h"
+
+#ifdef _DEBUG_MODE
+
 #include "sfr_ext.h"
 #include "uart.h"
 #include "print.h"
 #include "global.h"
-#include "monitor.h"
 #include "hardware.h"
 #include "i2c.h"
 #include "i2c_device.h"
@@ -14,18 +16,15 @@
 ///////////////////////////////////////////////
 // Global variables for this module only.
 // DO NOT TRY to use it outside the scope
-C51_XDAT uint8_t 			incnt = 0;		// in char count
-C51_XDAT uint8_t 			monstr[MAX_CMD_LEN];		// buffer for input string
-C51_XDAT uint8_t C51_XDAT   *argv[7];		// command line arguments
-C51_XDAT uint8_t 			argc  = 0;		// command line cnt
-C51_XDAT uint8_t 			last_argc = 0;
+EEPROM(xdata, uint8_t) 		incnt = 0;		// in char count
+EEPROM(xdata, uint8_t) 	        monstr[MAX_CMD_LEN];		// buffer for input string
+EEPROM_2(xdata, uint8_t, xdata) *argv[7];		// command line arguments
+EEPROM(xdata, uint8_t) 		argc  = 0;		// command line cnt
+EEPROM(xdata, uint8_t) 		last_argc = 0;
+EEPROM(xdata, uint8_t) 		comment=0;
+BIT(echo)  = 1;
+BIT(verbose) = 1;
 
-C51_XDAT uint8_t 			comment=0;
-		 bit			    echo  = 1;
-         bit                verbose = 1;
-
-
-#ifdef _DEBUG_MODE
 void MonHelp(void)
 {
     Printf("\r\nUsage: ");
@@ -48,9 +47,7 @@ void MonHelp(void)
     Printf("\r\n   h                : Help");
     Printf("\r\n");
 }
-#endif
 
-#ifdef _DEBUG_MODE
 uint8_t MonGetCommand(void)
 {
 	uint8_t i, ch;
@@ -157,10 +154,7 @@ uint8_t MonGetCommand(void)
 		return ret;
 	}
 }
-#endif
 
-
-#ifdef _DEBUG_MODE
 void MonEE(uint8_t op, uint8_t d)
 {
     uint8_t val;
@@ -200,12 +194,10 @@ void MonEE(uint8_t op, uint8_t d)
     
     DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
 }
-#endif
 
 
 void Monitor(void)
 {
-#ifdef _DEBUG_MODE
 	if( !MonGetCommand() ) return;
 
 	if( !stricmp( argv[0], "w" ) )
@@ -322,11 +314,8 @@ void Monitor(void)
 		Printf("\r\nInvalid Command...");
 
 	Prompt();
-#endif
 }
 
-
-#ifdef _DEBUG_MODE
 void MonWrite(uint8_t mode)
 {
 	uint16_t addr;
@@ -456,5 +445,6 @@ void chg_vtx(void)
         Printf("\r\nVTX Pattern, channel = %d,power = %d,FPS = 1",(uint16_t)RF_FREQ, (uint16_t)RF_POWER);
     }
 }
+
 #endif
 

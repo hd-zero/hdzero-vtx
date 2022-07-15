@@ -3,7 +3,7 @@
 #include "global.h"
 #include "uart.h"
 #include "print.h"
-#include "Monitor.h"
+#include "monitor.h"
 #include "isr.h"
 #include "hardware.h"
 #include "i2c.h"
@@ -199,7 +199,7 @@ void CFG_Back()
 
 void GetVtxParameter()
 {
-    unsigned char code *ptr = 0xFFE8;
+    EEPROM_3(unsigned char, code) *ptr = 0xFFE8;
     uint8_t i, j;
     uint8_t tab[FREQ_MAX+1][POWER_MAX+1];
     uint8_t flash_vld = 1;
@@ -763,7 +763,9 @@ void PwrLMT()
                                 p = table_power[RF_FREQ][3];
                             }else{
                                 p += 0x4;
+#ifdef _DEBUG_MODE
                                 Printf("\r\npwr_plus 2dbm,p=%bx",(uint8_t)p);
+#endif
                             }
                             
                             SPI_Write(0x3, 0xD1C, 0x00000000, (uint32_t)p);
@@ -785,8 +787,8 @@ void PwrLMT()
                         
                         #ifdef _DEBUG_MODE
                         Printf("\r\nPower limit done.");
-                        #endif
                         Prompt();
+                        #endif
                     }
                 }
             }
@@ -838,7 +840,9 @@ void PwrLMT()
                                     p = table_power[RF_FREQ][3];
                                 else{ 
                                     p += 0x4;
+#ifdef _DEBUG_MODE
                                     Printf("\r\npwr_plus 2dbm,p=%bx",(uint8_t)p + pwr_offset);
+#endif
                                 }
                                 SPI_Write(0x3, 0xD1C, 0x00000000, (uint32_t)(p+pwr_offset)); //digital offset
                                 SPI_Write(0x3, 0x330, 0x00000000, 0x31F); // analog offset 1W
@@ -859,8 +863,8 @@ void PwrLMT()
                             
                             #ifdef _DEBUG_MODE
                             Printf("\r\nPower limit done.");
-                            #endif
                             Prompt();
+                            #endif
                         }
                     }
                 }
@@ -948,7 +952,9 @@ void Imp_RF_Param()
 
 void Button1_SP()
 {
+#ifdef _DEBUG_MODE
     Printf("\r\nButton1_SP.");
+#endif
     cfg_to_cnt = 0;
     switch(cfg_step){
         case 0:
@@ -1186,8 +1192,8 @@ void CFGTimeout()
                 Init_MAX7315(0xFF);
                 #ifdef _DEBUG_MODE
                 Printf("\r\nCFG Timeout.");
-                #endif
                 Prompt();
+                #endif
             }
         }
     }
