@@ -26,8 +26,8 @@
 #define BIT_TYPE bit 
 #define INTERRUPT interrupt
 
-#define SFR(name, loc) sfr name = loc
-#define SBIT(name, loc) sbit name = loc
+#define SFR_DEF(name, loc) sfr name = loc
+#define SBIT_DEF(name, loc) sbit name = loc
 
 #endif
 
