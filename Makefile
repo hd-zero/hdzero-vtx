@@ -32,8 +32,8 @@ SRCS= \
   src/vtx_r.c \
   src/vtx_s.c
 
-_MAKE_BUILD_DIR:=$(shell mkdir -p build bin)
-OBJ_PATHS=$(subst src/,build/,$(SRCS))
+_MAKE_BUILD_DIR:=$(shell mkdir -p obj bin)
+OBJ_PATHS=$(subst src/,obj/,$(SRCS))
 OBJS=$(subst .c,.rel,$(OBJ_PATHS))
 
 all: $(TARGET).bin
@@ -49,11 +49,11 @@ $(TARGET).ihx: $(OBJS)
 	$(MAKEBIN) -s 65536 -p $< $@
 	$(MV) $(TARGET).* bin/
 
-$(OBJS): build/%.rel : src/%.c
-	$(CC) $(CFLAGS) -o build/ -c $<
+$(OBJS): obj/%.rel : src/%.c
+	$(CC) $(CFLAGS) -o obj/ -c $<
 
 clean:
-	$(RM) -rf build/ $(TARGET).*
+	$(RM) -rf obj $(TARGET).*
 
 cleanall: clean
-	$(RM) -f bin/$(TARGET).*
+	$(RM) -rf bin
