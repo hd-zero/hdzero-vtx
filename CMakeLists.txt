@@ -16,14 +16,13 @@ endif()
 
 # Compilation Flags
 set(CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_C_FLAGS "--model-large")
+set(CMAKE_C_FLAGS "--model-large --stack-auto")
 set(CMAKE_EXE_LINKER_FLAGS "--model-large")
 
 # Source Files
 file(GLOB_RECURSE SRCS CONFIGURE_DEPENDS src/*.c*)
 
 # Platform Attributes
-set(BINARY_SUFFIX ".hex")
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(INCLUDE_PATHS "")
   set(LIBRARY_PATHS
@@ -56,7 +55,13 @@ add_executable(${PROJECT_NAME}
 # Target: Attributes
 set_target_properties(
   ${PROJECT_NAME}
-    PROPERTIES 
-      SUFFIX "${BINARY_SUFFIX}"
+    PROPERTIES
+      SUFFIX ".hex"
+)
+
+add_custom_command(
+    TARGET ${PROJECT_NAME}
+    POST_BUILD
+    COMMAND ${CMAKE_OBJCOPY} -Iihex -Obinary ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}.hex ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}.bin
 )
 
