@@ -1,3 +1,6 @@
+#pragma save
+#pragma stackauto
+
 #include "camera.h"
 #include "i2c_device.h"
 #include "global.h"
@@ -1718,3 +1721,4 @@ void camMenuStringUpdate(uint8_t status)
 
     camMenuDrawBracket();
 }
+#pragma restore
