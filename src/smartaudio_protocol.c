@@ -1,4 +1,3 @@
-#include "common.h"
 #include "isr.h"
 #include "global.h"
 #include "uart.h"

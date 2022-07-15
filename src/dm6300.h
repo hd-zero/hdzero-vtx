@@ -1,7 +1,7 @@
 #ifndef _DM6300_H_
 #define _DM6300_H_
 
-#include "common.h"
+#include "hdzero.h"
 
 #ifdef VTX_L
 	#define PIT_POWER 0x18  //2dbm

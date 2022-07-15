@@ -1,7 +1,7 @@
 #ifndef _MONITOR_H_
 #define _MONITOR_H_
 
-#include "common.h"
+#include "hdzero.h"
 
 #ifdef _DEBUG_MODE
 

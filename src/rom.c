@@ -1,4 +1,5 @@
-#include "common.h"
+#include "hdzero.h"
+
 #include "rom.h"
 #include "uart.h"
 #include "hardware.h"

@@ -1,7 +1,7 @@
 #ifndef __UART_H__
 #define __UART_H__
 
-#include "common.h"
+#include "hdzero.h"
 
 //#define DEBUG_SA
 
@@ -15,7 +15,6 @@
 #else
 #define  BUF1_MAX       255     //30
 #endif
-#include "common.h"
 
 #define RS_tx(c)  while(1) { if( !RS_Xbusy  ) { SBUF0 = c; RS_Xbusy = 1;  break; } }
 #define RS_tx1(c) while(1) { if( !RS_Xbusy1 ) { SBUF1 = c; RS_Xbusy1 = 1; break; } }

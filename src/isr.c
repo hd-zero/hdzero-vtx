@@ -1,4 +1,5 @@
-#include "common.h"
+#include "hdzero.h"
+
 #include "global.h"
 #include "uart.h"
 #include "isr.h"

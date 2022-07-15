@@ -1,8 +1,8 @@
 #ifndef __HARDWARE_H_
 #define __HARDWARE_H_
 
-#include "stdint.h"
-#include "common.h"
+#include "hdzero.h"
+
 #include "i2c.h"
 #include "i2c_device.h"
 

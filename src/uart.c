@@ -1,4 +1,5 @@
-#include "common.h"
+#include "hdzero.h"
+
 #include "uart.h"
 #include "print.h"
 #include "smartaudio_protocol.h"

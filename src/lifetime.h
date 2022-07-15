@@ -1,6 +1,8 @@
 #ifndef __LIFETIME_H__
 #define __LIFETIME_H__
-#include "common.h"
+
+#include "hdzero.h"
+
 #include "i2c.h"
 #include "hardware.h"
 #include "isr.h"

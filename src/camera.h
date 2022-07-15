@@ -1,7 +1,7 @@
 #ifndef __CAMERA_H_
 #define __CAMERA_H_
-#include <stdint.h>
-#include "common.h"
+
+#include "hdzero.h"
 
 #ifdef _DEBUG_MODE
 //#define _DEBUG_CAMERA

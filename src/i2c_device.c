@@ -1,4 +1,5 @@
-#include "common.h"
+#include "hdzero.h"
+
 #include "i2c.h"
 #include "i2c_device.h"
 #include "print.h"

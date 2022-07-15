@@ -1,7 +1,7 @@
 #ifndef _SMARTAUDIO_PROTOCOL_H_
 #define _SMARTAUDIO_PROTOCOL_H_
 
-#include "common.h"
+#include "hdzero.h"
 
 #ifdef USE_SMARTAUDIO
 

@@ -1,4 +1,5 @@
-#include "common.h"
+#include "hdzero.h"
+
 #include "spi.h"
 #include "print.h"
 #include "global.h"

@@ -1,7 +1,7 @@
 #ifndef __SFR_EXT_H_
 #define __SFR_EXT_H_
 
-#include "toolchain.h"
+#include "hdzero.h"
 
 SFR_DEF(SFR_CMD,     0xB9);
 SFR_DEF(SFR_DATA,    0xBA);

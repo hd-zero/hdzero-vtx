@@ -1,7 +1,7 @@
 #ifndef __I2C_DEVICE_H_
 #define __I2C_DEVICE_H_
 
-#include "common.h"
+#include "hdzero.h"
 
 #define ADDR_MAX7315    0x20
 #define ADDR_PCA9554    0x38

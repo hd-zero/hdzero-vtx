@@ -1,7 +1,7 @@
 #ifndef  _IRS_H_
 #define _IRS_H_
 
-#include "common.h"
+#include "hdzero.h"
 
 extern uint8_t btn1_tflg;
 extern uint8_t pwr_sflg;

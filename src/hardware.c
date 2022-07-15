@@ -1,4 +1,5 @@
-#include "common.h"
+#include "hdzero.h"
+
 #include "sfr_ext.h"
 #include "global.h"
 #include "uart.h"
