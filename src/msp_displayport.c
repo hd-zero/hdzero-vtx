@@ -43,7 +43,7 @@ uint8_t fc_lock = 0;
 uint8_t disp_mode;  //DISPLAY_OSD | DISPLAY_CMS;
 uint8_t osd_ready;
 
-EEPROM(pdata,uint8_t) fc_variant[4] = {"BTFL"};
+PDATA_SEG uint8_t fc_variant[4] = {"BTFL"};
 uint8_t fontType = 0x00;
 uint8_t resolution = SD_3016;
 uint8_t resolution_last = HD_5018;
@@ -1355,8 +1355,8 @@ void vtx_menu_init()
 {
     uint8_t i;
     uint8_t offset = (resolution == HD_5018) ? 8 : 0;
-    static EEPROM(pdata,uint8_t) hourString[4];
-    static EEPROM(pdata,uint8_t) minuteString[2];
+    static PDATA_SEG uint8_t hourString[4];
+    static PDATA_SEG uint8_t minuteString[2];
     
     disp_mode = DISPLAY_CMS;
     clear_screen();
@@ -1425,7 +1425,7 @@ void update_vtx_menu_param(uint8_t vtx_state)
     uint8_t i;
     uint8_t offset = (resolution == HD_5018) ? 8 : 0;
     uint8_t hourString[4];
-    static EEPROM(pdata,uint8_t) minuteString[2];
+    static PDATA_SEG uint8_t minuteString[2];
 
     //state
     for(i=0;i<7;i++){
@@ -1637,7 +1637,7 @@ void InitVtxTable()
 {
     uint8_t i,j;
     uint8_t crc;
-    static EEPROM(xdata,uint8_t) BandTable[6][31] = {
+    static XDATA_SEG uint8_t BandTable[6][31] = {
         /*BOSCAM_A*/
         {/*0x24,0x4d,0x3c,*/0x1d,0xe3,0x01,0x08,'B','O','S','C','A','M','_','A','A',0x01,0x08,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,},
         /*BOSCAM_B*/
@@ -1651,7 +1651,7 @@ void InitVtxTable()
         /*IMD6*/
         {/*0x24,0x4d,0x3c,*/0x1d,0xe3,0x06,0x08,'I','M','D','6',' ',' ',' ',' ','I',0x01,0x08,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,},
     };
-    static EEPROM(pdata,uint8_t) PowerTable[5][9] = {
+    static PDATA_SEG uint8_t PowerTable[5][9] = {
         {/*0x24,0x4d,0x3c,*/0x07,0xe4,0x01,0x0e,0x00,0x03,'2','5',' '},//25mW
         {/*0x24,0x4d,0x3c,*/0x07,0xe4,0x02,0x17,0x00,0x03,'2','0','0'},//200mW
         {/*0x24,0x4d,0x3c,*/0x07,0xe4,0x03,0x00,0x00,0x03,'0',' ',' '},//0mW
@@ -1660,8 +1660,8 @@ void InitVtxTable()
     };
 
 #if defined(VTX_L) || defined(VTX_M)
-    static EEPROM(pdata,uint8_t) power500mW[9] = {0x07,0xe4,0x03,0x1b,0x00,0x03,'5','0','0'}; //500mW
-    static EEPROM(pdata,uint8_t) power1W[9]    = {0x07,0xe4,0x04,0x1e,0x00,0x03,'M','A','X'}; //MAX
+    static PDATA_SEG uint8_t power500mW[9] = {0x07,0xe4,0x03,0x1b,0x00,0x03,'5','0','0'}; //500mW
+    static PDATA_SEG uint8_t power1W[9]    = {0x07,0xe4,0x04,0x1e,0x00,0x03,'M','A','X'}; //MAX
 #endif
 
     #ifdef _DEBUG_MODE

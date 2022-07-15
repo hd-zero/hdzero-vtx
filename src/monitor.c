@@ -16,14 +16,14 @@
 ///////////////////////////////////////////////
 // Global variables for this module only.
 // DO NOT TRY to use it outside the scope
-EEPROM(xdata, uint8_t) 		incnt = 0;		// in char count
-EEPROM(xdata, uint8_t) 	        monstr[MAX_CMD_LEN];		// buffer for input string
-EEPROM_2(xdata, uint8_t, xdata) *argv[7];		// command line arguments
-EEPROM(xdata, uint8_t) 		argc  = 0;		// command line cnt
-EEPROM(xdata, uint8_t) 		last_argc = 0;
-EEPROM(xdata, uint8_t) 		comment=0;
-BIT(echo)  = 1;
-BIT(verbose) = 1;
+XDATA_SEC uint8_t incnt = 0;		// in char count
+XDATA_SEC uint8_t monstr[MAX_CMD_LEN];		// buffer for input string
+XDATA_SEC uint8_t *argv[7];		// command line arguments
+XDATA_SEC uint8_t argc  = 0;		// command line cnt
+XDATA_SEC uint8_t last_argc = 0;
+XDATA_SEC uint8_t comment=0;
+BIT echo  = 1;
+BIT verbose = 1;
 
 void MonHelp(void)
 {

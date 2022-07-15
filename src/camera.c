@@ -11,15 +11,15 @@ uint8_t cameraID = 0;
 uint8_t camProfile_EEP;
 uint8_t camProfile;
 uint8_t camProfile_Menu;
-EEPROM(pdata,cameraConfig_t) camCfg;
-EEPROM(pdata,cameraConfig_t) camCfg_Menu;
-EEPROM(pdata,cameraConfig_t) camCfg_Cur;
-EEPROM(pdata,cameraConfig_t) camCfg_EEP[RUNCAM_PROFILE_M_TYPE];
+PDATA_SEG cameraConfig_t camCfg;
+PDATA_SEG cameraConfig_t camCfg_Menu;
+PDATA_SEG cameraConfig_t camCfg_Cur;
+PDATA_SEG cameraConfig_t camCfg_EEP[RUNCAM_PROFILE_M_TYPE];
 
 // {brightness, sharpness, saturation, contrast, hvFlip, nightMode, wbMode,
 //  wbRed[0], wbRed[1], wbRed[2], wbRed[3],
 //  wbBlue[0], wbBlue[1], wbBlue[2], wbBlue[3],}
-const EEPROM(pdata,uint8_t) camParameterInit[RUNCAM_PROFILE_M_TYPE][15] = 
+const PDATA_SEG uint8_t camParameterInit[RUNCAM_PROFILE_M_TYPE][15] = 
 {
     //Micro V1
     {0x80, 0x01, 0x03, 0x01, 0x00, 0x01, 0x00,

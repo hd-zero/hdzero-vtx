@@ -4,8 +4,8 @@
 #include "isr.h"
 #include "uart.h"
 
-BIT(int0_req) = 0;
-BIT(int1_req) = 0;
+BIT int0_req = 0;
+BIT int1_req = 0;
 uint8_t btn1_tflg = 0;
 uint8_t pwr_sflg = 0;    //power autoswitch flag
 uint8_t pwr_tflg = 0;
@@ -14,7 +14,7 @@ uint8_t temp_tflg = 0;
 uint8_t timer_4hz = 0;
 uint8_t timer_8hz = 0;
 uint8_t timer_16hz = 0;
-EEPROM_3(uint16_t, idata) timer_ms10x = 0;
+IDATA_SEG uint16_t timer_ms10x = 0;
 uint16_t seconds = 0;
 uint8_t RS0_ERR = 0;
 
@@ -66,7 +66,7 @@ void CPU_init(void)
     
 }
 
-void Timer0_isr(void) INTERRUPT(1)
+void Timer0_isr(void) INTERRUPT 1
 {
     TH0 = 138;
 
@@ -84,21 +84,21 @@ void Timer0_isr(void) INTERRUPT(1)
     timer_ms10x++;
 }
 
-void Timer1_isr(void) INTERRUPT(3)
+void Timer1_isr(void) INTERRUPT 3
 {
 }		 
 
-void Ext0_isr(void) INTERRUPT(0)
+void Ext0_isr(void) INTERRUPT 0
 {
 	int0_req = 1;
 }
 
-void Ext1_isr(void) INTERRUPT(2)
+void Ext1_isr(void) INTERRUPT 2
 {
 	int1_req = 1;
 }
 
-void UART0_isr() INTERRUPT(4)
+void UART0_isr() INTERRUPT 4
 {
 	if( RI ) {			//RX int
 		RI = 0;
@@ -113,7 +113,7 @@ void UART0_isr() INTERRUPT(4)
 	}
 }
 
-void UART1_isr() INTERRUPT(6)
+void UART1_isr() INTERRUPT 6
 {
     
 	if( RI1 ) {			//RX int

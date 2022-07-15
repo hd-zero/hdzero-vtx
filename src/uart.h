@@ -1,7 +1,6 @@
 #ifndef __UART_H__
 #define __UART_H__
 
-#include "toolchain.h"
 #include "common.h"
 
 //#define DEBUG_SA
@@ -43,20 +42,20 @@ uint8_t RS_rx1_len(void);
 
 uint8_t RS_rx1(void);
 
-extern BIT(RS_Xbusy);
-extern EEPROM(xdata, uint8_t) RS_buf[BUF_MAX];
+extern BIT RS_Xbusy;
+extern XDATA_SEG uint8_t RS_buf[BUF_MAX];
 #ifdef EXTEND_BUF
-extern EEPROM(xdata, uint16_t) RS_in, RS_out;
+extern XDATA_SEG uint16_t RS_in, RS_out;
 #else
-extern EEPROM(xdata, uint8_t) RS_in, RS_out;
+extern XDATA_SEG uint8_t RS_in, RS_out;
 #endif
 
-extern BIT(RS_Xbusy1);
-extern EEPROM(xdata, uint8_t) RS_buf1[BUF1_MAX];
+extern BIT RS_Xbusy1;
+extern XDATA_SEG uint8_t RS_buf1[BUF1_MAX];
 #ifdef EXTEND_BUF1
-extern EEPROM(xdata, uint16_t) RS_in1, RS_out1;
+extern XDATA_SEG uint16_t RS_in1, RS_out1;
 #else
-extern EEPROM(xdata, uint8_t) RS_in1, RS_out1;
+extern XDATA_SEG uint8_t RS_in1, RS_out1;
 #endif
 
 #ifdef USE_SMARTAUDIO
