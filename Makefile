@@ -3,7 +3,7 @@ RM=rm
 MV=mv
 PACKIHX=packihx
 MAKEBIN=makebin
-TARGET?=VTX_R
+TARGET?=VTX_S
 
 SDCC_OPTS:=--model-large --stack-auto
 CFLAGS=$(SDCC_OPTS) -D$(TARGET)
@@ -26,7 +26,11 @@ SRCS= \
   src/sfr_ext.c \
   src/smartaudio_protocol.c \
   src/spi.c \
-  src/uart.c
+  src/uart.c \
+  src/vtx_wl.c \
+  src/vtx_l.c \
+  src/vtx_r.c \
+  src/vtx_s.c
 
 _MAKE_BUILD_DIR:=$(shell mkdir -p build bin)
 OBJ_PATHS=$(subst src/,build/,$(SRCS))
@@ -49,7 +53,7 @@ $(OBJS): build/%.rel : src/%.c
 	$(CC) $(CFLAGS) -o build/ -c $<
 
 clean:
-	$(RM) -rf build/ bin/
+	$(RM) -rf build/ $(TARGET).*
 
-distclean: clean
-	$(RM) -f $(TARGET).* bin/$(TARGET).*
+cleanall: clean
+	$(RM) -f bin/$(TARGET).*

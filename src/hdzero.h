@@ -1,5 +1,5 @@
-#ifndef _COMMON_H_
-#define _COMMON_H_
+#ifndef _HDZERO_H_
+#define _HDZERO_H_
 
 #include <stdint.h>
 #include <string.h>
@@ -7,16 +7,9 @@
 #include "toolchain.h"
 #include "sfr_def.h"
 #include "sfr_ext.h"
-#include "toolchain.h"
 
 #define VERSION 0x41
 #define BETA 0x03
-
-// target
-//#define VTX_L
-//#define VTX_WL
-#define VTX_S
-//#define VTX_R
 
 // system
 #define assert(c)
