@@ -3,6 +3,8 @@
 
 #ifdef _DEBUG_MODE
 
+#include "stdarg.h"
+
 void Printf(const char *fmt, ...);
 
 #endif

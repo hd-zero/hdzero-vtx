@@ -16,12 +16,12 @@
 ///////////////////////////////////////////////
 // Global variables for this module only.
 // DO NOT TRY to use it outside the scope
-XDATA_SEC uint8_t incnt = 0;		// in char count
-XDATA_SEC uint8_t monstr[MAX_CMD_LEN];		// buffer for input string
-XDATA_SEC uint8_t *argv[7];		// command line arguments
-XDATA_SEC uint8_t argc  = 0;		// command line cnt
-XDATA_SEC uint8_t last_argc = 0;
-XDATA_SEC uint8_t comment=0;
+XDATA_SEG uint8_t incnt = 0;		// in char count
+XDATA_SEG uint8_t monstr[MAX_CMD_LEN];		// buffer for input string
+XDATA_SEG uint8_t *argv[7];		// command line arguments
+XDATA_SEG uint8_t argc  = 0;		// command line cnt
+XDATA_SEG uint8_t last_argc = 0;
+XDATA_SEG uint8_t comment=0;
 BIT_TYPE echo  = 1;
 BIT_TYPE verbose = 1;
 

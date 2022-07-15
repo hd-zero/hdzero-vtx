@@ -7,7 +7,7 @@
 uint16_t global_cnt;
 uint16_t global_value;
 
-void DoPrint( const char CODE_P *fmt, va_list ap )
+void DoPrint( const char *fmt, va_list ap )
 {
 	char  ch;
 	char  i;

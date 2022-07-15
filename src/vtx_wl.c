@@ -1,5 +1,2 @@
-#ifdef VTX_WL
+#include "vtx.h"
 
-#include "vtx_wl.h"
-
-#endif
