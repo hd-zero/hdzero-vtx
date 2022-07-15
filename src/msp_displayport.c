@@ -1475,7 +1475,7 @@ void update_vtx_menu_param(uint8_t vtx_state)
     else if(vtx_lp == 1)
         strcpy(osd_buf[4]+offset+20,"   ON");
     else if(vtx_lp == 2)
-        strcpy(osd_buf[4]+offset+20," ONCE");
+        strcpy(osd_buf[4]+offset+20,"  1ST");
     
     if(vtx_pit==PIT_P1MW)
         strcpy(osd_buf[5]+offset+20," P1MW");
