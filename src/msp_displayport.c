@@ -38,8 +38,8 @@ uint8_t dptxbuf[256];
 uint8_t dptx_rptr,dptx_wptr;
 
 uint8_t fc_lock = 0;
-//bit[0] msp_displayport
-//bit[1] VTX_serial
+//BIT_TYPE[0] msp_displayport
+//BIT_TYPE[1] VTX_serial
 uint8_t disp_mode;  //DISPLAY_OSD | DISPLAY_CMS;
 uint8_t osd_ready;
 
