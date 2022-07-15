@@ -12,8 +12,8 @@ void DoPrint( const char CODE_P *fmt, va_list ap )
 	char  ch;
 	char  i;
 	long  value;
-	bit   fl_zero;
-	bit   fl_num;
+	BIT_TYPE   fl_zero;
+	BIT_TYPE   fl_num;
 	uint8_t  fl_len;
 	uint8_t  cnt;
   char *ptr;
@@ -154,7 +154,7 @@ void DoPrint( const char CODE_P *fmt, va_list ap )
 }
 
 
-void Printf( const char *fmt, ... )
+void Printf(const char *fmt, ...)
 {
     va_list ap;
 

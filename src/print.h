@@ -3,7 +3,7 @@
 
 #ifdef _DEBUG_MODE
 
-void Printf( const char *fmt, ... );
+void Printf(const char *fmt, ...);
 
 #endif
 

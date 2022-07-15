@@ -42,7 +42,7 @@ uint8_t RS_rx1_len(void);
 
 uint8_t RS_rx1(void);
 
-extern BIT RS_Xbusy;
+extern BIT_TYPE RS_Xbusy;
 extern XDATA_SEG uint8_t RS_buf[BUF_MAX];
 #ifdef EXTEND_BUF
 extern XDATA_SEG uint16_t RS_in, RS_out;
@@ -50,7 +50,7 @@ extern XDATA_SEG uint16_t RS_in, RS_out;
 extern XDATA_SEG uint8_t RS_in, RS_out;
 #endif
 
-extern BIT RS_Xbusy1;
+extern BIT_TYPE RS_Xbusy1;
 extern XDATA_SEG uint8_t RS_buf1[BUF1_MAX];
 #ifdef EXTEND_BUF1
 extern XDATA_SEG uint16_t RS_in1, RS_out1;

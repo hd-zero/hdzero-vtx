@@ -4,8 +4,8 @@
 #include "isr.h"
 #include "uart.h"
 
-BIT int0_req = 0;
-BIT int1_req = 0;
+BIT_TYPE int0_req = 0;
+BIT_TYPE int1_req = 0;
 uint8_t btn1_tflg = 0;
 uint8_t pwr_sflg = 0;    //power autoswitch flag
 uint8_t pwr_tflg = 0;

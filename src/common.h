@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include <string.h>
+
+#include "toolchain.h"
 #include "sfr_def.h"
 #include "sfr_ext.h"
 #include "toolchain.h"
@@ -17,7 +19,6 @@
 //#define VTX_R
 
 // system
-#define KEILC
 #define assert(c)
 #define dbg_pt(a)   DBG_PIN0 = a
 
