@@ -24,3 +24,17 @@ Generate **firmware.bin** from **firmware.hex**.
 ```
 ./hex2bin.exe firmware.hex
 ```
+
+### CMake Build Instructions
+```
+mkdir build
+cd build
+cmake -DCMAKE_C_COMPILER=sdcc -DCMAKE_SYSTEM_NAME=Generic ..
+ls -l ../bin/
+
+  hdzero-vtx.bin
+  hdzero-vtx.hex
+  hdzero-vtx.lk
+  hdzero-vtx.map
+  hdzero-vtx.mem
+```
