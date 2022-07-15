@@ -9,3 +9,5 @@ build/*
 VTX_*.lk
 VTX_*.map
 VTX_*.mem
+
+__pycache__
