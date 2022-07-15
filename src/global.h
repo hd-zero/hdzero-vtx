@@ -11,7 +11,7 @@
 uint8_t Asc2Bin(uint8_t *s);
 uint16_t Asc4Bin(uint8_t *s);
 uint32_t Asc8Bin(uint8_t *s);
-inline uint8_t Asc1Bin(uint8_t asc);
+uint8_t Asc1Bin(uint8_t asc);
 //uint32_t a2i(uint8_t *str);
 
 int stricmp(uint8_t *ptr1, uint8_t *ptr2);
