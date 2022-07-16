@@ -1,0 +1,8 @@
+TabWidth: 2
+IndentWidth: 2
+UseTab: Never
+ColumnLimit: 0
+NamespaceIndentation: All
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+BreakConstructorInitializers: BeforeComma
+IndentPPDirectives: None
