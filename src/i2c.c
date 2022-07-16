@@ -1,7 +1,31 @@
-#include "common.h"
 #include "i2c.h"
+
+#include "common.h"
 #include "print.h"
 #include "global.h"
+
+#define SCL_SET(n) SCL = n
+#define SDA_SET(n) SDA = n
+
+#define SCL_GET() SCL
+#define SDA_GET() SDA
+
+#ifdef SDCC
+static void delay_10us() {
+  __asm__(
+      "mov r7,#91\n"
+      "00000$:\n"
+      "djnz r7,00000$\n");
+}
+#define DELAY_Q delay_10us()
+#else
+#define DELAY_Q                 \
+  {                             \
+    int i = (I2C_BIT_DLY >> 2); \
+    while (i--)                 \
+      ;                         \
+  }
+#endif
 
 void I2C_start()
 {
@@ -207,7 +231,7 @@ uint8_t RUNCAM_Write(uint8_t cam_id, uint32_t addr, uint32_t val)
     value = I2C_write_byte(cam_id);// slave
     if(value){
         I2C_stop();
-        debugf("\r\nerror");
+        debugf("\r\nRUNCAM_Write error id: %x value: %d", cam_id, value);
         return 1;
     }
     
