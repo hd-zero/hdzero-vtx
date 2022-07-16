@@ -24,3 +24,5 @@ Generate **firmware.bin** from **firmware.hex**.
 ```
 ./hex2bin.exe firmware.hex
 ```
+## Attention
+**Please do not arbitrarily modify the data in use in the EEPROM, that may make your VTX not work.**
