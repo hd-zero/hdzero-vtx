@@ -178,12 +178,12 @@ void Setting_Save()
         rcv |= I2C_Write(ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW, 0, 0);
         #ifdef _DEBUG_MODE
         if(!rcv)
-            Printf("\r\nEEPROM write success");
+            debugf("\r\nEEPROM write success");
         #endif
     }
 
     #ifdef _DEBUG_MODE
-    Printf("\r\nSetting Save:  RF_FREQ=%d, RF_POWER=%d, LP_MODE=%d, PIT_MODE=%d",
+    debugf("\r\nSetting Save:  RF_FREQ=%d, RF_POWER=%d, LP_MODE=%d, PIT_MODE=%d",
         (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
     #endif
 }
@@ -209,7 +209,7 @@ void GetVtxParameter()
     EE_VALID = !I2C_Write(ADDR_EEPROM, 0x40, 0xFF, 0, 0);
     
     #ifdef _DEBUG_MODE
-    Printf("\r\nEE_VALID:%bx",EE_VALID);
+    debugf("\r\nEE_VALID:%bx",EE_VALID);
     #endif
     
     if(EE_VALID){ // eeprom valid
@@ -233,7 +233,7 @@ void GetVtxParameter()
         
         if(ee_vld){
             #ifdef _DEBUG_MODE
-            Printf("\r\nUSE EEPROM for rf_pwr_tab.");
+            debugf("\r\nUSE EEPROM for rf_pwr_tab.");
             #endif
             for(i=0;i<=FREQ_MAX;i++) {
                 for(j=0;j<=POWER_MAX;j++){
@@ -256,7 +256,7 @@ void GetVtxParameter()
             }
         }else{
             #ifdef _DEBUG_MODE
-            Printf("\r\nEEPROM is NOT initialized. Use default rf_pwr_tab.");
+            debugf("\r\nEEPROM is NOT initialized. Use default rf_pwr_tab.");
             #endif
             
             #ifdef _RF_CALIB
@@ -283,12 +283,12 @@ void GetVtxParameter()
             WAIT(10);I2C_Write(ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE, 0, 0);
             WAIT(10);I2C_Write(ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW, 0, 0);
             #ifdef _DEBUG_MODE
-            Printf("\r\nEEPROM is NOT initialized. USE CAM for VTX setting.");
+            debugf("\r\nEEPROM is NOT initialized. USE CAM for VTX setting.");
             #endif
         }else{
             CFG_Back();
             #ifdef _DEBUG_MODE
-            Printf("\r\nUSE EEPROM for VTX setting:RF_FREQ=%d, RF_POWER=%d, LPMODE=%d PIT_MODE=%d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
+            debugf("\r\nUSE EEPROM for VTX setting:RF_FREQ=%d, RF_POWER=%d, LPMODE=%d PIT_MODE=%d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
             #endif
         }
         
@@ -302,7 +302,7 @@ void GetVtxParameter()
             I2C_Write(ADDR_EEPROM, EEP_ADDR_SA_LOCK, last_SA_lock, 0, 0);
         }
         #ifdef _DEBUG_MODE
-        Printf("\r\nlast_SA_lock %bx",last_SA_lock);
+        debugf("\r\nlast_SA_lock %bx",last_SA_lock);
         #endif
         #endif
 
@@ -323,7 +323,7 @@ void GetVtxParameter()
 
         if(flash_vld){ // flash valid
             #ifdef _DEBUG_MODE
-            Printf("\r\nUse Flash rf_pwr_tab space.");
+            debugf("\r\nUse Flash rf_pwr_tab space.");
             #endif
             for(i=0;i<=FREQ_MAX;i++) {
                 for(j=0;j<=POWER_MAX;j++) {
@@ -345,19 +345,19 @@ void GetVtxParameter()
         }
         #ifdef _DEBUG_MODE
         else
-            Printf("\r\nUse default rf_pwr_tab.");
+            debugf("\r\nUse default rf_pwr_tab.");
         
-        Printf("\r\nUSE CAM for VTX setting.");
+        debugf("\r\nUSE CAM for VTX setting.");
         #endif
     }
     
     #ifdef _DEBUG_MODE
     for(i=0; i<=FREQ_MAX_EXT; i++){
-        Printf("\r\nrf_pwr_tab[%bd]=",i);
+        debugf("\r\nrf_pwr_tab[%bd]=",i);
         for(j=0;j<=POWER_MAX;j++)
-            Printf(" %bx", table_power[i][j]);
+            debugf(" %bx", table_power[i][j]);
     }
-    Printf("\r\nUSE EEPROM for VTX setting:RF_FREQ=%d, RF_POWER=%d, LPMODE=%d PIT_MODE=%d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
+    debugf("\r\nUSE EEPROM for VTX setting:RF_FREQ=%d, RF_POWER=%d, LPMODE=%d PIT_MODE=%d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
     #endif
 }
 
@@ -483,8 +483,8 @@ void TempDetect()
             
             #ifdef _DEBUG_MODE
             if(verbose){
-                //Printf("\r\ntempADC  detect: temp = %d, temp_new = %d", (uint16_t)(temperature>>2), (uint16_t)temp_new);
-                //Printf("\r\ntemp6300 detect: temp = 0x%x, temp_new = 0x%x", (uint16_t)(temp0>>2), (uint16_t)temp_new0);
+                //debugf("\r\ntempADC  detect: temp = %d, temp_new = %d", (uint16_t)(temperature>>2), (uint16_t)temp_new);
+                //debugf("\r\ntemp6300 detect: temp = 0x%x, temp_new = 0x%x", (uint16_t)(temp0>>2), (uint16_t)temp_new0);
             }
             #endif
               
@@ -511,7 +511,7 @@ void TempDetect()
             
             #ifdef _DEBUG_MODE
             //if(verbose)
-                //Printf("\r\ntemp detect: temp = %x, temp_new = %x", (uint16_t)(temperature>>2), (uint16_t)temp_new);
+                //debugf("\r\ntemp detect: temp = %x, temp_new = %x", (uint16_t)(temperature>>2), (uint16_t)temp_new);
             #endif
         }
     }
@@ -560,8 +560,8 @@ void PowerAutoSwitch()
     else {
     	DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
         #ifdef _DEBUG_MODE
-        Printf("\r\nPowerAutoSwitch: temp = %bx%bx, ",(uint8_t)(temp>>8),(uint8_t)(temp&0xff));
-        Printf("pwr_offset = %d", (uint16_t)pwr_offset);
+        debugf("\r\nPowerAutoSwitch: temp = %bx%bx, ",(uint8_t)(temp>>8),(uint8_t)(temp&0xff));
+        debugf("pwr_offset = %d", (uint16_t)pwr_offset);
         #endif
         cur_pwr = RF_POWER;
     }
@@ -629,13 +629,13 @@ void PowerAutoSwitch()
     
     if(last_ofs != pwr_offset){
         #ifdef _DEBUG_MODE
-        Printf("\r\nPowerAutoSwitch:Yes %x %bx",temp, pwr_offset);
+        debugf("\r\nPowerAutoSwitch:Yes %x %bx",temp, pwr_offset);
         #endif
         DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
         cur_pwr = RF_POWER;
     }else{
         #ifdef _DEBUG_MODE
-        Printf("\r\nPowerAutoSwitch: No %x %bx",temp, pwr_offset);
+        debugf("\r\nPowerAutoSwitch: No %x %bx",temp, pwr_offset);
         #endif
     }
     
@@ -668,9 +668,9 @@ void HeatProtect()
                     #ifdef _DEBUG_MODE
                     if(verbose)
                     	#ifdef VTX_L
-                        Printf("\r\nHeat detect: temp = %d, pwr_offset=%d", (uint16_t)temp, (uint16_t)pwr_offset);
+                        debugf("\r\nHeat detect: temp = %d, pwr_offset=%d", (uint16_t)temp, (uint16_t)pwr_offset);
                         #else
-                    	Printf("\r\nHeat Protect detect: %x",temp);
+                    	debugf("\r\nHeat Protect detect: %x",temp);
                     	#endif
                         
                     #endif
@@ -692,7 +692,7 @@ void HeatProtect()
                         cnt++;
                         if(cnt == 3){
                             #ifdef _DEBUG_MODE
-                            Printf("\r\nHeat Protect.");
+                            debugf("\r\nHeat Protect.");
                             #endif
                             heat_protect = 1;
                             #ifdef VTX_L
@@ -763,7 +763,7 @@ void PwrLMT()
                                 p = table_power[RF_FREQ][3];
                             }else{
                                 p += 0x4;
-                                Printf("\r\npwr_plus 2dbm,p=%bx",(uint8_t)p);
+                                debugf("\r\npwr_plus 2dbm,p=%bx",(uint8_t)p);
                             }
                             
                             SPI_Write(0x3, 0xD1C, 0x00000000, (uint32_t)p);
@@ -773,7 +773,7 @@ void PwrLMT()
                     #endif
                         
                     #ifdef _DEBUG_MODE
-                    Printf("\r\npwr_lmt_sec %bx",pwr_lmt_sec);
+                    debugf("\r\npwr_lmt_sec %bx",pwr_lmt_sec);
                     #endif
                     if(pwr_lmt_sec >= PWR_LMT_SEC){
                         DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
@@ -784,7 +784,7 @@ void PwrLMT()
                         p_init = 1;
                         
                         #ifdef _DEBUG_MODE
-                        Printf("\r\nPower limit done.");
+                        debugf("\r\nPower limit done.");
                         #endif
                         Prompt();
                     }
@@ -838,7 +838,7 @@ void PwrLMT()
                                     p = table_power[RF_FREQ][3];
                                 else{ 
                                     p += 0x4;
-                                    Printf("\r\npwr_plus 2dbm,p=%bx",(uint8_t)p + pwr_offset);
+                                    debugf("\r\npwr_plus 2dbm,p=%bx",(uint8_t)p + pwr_offset);
                                 }
                                 SPI_Write(0x3, 0xD1C, 0x00000000, (uint32_t)(p+pwr_offset)); //digital offset
                                 SPI_Write(0x3, 0x330, 0x00000000, 0x31F); // analog offset 1W
@@ -847,7 +847,7 @@ void PwrLMT()
                         #endif//VTX_L
                             
                         #ifdef _DEBUG_MODE
-                        Printf("\r\npwr_lmt_sec %bx",pwr_lmt_sec);
+                        debugf("\r\npwr_lmt_sec %bx",pwr_lmt_sec);
                         #endif
                         if(pwr_lmt_sec >= PWR_LMT_SEC){
                             DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
@@ -858,7 +858,7 @@ void PwrLMT()
                             p_init = 1;
                             
                             #ifdef _DEBUG_MODE
-                            Printf("\r\nPower limit done.");
+                            debugf("\r\nPower limit done.");
                             #endif
                             Prompt();
                         }
@@ -948,7 +948,7 @@ void Imp_RF_Param()
 
 void Button1_SP()
 {
-    Printf("\r\nButton1_SP.");
+    debugf("\r\nButton1_SP.");
     cfg_to_cnt = 0;
     switch(cfg_step){
         case 0:
@@ -960,7 +960,7 @@ void Button1_SP()
             //exit 0mW
             if(vtx_pit_save == PIT_0MW){
                 #ifdef _DEBUG_MODE
-                Printf("\n\rcfg_step(0),DM6300 init");
+                debugf("\n\rcfg_step(0),DM6300 init");
                 #endif
                 Init_6300RF(RF_FREQ, RF_POWER);
                 DM6300_AUXADC_Calib();
@@ -974,7 +974,7 @@ void Button1_SP()
             //exit 0mW
             if(vtx_pit_save == PIT_0MW){
                 #ifdef _DEBUG_MODE
-                Printf("\n\rcfg_step(1),DM6300 init");
+                debugf("\n\rcfg_step(1),DM6300 init");
                 #endif
                 Init_6300RF(RF_FREQ, RF_POWER);
                 DM6300_AUXADC_Calib();
@@ -1005,7 +1005,7 @@ void Button1_SP()
             if(vtx_pit_save == PIT_0MW){
                 //exit 0mW
                 #ifdef _DEBUG_MODE
-                Printf("\n\rcfg_step(2),DM6300 init");
+                debugf("\n\rcfg_step(2),DM6300 init");
                 #endif
                 Init_6300RF(RF_FREQ, RF_POWER);
                 DM6300_AUXADC_Calib();
@@ -1046,7 +1046,7 @@ void Button1_SP()
             if(vtx_pit_save == PIT_0MW){
                 //exit 0mW
                 #ifdef _DEBUG_MODE
-                Printf("\n\rcfg_step(3),DM6300 init");
+                debugf("\n\rcfg_step(3),DM6300 init");
                 #endif
                 Init_6300RF(RF_FREQ, RF_POWER);
                 DM6300_AUXADC_Calib();
@@ -1065,7 +1065,7 @@ void Button1_SP()
                 DM6300_SetPower(0, RF_FREQ, 0); // limit power to 25mW
                 cur_pwr = 0;
                 #ifdef _DEBUG_MODE
-                Printf("\n\rEnter LP_MODE");
+                debugf("\n\rEnter LP_MODE");
                 #endif
             }
             else
@@ -1078,13 +1078,13 @@ void Button1_SP()
             Setting_Save();
             break;
     }
-    //Printf("\r\nShort Press: cfg_step=%d, RF_FREQ=%d, RF_POWER=%d", (uint16_t)cfg_step, (uint16_t)RF_FREQ, (uint16_t)RF_POWER);
+    //debugf("\r\nShort Press: cfg_step=%d, RF_FREQ=%d, RF_POWER=%d", (uint16_t)cfg_step, (uint16_t)RF_FREQ, (uint16_t)RF_POWER);
 }
 
 void Button1_LP()
 {
     #ifdef _DEBUG_MODE
-    Printf("\r\nButton1_LP.");
+    debugf("\r\nButton1_LP.");
     #endif
     cfg_to_cnt = 0;
     switch(cfg_step){
@@ -1105,13 +1105,13 @@ void Button1_LP()
             Init_MAX7315(0xFF);
             break;
     }
-    //Printf("\r\nShort Press: cfg_step=%d, FREQ_CFG=%d, POWER_CFG=%d", (uint16_t)cfg_step, (uint16_t)FREQ_CFG, (uint16_t)POWER_CFG);
+    //debugf("\r\nShort Press: cfg_step=%d, FREQ_CFG=%d, POWER_CFG=%d", (uint16_t)cfg_step, (uint16_t)FREQ_CFG, (uint16_t)POWER_CFG);
 }
 
 void Button1_LLP()
 {
     #ifdef _DEBUG_MODE
-    Printf("\r\nButton1_LLP.");
+    debugf("\r\nButton1_LLP.");
     #endif
     cfg_to_cnt = 0;
     if(cfg_step == 0){
@@ -1185,7 +1185,7 @@ void CFGTimeout()
                 
                 Init_MAX7315(0xFF);
                 #ifdef _DEBUG_MODE
-                Printf("\r\nCFG Timeout.");
+                debugf("\r\nCFG Timeout.");
                 #endif
                 Prompt();
             }

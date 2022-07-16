@@ -3,9 +3,6 @@
 
 #include <stdarg.h>
 
-//void DoPrint(const char *fmt, va_list ap );
-void Printf(const char *fmt, ...);
-
-//void Puts( char *ptr );
+void debugf(const char *fmt, ...);
 
 #endif

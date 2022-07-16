@@ -98,7 +98,7 @@ void SPI_Write(uint8_t trans, uint16_t addr, uint32_t dat_h, uint32_t dat_l)
 #ifdef _DEBUG_DM6300
     SPI_Read(trans, addr, &rh, &rl);
     if(dat_l != rl)
-        Printf("                           --- W or R error !!   wdat=%lx", dat_l);
+        debugf("                           --- W or R error !!   wdat=%lx", dat_l);
 #endif
 }
 
@@ -142,6 +142,6 @@ void SPI_Read (uint8_t trans, uint16_t addr, uint32_t* dat_h, uint32_t* dat_l)
 #ifdef _DEBUG_DM6300
     rlh = ((*dat_l) >> 16) & 0xFFFF;
     rll = (*dat_l) & 0xFFFF;
-    Printf("\r\nSPI READ: addr=%x  data=%x%x.\r\n", addr, rlh, rll);
+    debugf("\r\nSPI READ: addr=%x  data=%x%x.\r\n", addr, rlh, rll);
 #endif
 }

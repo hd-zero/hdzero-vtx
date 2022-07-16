@@ -72,12 +72,12 @@ uint8_t CamDetect()
         if(fps == CAM_720P50){
             Init_TC3587();
             Set_720P50(IS_RX);
-            //Printf("\r\nCamDetect: Set 50fps.");
+            //debugf("\r\nCamDetect: Set 50fps.");
         }
         else if(fps == CAM_720P60){
             Init_TC3587();
             Set_720P60(IS_RX);
-            //Printf("\r\nCamDetect: Set 60fps.");
+            //debugf("\r\nCamDetect: Set 60fps.");
         }
 		
         WAIT(100);
@@ -117,7 +117,7 @@ uint8_t CamDetect()
             cameraID = 0;
         
         #ifdef _DEBUG_MODE
-        Printf("\r\ncameraID: %bx", cameraID);
+        debugf("\r\ncameraID: %bx", cameraID);
         #endif
     }
 
@@ -158,7 +158,7 @@ void Runcam_SetBrightness(uint8_t val)
     
     RUNCAM_Write(cameraID, 0x50, d);
     #ifdef _DEBUG_CAMERA
-    Printf("\r\nRUNCAM brightness:%bx",val);
+    debugf("\r\nRUNCAM brightness:%bx",val);
     #endif
 }
 
@@ -187,7 +187,7 @@ void Runcam_SetSharpness(uint8_t val)
         RUNCAM_Write(cameraID, 0x0003D8, 0x0A0C0E10);
     }
     #ifdef _DEBUG_CAMERA
-    Printf("\r\nRUNCAM sharpness:%bx",val);
+    debugf("\r\nRUNCAM sharpness:%bx",val);
     #endif
 }
 
@@ -220,7 +220,7 @@ uint8_t Runcam_SetSaturation(uint8_t val)
     else if(val == 6) //high
         d += 0x04041418;
     #ifdef _DEBUG_CAMERA
-    Printf("\r\nRUNCAM saturation:%bx",val);
+    debugf("\r\nRUNCAM saturation:%bx",val);
     #endif
     
     ret = RUNCAM_Write(cameraID, 0x0003A4, d);
@@ -247,7 +247,7 @@ void Runcam_SetContrast(uint8_t val)
     
     RUNCAM_Write(cameraID, 0x00038C, d);
     #ifdef _DEBUG_CAMERA
-    Printf("\r\nRUNCAM contrast:%bx",val);
+    debugf("\r\nRUNCAM contrast:%bx",val);
     #endif
 }
 
@@ -271,7 +271,7 @@ void Runcam_SetVdoRatio(uint8_t ratio)
     RUNCAM_Write(cameraID, 0x000694, 0x00000310);
     RUNCAM_Write(cameraID, 0x000694, 0x00000311);
     #ifdef _DEBUG_CAMERA
-    Printf("\r\nRUNCAM VdoRatio:%bx",ratio);
+    debugf("\r\nRUNCAM VdoRatio:%bx",ratio);
     #endif
 }
 
@@ -316,7 +316,7 @@ uint8_t Runcam_GetVdoFormat(uint8_t cameraID)
     }
     
     #ifdef _DEBUG_CAMERA
-    Printf("\r\nVdoFormat:%bx, 4_3:%bx", ret, cam_4_3);
+    debugf("\r\nVdoFormat:%bx, 4_3:%bx", ret, cam_4_3);
     #endif
     return ret;
 }
@@ -363,7 +363,7 @@ void Runcam_SetNightMode(uint8_t val)
     RUNCAM_Write(cameraID, 0x000694, 0x00000310);
     RUNCAM_Write(cameraID, 0x000694, 0x00000311);
     #ifdef _DEBUG_CAMERA
-    Printf("\r\nRUNCAM NightMode:%bx",val);
+    debugf("\r\nRUNCAM NightMode:%bx",val);
     #endif
 }
 void Runcam_SetWB(uint8_t* wbRed, uint8_t* wbBlue, uint8_t wbMode)
@@ -600,14 +600,14 @@ void GetCamCfg(uint8_t USE_EEP_PROFILE)
     }
 
     #ifdef _DEBUG_CAMERA
-    Printf("\r\n    profile:    %bx", camProfile);
-    Printf("\r\n    brightness: %bx", camCfg.brightness);
-    Printf("\r\n    sharpness:  %bx", camCfg.sharpness);
-    Printf("\r\n    saturation: %bx", camCfg.saturation);
-    Printf("\r\n    contrast:   %bx", camCfg.contrast);
-    Printf("\r\n    hvFlip:     %bx", camCfg.hvFlip);
-    Printf("\r\n    nightMode:  %bx", camCfg.nightMode);
-    Printf("\r\n    wbMode:     %bx", camCfg.wbMode);
+    debugf("\r\n    profile:    %bx", camProfile);
+    debugf("\r\n    brightness: %bx", camCfg.brightness);
+    debugf("\r\n    sharpness:  %bx", camCfg.sharpness);
+    debugf("\r\n    saturation: %bx", camCfg.saturation);
+    debugf("\r\n    contrast:   %bx", camCfg.contrast);
+    debugf("\r\n    hvFlip:     %bx", camCfg.hvFlip);
+    debugf("\r\n    nightMode:  %bx", camCfg.nightMode);
+    debugf("\r\n    wbMode:     %bx", camCfg.wbMode);
     #endif
 }
 
@@ -760,7 +760,7 @@ void SetCamCfg(cameraConfig_t *cfg, uint8_t INIT)
 
     }
     #ifdef _DEBUG_MODE
-        Printf("\r\nSet camera parameter done!");
+        debugf("\r\nSet camera parameter done!");
     #endif
 }
 

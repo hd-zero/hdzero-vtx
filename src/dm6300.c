@@ -59,7 +59,7 @@ uint8_t table_power[FREQ_MAX_EXT+1][POWER_MAX+1] = {
 void DM6300_SetChannel(uint8_t ch)
 {
     #ifdef _DEBUG_MODE
-    Printf("\r\nset ch:%bx",ch);
+    debugf("\r\nset ch:%bx",ch);
     #endif
     
     if(ch > 9) ch = 0;
@@ -113,7 +113,7 @@ void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset)
     #endif
     int16_t p;
     #ifdef _DEBUG_MODE
-    Printf("\r\nDM6300 set power:%bx",pwr);
+    debugf("\r\nDM6300 set power:%bx",pwr);
     #endif
     if(freq > 9) freq = 0;
     SPI_Write(0x6, 0xFF0, 0x00000000, 0x00000018);
@@ -146,7 +146,7 @@ void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset)
     }
  
     #ifdef _DEBUG_MODE
-    Printf("\r\nDM6300 SetPower done.  %bx, %x", table_power[freq][pwr], offset);
+    debugf("\r\nDM6300 SetPower done.  %bx, %x", table_power[freq][pwr], offset);
     #endif
 }
 
@@ -181,11 +181,11 @@ void DM6300_InitAUXADC()
     SPI_Write(0x6, 0xFF0, 0x00000000, 0x00000018);
     SPI_Read (0x3, 0x254, &dh, &dl);
     #ifdef _DEBUG_MODE
-    Printf("\r\nDM6300 0x254 = %x%x.\r\n",(uint16_t)((dl>>16)&0xFFFF), (uint16_t)(dl&0xFFFF));
+    debugf("\r\nDM6300 0x254 = %x%x.\r\n",(uint16_t)((dl>>16)&0xFFFF), (uint16_t)(dl&0xFFFF));
     #endif
     dl |= 0x200;
     #ifdef _DEBUG_MODE
-    Printf("\r\nDM6300 0x254 = %x%x.\r\n",(uint16_t)((dl>>16)&0xFFFF), (uint16_t)(dl&0xFFFF));
+    debugf("\r\nDM6300 0x254 = %x%x.\r\n",(uint16_t)((dl>>16)&0xFFFF), (uint16_t)(dl&0xFFFF));
     #endif
     SPI_Write(0x3, 0x254, 0x00000000, dl);
     
@@ -212,7 +212,7 @@ void DM6300_InitAUXADC()
     
     auxadc_offset = dat3 - ((dat1+dat2) >> 1);
     #ifdef _DEBUG_MODE
-    Printf("\r\nDM6300 AUXADC Calib done. data1=%x, data2=%x, data3=%x, offset=%x", dat1, dat2, dat3, auxadc_offset);
+    debugf("\r\nDM6300 AUXADC Calib done. data1=%x, data2=%x, data3=%x, offset=%x", dat1, dat2, dat3, auxadc_offset);
     #endif
 }
 
@@ -236,12 +236,12 @@ void DM6300_AUXADC_Calib()
     for (i=0;i<8;i++){
         DM6300_SetChannel(i);
         DM6300_SetPower(0, i, 0);
-        Printf("\r\nPA voltage detect: channel = %d,voltage =",(uint16_t)i);
+        debugf("\r\nPA voltage detect: channel = %d,voltage =",(uint16_t)i);
         for(j=0;j<8;j++){
             SPI_Write(0x6, 0xFF0, 0x00000000, 0x00000019);
             SPI_Read (0x3, 0x17C, &dh, &dl);
             vol = (((int32_t)dl) >> 20) + auxadc_offset;
-            Printf("%x ", vol);
+            debugf("%x ", vol);
         }
         //WAIT(1000);
     }
@@ -691,7 +691,7 @@ void DM6300_Init(uint8_t ch, uint8_t bw)
 #endif
     SPI_Write(0x6, 0xFF0, 0x00000000, 0x00000018);
     #ifdef _DEBUG_MODE
-    Printf("\r\nDM6300 init done.");
+    debugf("\r\nDM6300 init done.");
     #endif
 }
 
@@ -879,13 +879,13 @@ void DM6300_EFUSE1()
     efuse.macro.m1.ical = (efuse.macro.m1.ical >> 8) | (efuse.macro.m1.ical << 8);
     efuse.macro.m1.rcal = (efuse.macro.m1.rcal >> 8) | (efuse.macro.m1.rcal << 8);
         
-    //Printf("\r\nband_num=%x", efuse.macro.m0.band_num);
-    //Printf("\r\nbandgap=%lx", efuse.macro.m1.bandgap);
-    //Printf("\r\nical=%x", efuse.macro.m1.ical);
-    //Printf("\r\nrcal=%x", efuse.macro.m1.rcal);
+    //debugf("\r\nband_num=%x", efuse.macro.m0.band_num);
+    //debugf("\r\nbandgap=%lx", efuse.macro.m1.bandgap);
+    //debugf("\r\nical=%x", efuse.macro.m1.ical);
+    //debugf("\r\nrcal=%x", efuse.macro.m1.rcal);
         
     rh = ((efuse.macro.m1.ical & 0x1F) << 3) | (efuse.macro.m1.rcal & 0x7);
-    //Printf("\r\nrh=%lx", rh);
+    //debugf("\r\nrh=%lx", rh);
     	
     SPI_Write(0x6, 0xF14, 0x00000000, efuse.macro.m1.bandgap);
     SPI_Write(0x6, 0xF18, 0x00000000, rh);
@@ -909,7 +909,7 @@ void DM6300_EFUSE2()
         version[i] = efuse.macro.m0.efuse_ver[i];        
     }
     #ifdef _DEBUG_MODE
-    Printf("\r\n version = %s",version);
+    debugf("\r\n version = %s",version);
     #endif
     //version[1];  //version[1] M.N---M
     //version[3];  //version[3] M.N---N
@@ -922,7 +922,7 @@ void DM6300_EFUSE2()
         //efuse.macro.m2[i].tx1.freq_start = (efuse.macro.m2[i].tx1.freq_start >> 8) | (efuse.macro.m2[i].tx1.freq_start << 8);
         //efuse.macro.m2[i].tx1.freq_stop = (efuse.macro.m2[i].tx1.freq_stop >> 8) | (efuse.macro.m2[i].tx1.freq_stop << 8);
         #ifdef _DEBUG_MODE
-        Printf("\r\n start=%x, stop=%x", efuse.macro.m2[i].tx1.freq_start, efuse.macro.m2[i].tx1.freq_stop);
+        debugf("\r\n start=%x, stop=%x", efuse.macro.m2[i].tx1.freq_start, efuse.macro.m2[i].tx1.freq_stop);
         #endif
         
 		if(efuse.macro.m2[i].tx1.freq_start>=5000 && efuse.macro.m2[i].tx1.freq_stop<=6000)
@@ -955,13 +955,13 @@ void DM6300_EFUSE2()
                                               ((efuse.macro.m2[i].tx1.dcoc_q << 8)  & 0xFF0000) |
                                               ((efuse.macro.m2[i].tx1.dcoc_q << 24) & 0xFF000000);
 					  
-            Printf("\r\niqmismatch_old=%lx", efuse.macro.m2[i].tx1.iqmismatch);
-            Printf("\r\ndcoc_i_old=%lx", efuse.macro.m2[i].tx1.dcoc_i);
-            Printf("\r\ndcoc_q_old=%lx", efuse.macro.m2[i].tx1.dcoc_q);
+            debugf("\r\niqmismatch_old=%lx", efuse.macro.m2[i].tx1.iqmismatch);
+            debugf("\r\ndcoc_i_old=%lx", efuse.macro.m2[i].tx1.dcoc_i);
+            debugf("\r\ndcoc_q_old=%lx", efuse.macro.m2[i].tx1.dcoc_q);
             
             //change dc_i/dc_q
-            Printf("\r\n version[1] = %c",(uint16_t)version[1]);
-            Printf("\r\n version[3] = %c",(uint16_t)version[3]);
+            debugf("\r\n version[1] = %c",(uint16_t)version[1]);
+            debugf("\r\n version[3] = %c",(uint16_t)version[3]);
             
             //if((version[1]>'2') | ((version[1]>='2') && (version[3]>'1'))){ //version > 2.1
             if((version[1]=='2') && (version[3]=='2')){ //version = 2.2            
@@ -978,9 +978,9 @@ void DM6300_EFUSE2()
             SPI_Write(0x3, 0x380, 0x00000000,  efuse.macro.m2[i].tx1.dcoc_i);
             SPI_Write(0x3, 0x388, 0x00000000,  efuse.macro.m2[i].tx1.dcoc_q);           
             
-            Printf("\r\niqmismatch=%lx", efuse.macro.m2[i].tx1.iqmismatch);
-            Printf("\r\ndcoc_i=%lx", efuse.macro.m2[i].tx1.dcoc_i);
-            Printf("\r\ndcoc_q=%lx", efuse.macro.m2[i].tx1.dcoc_q);
+            debugf("\r\niqmismatch=%lx", efuse.macro.m2[i].tx1.iqmismatch);
+            debugf("\r\ndcoc_i=%lx", efuse.macro.m2[i].tx1.dcoc_i);
+            debugf("\r\ndcoc_q=%lx", efuse.macro.m2[i].tx1.dcoc_q);
             
             dcoc_ih = efuse.macro.m2[i].tx1.dcoc_i & 0xFFFF0000;
             dcoc_qh = efuse.macro.m2[i].tx1.dcoc_q & 0xFFFF0000;
@@ -988,7 +988,7 @@ void DM6300_EFUSE2()
             if(EE_VALID){
                 WAIT(10); rdat = I2C_Read(ADDR_EEPROM, EEP_ADDR_DCOC_EN, 0, 0);
                 if((rdat & 0xFF) == 0){
-                    Printf("\r\nDCOC read from EEPROM:");
+                    debugf("\r\nDCOC read from EEPROM:");
                     SPI_Write(0x6, 0xFF0, 0x00000000, 0x00000018);
                     
                     WAIT(10); rdat = I2C_Read(ADDR_EEPROM, EEP_ADDR_DCOC_IH, 0, 0);
@@ -996,14 +996,14 @@ void DM6300_EFUSE2()
                     WAIT(10); rdat |= I2C_Read(ADDR_EEPROM, EEP_ADDR_DCOC_IL, 0, 0);
                     rdat |= dcoc_ih;
                     SPI_Write(0x3, 0x380, 0x00000000, rdat);
-                    Printf("\r\ndcoc_i=%lx", rdat);
+                    debugf("\r\ndcoc_i=%lx", rdat);
                     
                     WAIT(10); rdat = I2C_Read(ADDR_EEPROM, EEP_ADDR_DCOC_QH, 0, 0);
                     rdat <<= 8;
                     WAIT(10); rdat |= I2C_Read(ADDR_EEPROM, EEP_ADDR_DCOC_QL, 0, 0);
                     rdat |= dcoc_qh;
                     SPI_Write(0x3, 0x388, 0x00000000, rdat);
-                    Printf("\r\ndcoc_q=%lx", rdat);
+                    debugf("\r\ndcoc_q=%lx", rdat);
                 }
             }
             
@@ -1017,20 +1017,20 @@ void DM6300_EFUSE2()
                 WAIT(10); d6 = I2C_Read(ADDR_EEPROM, 0xae, 0, 0);
                 WAIT(10); d7 = I2C_Read(ADDR_EEPROM, 0xaf, 0, 0);
                 
-                Printf("\r\nd0=%lx,d1=%lx,d2=%lx,d3=%lx", d0,d1,d2,d3);
-                Printf("\r\nd4=%lx,d5=%lx,d6=%lx,d7=%lx", d4,d5,d6,d7);
+                debugf("\r\nd0=%lx,d1=%lx,d2=%lx,d3=%lx", d0,d1,d2,d3);
+                debugf("\r\nd4=%lx,d5=%lx,d6=%lx,d7=%lx", d4,d5,d6,d7);
             
                 wdat = 0x075F0000;
                 wdat = wdat | (d0<<8) | d1;
                 SPI_Write(0x3, 0x380, 0x00000000, wdat);
-                Printf("\r\nreg380=%lx", wdat);
+                debugf("\r\nreg380=%lx", wdat);
                 wdat = 0x075F0000;
                 wdat = wdat | (d2<<8) | d3;
                 SPI_Write(0x3, 0x388, 0x00000000, wdat);
-                Printf("\r\nreg388=%lx", wdat);
+                debugf("\r\nreg388=%lx", wdat);
                 wdat = (d4 << 24) | (d5 << 16) | (d6 << 8) | d7;
                 SPI_Write(0x3, 0xD08, 0x00000000, wdat);
-                Printf("\r\nregD08=%lx", wdat);
+                debugf("\r\nregD08=%lx", wdat);
             }*/
             
             break;

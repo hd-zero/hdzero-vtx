@@ -28,25 +28,25 @@ BIT_TYPE                verbose = 1;
 #ifdef _DEBUG_MODE
 void MonHelp(void)
 {
-    Printf("\r\nUsage: ");
-    Printf("\r\n   w   addr  wdat   : Write reg_map register");
-    Printf("\r\n   r   addr         : Read  reg_map register");
-    Printf("\r\n   w2  addr  wdat   : Write page 2 reg_map register");
-    Printf("\r\n   r2  addr         : Read  page 2 reg_map register");
-    Printf("\r\n   ww  addr  wdat   : Write ad936x register");
-    Printf("\r\n   rr  addr         : Read  ad936x register");
-    Printf("\r\n   pat chan  pwr    : chan: 0~7, pwr: 0-2 [chan=-1, pat off]");
-    Printf("\r\n   c                : Init DM6300");
-    Printf("\r\n   /                : Repeat last command");
-    Printf("\r\n   ; anything       : Comment");
-    Printf("\r\n   v                : verbose mode on/off");
-    Printf("\r\n   ch  freq  pwr    : change freq and power");
-    Printf("\r\n   ew  wdat         : Write rf_tab[freq][pwr] with wdat");
-    Printf("\r\n   er               : Read  rf_tab[freq][pwr]");
-    Printf("\r\n   ea               : rf_tab[freq][pwr]++");
-    Printf("\r\n   es               : rf_tab[freq][pwr]--");
-    Printf("\r\n   h                : Help");
-    Printf("\r\n");
+    debugf("\r\nUsage: ");
+    debugf("\r\n   w   addr  wdat   : Write reg_map register");
+    debugf("\r\n   r   addr         : Read  reg_map register");
+    debugf("\r\n   w2  addr  wdat   : Write page 2 reg_map register");
+    debugf("\r\n   r2  addr         : Read  page 2 reg_map register");
+    debugf("\r\n   ww  addr  wdat   : Write ad936x register");
+    debugf("\r\n   rr  addr         : Read  ad936x register");
+    debugf("\r\n   pat chan  pwr    : chan: 0~7, pwr: 0-2 [chan=-1, pat off]");
+    debugf("\r\n   c                : Init DM6300");
+    debugf("\r\n   /                : Repeat last command");
+    debugf("\r\n   ; anything       : Comment");
+    debugf("\r\n   v                : verbose mode on/off");
+    debugf("\r\n   ch  freq  pwr    : change freq and power");
+    debugf("\r\n   ew  wdat         : Write rf_tab[freq][pwr] with wdat");
+    debugf("\r\n   er               : Read  rf_tab[freq][pwr]");
+    debugf("\r\n   ea               : rf_tab[freq][pwr]++");
+    debugf("\r\n   es               : rf_tab[freq][pwr]--");
+    debugf("\r\n   h                : Help");
+    debugf("\r\n");
 }
 #endif
 
@@ -107,7 +107,7 @@ uint8_t MonGetCommand(void)
 		for(; i<incnt; i++) {
 			if( monstr[i]==' ' || monstr[i]=='\0' ) {
 				monstr[i]='\0';
-     			// Printf("(%s) ",  argv[argc]);
+     			// debugf("(%s) ",  argv[argc]);
 				i++;
 				while( monstr[i]==' ' ) i++;
 				argc++;
@@ -196,7 +196,7 @@ void MonEE(uint8_t op, uint8_t d)
     WAIT(10);
     val = I2C_Read(ADDR_EEPROM, addr, 0, 0);
     table_power[RF_FREQ][RF_POWER] = val;
-    Printf("\r\nRF TAB[%d][%d] = %bx", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, val);
+    debugf("\r\nRF TAB[%d][%d] = %bx", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, val);
     
     DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
 }
@@ -287,11 +287,11 @@ void Monitor(void)
             I2C_Write(ADDR_EEPROM, 0x8a, Asc2Bin(argv[3]), 0, 0);
             WAIT(10);
             I2C_Write(ADDR_EEPROM, 0x8b, Asc2Bin(argv[4]), 0, 0);
-            //Printf("\r\nWrite in eeprom, 0x88=%bx,0x89=%bx,0x8a=%bx,0x8b=%bx", 
+            //debugf("\r\nWrite in eeprom, 0x88=%bx,0x89=%bx,0x8a=%bx,0x8b=%bx", 
                    //Asc2Bin(argv[1]),Asc2Bin(argv[2]),Asc2Bin(argv[3]),Asc2Bin(argv[4]));
         }
         else 
-            Printf("   --> missing parameter!");
+            debugf("   --> missing parameter!");
     }
     else if ( !stricmp( argv[0], "iq" ) ){
         if(argc == 5){
@@ -303,23 +303,23 @@ void Monitor(void)
             I2C_Write(ADDR_EEPROM, 0x8e, Asc2Bin(argv[3]), 0, 0);
             WAIT(10);
             I2C_Write(ADDR_EEPROM, 0x8f, Asc2Bin(argv[4]), 0, 0);
-            Printf("\r\nWrite in eeprom, 0x88=%bx,0x89=%bx,0x8a=%bx,0x8b=%bx", 
+            debugf("\r\nWrite in eeprom, 0x88=%bx,0x89=%bx,0x8a=%bx,0x8b=%bx", 
                    Asc2Bin(argv[1]),Asc2Bin(argv[2]),Asc2Bin(argv[3]),Asc2Bin(argv[4]));
         }
         else 
-            Printf("   --> missing parameter!");
+            debugf("   --> missing parameter!");
     }
     else if ( !stricmp( argv[0], "v" ) ) {
 		verbose = !verbose;
         if(verbose)
-            Printf("\r\nVerbose on");
+            debugf("\r\nVerbose on");
         else
-            Printf("\r\nVerbose off");
+            debugf("\r\nVerbose off");
     }
 	else if ( !stricmp( argv[0], "h" ) )
 		MonHelp();
 	else
-		Printf("\r\nInvalid Command...");
+		debugf("\r\nInvalid Command...");
 
 	Prompt();
 #endif
@@ -344,7 +344,7 @@ void MonWrite(uint8_t mode)
 
     if(mode<2){
         if( argc<3 ) {
-            Printf("   --> missing parameter!");
+            debugf("   --> missing parameter!");
             return;
         }
         addr  = Asc4Bin( argv[1] );
@@ -354,7 +354,7 @@ void MonWrite(uint8_t mode)
     }
     else {
         if( argc<4 ) {
-            Printf("   --> missing parameter!");
+            debugf("   --> missing parameter!");
             return;
         }
         spi_trans  = Asc2Bin( argv[1] );
@@ -367,7 +367,7 @@ void MonWrite(uint8_t mode)
     if(echo){
         if(mode<2){
             value = ReadReg(mode, (uint8_t)addr);
-            Printf("\r\nRead %2xh: %2xh ",(uint16_t)addr,(uint16_t)value);
+            debugf("\r\nRead %2xh: %2xh ",(uint16_t)addr,(uint16_t)value);
         }
         else{
             spi_data_L = 0;
@@ -376,7 +376,7 @@ void MonWrite(uint8_t mode)
             spi_data_L_l = spi_data_L & 0xffff;
             spi_data_L_h = (spi_data_L >> 16) & 0xffff;
             
-            Printf("\r\nRead %x: %x%x",(uint16_t)spi_addr,
+            debugf("\r\nRead %x: %x%x",(uint16_t)spi_addr,
                                        (uint16_t)spi_data_L_h,(uint16_t)spi_data_L_l);
         }
     }
@@ -400,16 +400,16 @@ void MonRead(uint8_t mode)
     
     if(mode<2){
         if( argc<2 ) {
-            Printf("   --> missing parameter!");
+            debugf("   --> missing parameter!");
             return;
         }
         addr  = Asc4Bin( argv[1] );
         value = ReadReg(mode, (uint8_t)addr);
-        Printf("\r\nRead %3xh: %2xh ",(uint16_t)addr,(uint16_t)value);
+        debugf("\r\nRead %3xh: %2xh ",(uint16_t)addr,(uint16_t)value);
     }
     else {
         if( argc<3 ) {
-            Printf("   --> missing parameter!");
+            debugf("   --> missing parameter!");
             return;
         }
         spi_trans  = Asc2Bin( argv[1] );
@@ -419,7 +419,7 @@ void MonRead(uint8_t mode)
         spi_data_L_l = spi_data_L & 0xffff;
         spi_data_L_h = (spi_data_L >> 16) & 0xffff;
         
-        Printf("\r\nRead %x: %x%x",(uint16_t)spi_addr,
+        debugf("\r\nRead %x: %x%x",(uint16_t)spi_addr,
                                    (uint16_t)spi_data_L_h,(uint16_t)spi_data_L_l);
         
     }
@@ -431,7 +431,7 @@ void chg_vtx(void)
     uint8_t t0=0,t1=1,t2=2;
     
     if(argc<2){
-		Printf("   --> missing parameter!");
+		debugf("   --> missing parameter!");
 		return;
 	}
     
@@ -442,7 +442,7 @@ void chg_vtx(void)
         WriteReg(0, 0x50, 0x00);
         DM6300_SetChannel(RF_FREQ);
         DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
-        Printf("\r\nVTX Cam, channel = %d,power = %d,FPS = %d",(uint16_t)RF_FREQ,(uint16_t)RF_POWER,(uint16_t)CAM_MODE);
+        debugf("\r\nVTX Cam, channel = %d,power = %d,FPS = %d",(uint16_t)RF_FREQ,(uint16_t)RF_POWER,(uint16_t)CAM_MODE);
     }
     else { //pattern
         Set_720P60(0);
@@ -453,7 +453,7 @@ void chg_vtx(void)
         RF_FREQ  = chan;
         DM6300_SetChannel(RF_FREQ);
         DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
-        Printf("\r\nVTX Pattern, channel = %d,power = %d,FPS = 1",(uint16_t)RF_FREQ, (uint16_t)RF_POWER);
+        debugf("\r\nVTX Pattern, channel = %d,power = %d,FPS = 1",(uint16_t)RF_FREQ, (uint16_t)RF_POWER);
     }
 }
 #endif

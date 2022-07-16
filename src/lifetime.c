@@ -60,7 +60,7 @@ void Update_EEP_LifeTime(void)
     diff = sysLifeTime_last ^ sysLifeTime;
 
     #ifdef _DEBUG_LIFETIME
-    Printf("\r\nsysLifeTime:%ld",sysLifeTime);
+    debugf("\r\nsysLifeTime:%ld",sysLifeTime);
     #endif
     
     if((diff >> 0) & 0xff)

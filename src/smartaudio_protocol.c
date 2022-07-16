@@ -192,7 +192,7 @@ void SA_Update(uint8_t cmd)
         SA_dbm = sa_rbuf[0] & 0x7f;
         
         #ifdef DBG_SMARTAUDIO
-        Printf("dbm:%bx", SA_dbm);
+        debugf("dbm:%bx", SA_dbm);
         #endif
         
         if(SA_dbm_last != SA_dbm) {  // need to update power
@@ -205,7 +205,7 @@ void SA_Update(uint8_t cmd)
                     pwr_init = cur_pwr;
                 }else{
                     #ifdef _DEBUG_SA
-                    Printf("\n\rEnter 0mW");
+                    debugf("\n\rEnter 0mW");
                     #endif
                     WriteReg(0, 0x8F, 0x10); // reset RF_chip
                     temp_err = 1;
@@ -219,7 +219,7 @@ void SA_Update(uint8_t cmd)
                     pwr_init = cur_pwr;
                 else{
                     #ifdef _DEBUG_MDOE
-                    Printf("\n\rExit 0mW");
+                    debugf("\n\rExit 0mW");
                     #endif
                     
                     Init_6300RF(RF_FREQ, RF_POWER);
@@ -265,7 +265,7 @@ void SA_Update(uint8_t cmd)
         
         #ifdef DBG_SMARTAUDIO
         _outchar('C');
-        Printf("%bx",ch);
+        debugf("%bx",ch);
         #endif
         
         if (ch != RF_FREQ) {
@@ -315,7 +315,7 @@ void SA_Update(uint8_t cmd)
         
         #ifdef DBG_SMARTAUDIO
         _outchar('F');
-        Printf("%bx", ch);
+        debugf("%bx", ch);
         #endif
         
         if (ch != RF_FREQ) {
@@ -350,7 +350,7 @@ void SA_Update(uint8_t cmd)
                     PIT_MODE = 0;
                     vtx_pit = PIT_0MW;
                     #ifdef _DEBUG_SA
-                    Printf("\n\rSA:Enter 0mW");
+                    debugf("\n\rSA:Enter 0mW");
                     #endif
                     WriteReg(0, 0x8F, 0x10); // reset RF_chip
                     temp_err = 1;
@@ -366,7 +366,7 @@ void SA_Update(uint8_t cmd)
                     PIT_MODE = 0;
                     vtx_pit = PIT_0MW;
                     #ifdef _DEBUG_SA
-                    Printf("\n\rSA:Enter 0mW");
+                    debugf("\n\rSA:Enter 0mW");
                     #endif
                     WriteReg(0, 0x8F, 0x10); // reset RF_chip
                     temp_err = 1;
@@ -377,7 +377,7 @@ void SA_Update(uint8_t cmd)
                         pwr_lmt_done = 0;
                         cur_pwr = 3;
                         #ifdef _DEBUG_SA
-                        Printf("\r\npwr_lmt_done reset");
+                        debugf("\r\npwr_lmt_done reset");
                         #endif
                     }
                     else
@@ -393,8 +393,8 @@ void SA_Update(uint8_t cmd)
             Setting_Save();
         }
         #ifdef DBG_SMARTAUDIO
-        Printf("M_P:%bx  ", mode_p);
-        Printf("M_O:%bx", mode_o);
+        debugf("M_P:%bx  ", mode_p);
+        debugf("M_O:%bx", mode_o);
         #endif
         break;
 
@@ -452,7 +452,7 @@ uint8_t SA_Process() {
     if(SUART_ready()) {
         rx = SUART_rx();
         #ifdef DBG_SMARTAUDIO
-        //Printf("%bx ",rx);
+        //debugf("%bx ",rx);
         #endif
         switch (sa_status) {
         case SA_HEADER0:

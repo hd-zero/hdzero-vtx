@@ -2,7 +2,7 @@
 #define _MONITOR_H_
 
 #define MAX_CMD_LEN     30
-#define Prompt()        Printf("\r\nDM568X>")		
+#define Prompt()        debugf("\r\nDM568X>")		
 
 //void MonHelp(void);
 uint8_t MonGetCommand(void);
