@@ -811,6 +811,7 @@ void Cam_Read_Stable(uint8_t *d0, uint8_t *d1, uint8_t *d2, uint8_t *d3, uint8_t
 }
 #endif
 
+
 void Cam_Button_ENTER() { WriteReg(0, 0x14, 0x32);}
 void Cam_Button_RIGHT() { WriteReg(0, 0x14, 0x58);}
 void Cam_Button_DOWN()  { WriteReg(0, 0x14, 0x64);}
@@ -818,6 +819,7 @@ void Cam_Button_LEFT()  { WriteReg(0, 0x14, 0x3F);}
 void Cam_Button_UP()    { WriteReg(0, 0x14, 0x4B);}
 void Cam_Button_MID()   { WriteReg(0, 0x14, 0x00);}
 
+#ifdef USE_MSP
 uint8_t camStatusUpdate(uint8_t op)
 {
     uint8_t ret = 0;
@@ -1465,6 +1467,7 @@ uint8_t camStatusUpdate(uint8_t op)
 
     return ret;
 }
+#endif
 
 void camMenuDrawBracket(void)
 {
@@ -1543,6 +1546,7 @@ void camMenuDrawBracket(void)
         }
     }
 }
+
 
 void camMenuInit()
 {

@@ -40,6 +40,8 @@
 
 #define Raceband
 #define USE_EFUSE
+#define USE_MSP
+
 #ifndef VTX_S
 #define USE_SMARTAUDIO
 #endif
