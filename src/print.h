@@ -4,5 +4,6 @@
 #include <stdarg.h>
 
 void debugf(const char *fmt, ...);
+void verbosef(const char *fmt, ...);
 
 #endif

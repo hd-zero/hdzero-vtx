@@ -482,10 +482,8 @@ void TempDetect()
             temp0 = temp0 - (temp0>>2) + temp_new0;
             
             #ifdef _DEBUG_MODE
-            if(verbose){
-                //debugf("\r\ntempADC  detect: temp = %d, temp_new = %d", (uint16_t)(temperature>>2), (uint16_t)temp_new);
-                //debugf("\r\ntemp6300 detect: temp = 0x%x, temp_new = 0x%x", (uint16_t)(temp0>>2), (uint16_t)temp_new0);
-            }
+            //verbosef("\r\ntempADC  detect: temp = %d, temp_new = %d", (uint16_t)(temperature>>2), (uint16_t)temp_new);
+            //verbosef("\r\ntemp6300 detect: temp = 0x%x, temp_new = 0x%x", (uint16_t)(temp0>>2), (uint16_t)temp_new0);
             #endif
               
         }
@@ -510,8 +508,7 @@ void TempDetect()
             temperature = temperature - (temperature>>2) + temp_new;
             
             #ifdef _DEBUG_MODE
-            //if(verbose)
-                //debugf("\r\ntemp detect: temp = %x, temp_new = %x", (uint16_t)(temperature>>2), (uint16_t)temp_new);
+            //verbosef("\r\ntemp detect: temp = %x, temp_new = %x", (uint16_t)(temperature>>2), (uint16_t)temp_new);
             #endif
         }
     }
@@ -560,8 +557,8 @@ void PowerAutoSwitch()
     else {
     	DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
         #ifdef _DEBUG_MODE
-        debugf("\r\nPowerAutoSwitch: temp = %x%x, ",(uint16_t)(temp>>8),(uint16_t)(temp&0xff));
-        debugf("pwr_offset = %d", (uint16_t)pwr_offset);
+        verbosef("\r\nPowerAutoSwitch: temp = %x%x, ",(uint16_t)(temp>>8),(uint16_t)(temp&0xff));
+        verbosef("pwr_offset = %d", (uint16_t)pwr_offset);
         #endif
         cur_pwr = RF_POWER;
     }
@@ -629,13 +626,13 @@ void PowerAutoSwitch()
     
     if(last_ofs != pwr_offset){
         #ifdef _DEBUG_MODE
-        debugf("\r\nPowerAutoSwitch:Yes %x %x",temp, (uint16_t)pwr_offset);
+        verbosef("\r\nPowerAutoSwitch:Yes %x %x",temp, (uint16_t)pwr_offset);
         #endif
         DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
         cur_pwr = RF_POWER;
     }else{
         #ifdef _DEBUG_MODE
-        debugf("\r\nPowerAutoSwitch: No %x %x",temp, (uint16_t)pwr_offset);
+        verbosef("\r\nPowerAutoSwitch: No %x %x",temp, (uint16_t)pwr_offset);
         #endif
     }
     
@@ -666,13 +663,11 @@ void HeatProtect()
                     temp = temperature >> 2;
                     //temp = temperature >> 5;  //LM75AD
                     #ifdef _DEBUG_MODE
-                    if(verbose)
-                    	#ifdef VTX_L
-                        debugf("\r\nHeat detect: temp = %d, pwr_offset=%d", (uint16_t)temp, (uint16_t)pwr_offset);
-                        #else
-                    	debugf("\r\nHeat Protect detect: %x",temp);
-                    	#endif
-                        
+                    #ifdef VTX_L
+                    verbosef("\r\nHeat detect: temp = %d, pwr_offset=%d", (uint16_t)temp, (uint16_t)pwr_offset);
+                    #else
+                    verbosef("\r\nHeat Protect detect: %x",temp);
+                    #endif
                     #endif
                     
                     #ifdef VTX_L
