@@ -2,6 +2,7 @@
 #include "global.h"
 #include "print.h"
 
+#ifdef _DEBUG_MODE
 
 int stricmp(uint8_t *ptr1, uint8_t *ptr2)
 {
@@ -18,18 +19,6 @@ int stricmp(uint8_t *ptr1, uint8_t *ptr2)
     }
 	return 0;
 }
-
-/*uint32_t a2i(uint8_t *str)   // str in dec string, such as "345", "738" ... => 345,738
-{
-	uint32_t num=0;
-	uint8_t i;
-
-	for(i=0; ; i++, str++) {
-		if( *str=='\0' || *str==' ' ) break;
-		num = num*10 + *str - '0';
-	}
-	return num;
-}*/
 
 uint8_t Asc1Bin(uint8_t asc)
 {
@@ -65,7 +54,6 @@ uint16_t Asc4Bin(uint8_t *s) // s is 4-digit hex string
 	return (bin);
 }
 
-#ifdef _DEBUG_MODE
 uint32_t Asc8Bin(uint8_t *s) // s is 8-digit hex string
 {
 	uint32_t bin;
