@@ -59,7 +59,7 @@ uint8_t table_power[FREQ_MAX_EXT+1][POWER_MAX+1] = {
 void DM6300_SetChannel(uint8_t ch)
 {
     #ifdef _DEBUG_MODE
-    debugf("\r\nset ch:%bx",ch);
+    debugf("\r\nset ch:%x", (uint16_t)ch);
     #endif
     
     if(ch > 9) ch = 0;
@@ -113,7 +113,7 @@ void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset)
     #endif
     int16_t p;
     #ifdef _DEBUG_MODE
-    debugf("\r\nDM6300 set power:%bx",pwr);
+    debugf("\r\nDM6300 set power:%x", (uint16_t)pwr);
     #endif
     if(freq > 9) freq = 0;
     SPI_Write(0x6, 0xFF0, 0x00000000, 0x00000018);
@@ -146,7 +146,7 @@ void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset)
     }
  
     #ifdef _DEBUG_MODE
-    debugf("\r\nDM6300 SetPower done.  %bx, %x", table_power[freq][pwr], offset);
+    debugf("\r\nDM6300 SetPower done.  %x, %x", (uint16_t)table_power[freq][pwr], offset);
     #endif
 }
 

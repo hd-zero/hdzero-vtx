@@ -209,7 +209,7 @@ void GetVtxParameter()
     EE_VALID = !I2C_Write(ADDR_EEPROM, 0x40, 0xFF, 0, 0);
     
     #ifdef _DEBUG_MODE
-    debugf("\r\nEE_VALID:%bx",EE_VALID);
+    debugf("\r\nEE_VALID:%x", (uint16_t)EE_VALID);
     #endif
     
     if(EE_VALID){ // eeprom valid
@@ -302,7 +302,7 @@ void GetVtxParameter()
             I2C_Write(ADDR_EEPROM, EEP_ADDR_SA_LOCK, last_SA_lock, 0, 0);
         }
         #ifdef _DEBUG_MODE
-        debugf("\r\nlast_SA_lock %bx",last_SA_lock);
+        debugf("\r\nlast_SA_lock %x", (uint16_t)last_SA_lock);
         #endif
         #endif
 
@@ -353,9 +353,9 @@ void GetVtxParameter()
     
     #ifdef _DEBUG_MODE
     for(i=0; i<=FREQ_MAX_EXT; i++){
-        debugf("\r\nrf_pwr_tab[%bd]=",i);
+        debugf("\r\nrf_pwr_tab[%d]=", (uint16_t)i);
         for(j=0;j<=POWER_MAX;j++)
-            debugf(" %bx", table_power[i][j]);
+            debugf(" %x", (uint16_t)table_power[i][j]);
     }
     debugf("\r\nUSE EEPROM for VTX setting:RF_FREQ=%d, RF_POWER=%d, LPMODE=%d PIT_MODE=%d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
     #endif
@@ -560,7 +560,7 @@ void PowerAutoSwitch()
     else {
     	DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
         #ifdef _DEBUG_MODE
-        debugf("\r\nPowerAutoSwitch: temp = %bx%bx, ",(uint8_t)(temp>>8),(uint8_t)(temp&0xff));
+        debugf("\r\nPowerAutoSwitch: temp = %x%x, ",(uint16_t)(temp>>8),(uint16_t)(temp&0xff));
         debugf("pwr_offset = %d", (uint16_t)pwr_offset);
         #endif
         cur_pwr = RF_POWER;
@@ -629,13 +629,13 @@ void PowerAutoSwitch()
     
     if(last_ofs != pwr_offset){
         #ifdef _DEBUG_MODE
-        debugf("\r\nPowerAutoSwitch:Yes %x %bx",temp, pwr_offset);
+        debugf("\r\nPowerAutoSwitch:Yes %x %x",temp, (uint16_t)pwr_offset);
         #endif
         DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
         cur_pwr = RF_POWER;
     }else{
         #ifdef _DEBUG_MODE
-        debugf("\r\nPowerAutoSwitch: No %x %bx",temp, pwr_offset);
+        debugf("\r\nPowerAutoSwitch: No %x %x",temp, (uint16_t)pwr_offset);
         #endif
     }
     
@@ -763,7 +763,7 @@ void PwrLMT()
                                 p = table_power[RF_FREQ][3];
                             }else{
                                 p += 0x4;
-                                debugf("\r\npwr_plus 2dbm,p=%bx",(uint8_t)p);
+                                debugf("\r\npwr_plus 2dbm,p=%x",(uint16_t)p);
                             }
                             
                             SPI_Write(0x3, 0xD1C, 0x00000000, (uint32_t)p);
@@ -773,7 +773,7 @@ void PwrLMT()
                     #endif
                         
                     #ifdef _DEBUG_MODE
-                    debugf("\r\npwr_lmt_sec %bx",pwr_lmt_sec);
+                    debugf("\r\npwr_lmt_sec %x", (uint16_t)pwr_lmt_sec);
                     #endif
                     if(pwr_lmt_sec >= PWR_LMT_SEC){
                         DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
@@ -838,7 +838,7 @@ void PwrLMT()
                                     p = table_power[RF_FREQ][3];
                                 else{ 
                                     p += 0x4;
-                                    debugf("\r\npwr_plus 2dbm,p=%bx",(uint8_t)p + pwr_offset);
+                                    debugf("\r\npwr_plus 2dbm,p=%x",(uint16_t)p + pwr_offset);
                                 }
                                 SPI_Write(0x3, 0xD1C, 0x00000000, (uint32_t)(p+pwr_offset)); //digital offset
                                 SPI_Write(0x3, 0x330, 0x00000000, 0x31F); // analog offset 1W
@@ -847,7 +847,7 @@ void PwrLMT()
                         #endif//VTX_L
                             
                         #ifdef _DEBUG_MODE
-                        debugf("\r\npwr_lmt_sec %bx",pwr_lmt_sec);
+                        debugf("\r\npwr_lmt_sec %x", (uint16_t)pwr_lmt_sec);
                         #endif
                         if(pwr_lmt_sec >= PWR_LMT_SEC){
                             DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);

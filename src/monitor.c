@@ -196,7 +196,7 @@ void MonEE(uint8_t op, uint8_t d)
     WAIT(10);
     val = I2C_Read(ADDR_EEPROM, addr, 0, 0);
     table_power[RF_FREQ][RF_POWER] = val;
-    debugf("\r\nRF TAB[%d][%d] = %bx", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, val);
+    debugf("\r\nRF TAB[%d][%d] = %x", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, val);
     
     DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
 }
@@ -287,7 +287,7 @@ void Monitor(void)
             I2C_Write(ADDR_EEPROM, 0x8a, Asc2Bin(argv[3]), 0, 0);
             WAIT(10);
             I2C_Write(ADDR_EEPROM, 0x8b, Asc2Bin(argv[4]), 0, 0);
-            //debugf("\r\nWrite in eeprom, 0x88=%bx,0x89=%bx,0x8a=%bx,0x8b=%bx", 
+            //debugf("\r\nWrite in eeprom, 0x88=%x,0x89=%x,0x8a=%x,0x8b=%x", 
                    //Asc2Bin(argv[1]),Asc2Bin(argv[2]),Asc2Bin(argv[3]),Asc2Bin(argv[4]));
         }
         else 
@@ -303,8 +303,8 @@ void Monitor(void)
             I2C_Write(ADDR_EEPROM, 0x8e, Asc2Bin(argv[3]), 0, 0);
             WAIT(10);
             I2C_Write(ADDR_EEPROM, 0x8f, Asc2Bin(argv[4]), 0, 0);
-            debugf("\r\nWrite in eeprom, 0x88=%bx,0x89=%bx,0x8a=%bx,0x8b=%bx", 
-                   Asc2Bin(argv[1]),Asc2Bin(argv[2]),Asc2Bin(argv[3]),Asc2Bin(argv[4]));
+            debugf("\r\nWrite in eeprom, 0x88=%x,0x89=%x,0x8a=%x,0x8b=%x", 
+                   (uint16_t)Asc2Bin(argv[1]),(uint16_t)Asc2Bin(argv[2]),(uint16_t)Asc2Bin(argv[3]),(uint16_t)Asc2Bin(argv[4]));
         }
         else 
             debugf("   --> missing parameter!");

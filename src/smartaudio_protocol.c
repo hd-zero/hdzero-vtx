@@ -192,7 +192,7 @@ void SA_Update(uint8_t cmd)
         SA_dbm = sa_rbuf[0] & 0x7f;
         
         #ifdef DBG_SMARTAUDIO
-        debugf("dbm:%bx", SA_dbm);
+        debugf("dbm:%x", (uint16_t)SA_dbm);
         #endif
         
         if(SA_dbm_last != SA_dbm) {  // need to update power
@@ -265,7 +265,7 @@ void SA_Update(uint8_t cmd)
         
         #ifdef DBG_SMARTAUDIO
         _outchar('C');
-        debugf("%bx",ch);
+        debugf("%x", (uint16_t)ch);
         #endif
         
         if (ch != RF_FREQ) {
@@ -315,7 +315,7 @@ void SA_Update(uint8_t cmd)
         
         #ifdef DBG_SMARTAUDIO
         _outchar('F');
-        debugf("%bx", ch);
+        debugf("%x", (uint16_t)ch);
         #endif
         
         if (ch != RF_FREQ) {
@@ -393,8 +393,8 @@ void SA_Update(uint8_t cmd)
             Setting_Save();
         }
         #ifdef DBG_SMARTAUDIO
-        debugf("M_P:%bx  ", mode_p);
-        debugf("M_O:%bx", mode_o);
+        debugf("M_P:%x  ", (uint16_t)mode_p);
+        debugf("M_O:%x", (uint16_t)mode_o);
         #endif
         break;
 
@@ -452,7 +452,7 @@ uint8_t SA_Process() {
     if(SUART_ready()) {
         rx = SUART_rx();
         #ifdef DBG_SMARTAUDIO
-        //debugf("%bx ",rx);
+        //debugf("%x ", (uint16_t)rx);
         #endif
         switch (sa_status) {
         case SA_HEADER0:
