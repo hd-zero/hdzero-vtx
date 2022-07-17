@@ -96,7 +96,7 @@ void msp_task(){
     static uint8_t t1 = 0;
     static uint8_t vmax = SD_VMAX;
     
-    #ifdef DBG_DISPLAYPORT
+    #ifdef _DEBUG_DISPLAYPORT
     if(RS0_ERR){
         RS0_ERR = 0;
         _outchar('$'); //RS0 buffer full
@@ -118,7 +118,7 @@ void msp_task(){
     if(osd_ready){
         //send osd
         len = get_tx_data_osd(t1);
-        #ifdef DBG_DISPLAYPORT
+        #ifdef _DEBUG_DISPLAYPORT
         debugf("\n\r%x ", (uint16_t)t1);
         #endif
         insert_tx_buf(len);
@@ -173,7 +173,7 @@ uint8_t msp_read_one_frame() {
                     ptr = 0;
                     state = MSP_HEADER_M;
                 }
-                #ifdef DBG_DISPLAYPORT
+                #ifdef _DEBUG_DISPLAYPORT
                 else 
                     _outchar('&');
                 #endif
@@ -260,7 +260,7 @@ uint8_t msp_read_one_frame() {
                         }
                     }
                 }
-                #ifdef DBG_DISPLAYPORT
+                #ifdef _DEBUG_DISPLAYPORT
                 else
                     _outchar('^');
                 #endif
@@ -537,7 +537,7 @@ uint8_t get_tx_data_osd(uint8_t index) //prepare osd+data to VTX
 void insert_tx_byte(uint8_t c)
 {
     dptxbuf[dptx_wptr++] = c;
-#ifdef DBG_DISPLAYPORT
+#ifdef _DEBUG_DISPLAYPORT
     if(dptx_wptr == dptx_rptr) //dptxbuf full
         _outchar('*');
 #endif
@@ -897,19 +897,19 @@ uint8_t parse_displayport(uint8_t len)
                     if(disp_mode == DISPLAY_OSD)
                         clear_screen();
                     osd_ready = 0;
-                    #ifdef DBG_DISPLAYPORT
+                    #ifdef _DEBUG_DISPLAYPORT
                     _outchar('\r');_outchar('\n');_outchar('C');
                     #endif
                     return 0;
                 }else if(msp_rx_buf[0] == SUBCMD_WRITE){
-                    #ifdef DBG_DISPLAYPORT
+                    #ifdef _DEBUG_DISPLAYPORT
                     _outchar('W');
                     #endif
                     osd_ready = 0;
                     state_osd = MSP_OSD_LOC;
                 }else if(msp_rx_buf[0] == SUBCMD_DRAW){
                     osd_ready = 1;
-                    #ifdef DBG_DISPLAYPORT
+                    #ifdef _DEBUG_DISPLAYPORT
                     _outchar('D'); _outchar(' ');
                     #endif
                     if(!(fc_lock & FC_OSD_LOCK)) {
@@ -1088,7 +1088,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     Init_6300RF(RF_FREQ, POWER_MAX+1);
                     cur_pwr = POWER_MAX+1;
                     DM6300_AUXADC_Calib();
-                    #ifdef DBG_DISPLAYPORT
+                    #ifdef _DEBUG_DISPLAYPORT
                     debugf("\r\nExit 0mW\r\n");
                     #endif
                     //debugf("\r\n exit0");

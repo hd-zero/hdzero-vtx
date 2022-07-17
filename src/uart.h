@@ -3,8 +3,6 @@
 
 #include "common.h"
 
-//#define DEBUG_SA
-
 #ifdef EXTEND_BUF
 #define  BUF_MAX        2048 //30
 #else

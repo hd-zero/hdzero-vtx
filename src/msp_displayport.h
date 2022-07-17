@@ -3,10 +3,6 @@
 
 #include "stdint.h"
 
-#ifdef _DEBUG_MODE
-//#define DBG_DISPLAYPORT
-#endif
-
 #define IS_HI(x)  ((x) > 1750)
 #define IS_LO(x)  ((x) < 1250)
 #define IS_MID(x) ((!IS_HI(x))  && (!IS_LO(x)))
