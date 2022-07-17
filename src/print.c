@@ -6,10 +6,10 @@
 
 extern BIT_TYPE verbose;
 
+#ifdef _DEBUG_MODE
 static XDATA_SEG char print_buf[128];
 
-void debugf(const char *fmt, ...) {
-#ifdef _DEBUG_MODE
+void _debugf(const char *fmt, ...) {
     int len = 0;
     int i = 0;
     va_list ap;
@@ -21,11 +21,10 @@ void debugf(const char *fmt, ...) {
     for (; i < len; i++) {
         _outchar(print_buf[i]);
     }
-#endif
 }
 
-void verbosef(const char *fmt, ...) {
-#ifdef _DEBUG_MODE
+void _verbosef(const char *fmt, ...) {
+
     int len = 0;
     int i = 0;
     va_list ap;
@@ -41,5 +40,5 @@ void verbosef(const char *fmt, ...) {
     for (; i < len; i++) {
         _outchar(print_buf[i]);
     }
-#endif
 }
+#endif

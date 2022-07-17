@@ -3,7 +3,15 @@
 
 #include <stdarg.h>
 
-void debugf(const char *fmt, ...);
-void verbosef(const char *fmt, ...);
+void _debugf(const char *fmt, ...);
+void _verbosef(const char *fmt, ...);
+
+#ifdef _DEBUG_MODE
+#define debugf _debugf
+#define verbosef _verbosef
+#else
+#define debugf 
+#define verbosef
+#endif
 
 #endif
