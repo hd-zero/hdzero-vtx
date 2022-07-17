@@ -107,10 +107,3 @@ void uint8ToString(uint8_t dec, uint8_t* Str)
             Str[1] = ' ';
     }
 }
-
-void memcopy(uint8_t* dst, uint8_t* src, uint32_t len)
-{
-    uint32_t i;
-    for(i=0;i<len;i++)
-        dst[i] = src[i];
-}
