@@ -837,7 +837,10 @@ void DM6300_EFUSE1()
     }
 
     //for(i=2; i<efuse.macro.m0.band_num+2; i++) // read macro 2~11
+    #ifdef KEIL_C51
     efuse.macro.m0.band_num = (efuse.macro.m0.band_num >> 8) | (efuse.macro.m0.band_num << 8);
+    #endif
+
     for(i=2; i<efuse.macro.m0.band_num+2; i++) // read macro 2~11
     {
         for(j=32; j<56/*EFUSE_SIZE*/; j++)
@@ -857,12 +860,14 @@ void DM6300_EFUSE1()
             efuse.dat[i][j] = rl & 0xFF;
 						
 						if(j == 35){
+                            #ifdef KEIL_C51
 							efuse.macro.m2[i-2].tx1.freq_start = (efuse.macro.m2[i-2].tx1.freq_start >> 8) | (efuse.macro.m2[i-2].tx1.freq_start << 8);
 							efuse.macro.m2[i-2].tx1.freq_stop = (efuse.macro.m2[i-2].tx1.freq_stop >> 8) | (efuse.macro.m2[i-2].tx1.freq_stop << 8);
+                            #endif
 							if(efuse.macro.m2[i-2].tx1.freq_start<5000 || efuse.macro.m2[i-2].tx1.freq_stop>6000)
 								break;
 						}
-        }
+            }
         }
 
     // EFUSE_CFG = 0;
@@ -872,13 +877,14 @@ void DM6300_EFUSE1()
     SPI_Write(0x3, 0x0E0, 0x00000000, 0x00000000);
 	
     // application
+    #ifdef KEIL_C51
     efuse.macro.m1.bandgap = ((efuse.macro.m1.bandgap >> 24) & 0xFF) |
                              ((efuse.macro.m1.bandgap >> 8)  & 0xFF00) |
                              ((efuse.macro.m1.bandgap << 8)  & 0xFF0000) |
                               ((efuse.macro.m1.bandgap << 24) & 0xFF000000);
     efuse.macro.m1.ical = (efuse.macro.m1.ical >> 8) | (efuse.macro.m1.ical << 8);
     efuse.macro.m1.rcal = (efuse.macro.m1.rcal >> 8) | (efuse.macro.m1.rcal << 8);
-        
+    #endif
     //debugf("\r\nband_num=%x", efuse.macro.m0.band_num);
     //debugf("\r\nbandgap=%lx", efuse.macro.m1.bandgap);
     //debugf("\r\nical=%x", efuse.macro.m1.ical);
@@ -939,7 +945,7 @@ void DM6300_EFUSE2()
                 efuse.macro.m2[i].tx1.dcoc_i = efuse.macro.m2[i].tx1.dcoc_i;
                 efuse.macro.m2[i].tx1.dcoc_q = efuse.macro.m2[i].tx1.dcoc_q;
             }
-            
+            #ifdef KEIL_C51
             efuse.macro.m2[i].tx1.iqmismatch = ((efuse.macro.m2[i].tx1.iqmismatch >> 24) & 0xFF) |
                                               ((efuse.macro.m2[i].tx1.iqmismatch >> 8)  & 0xFF00) |
                                               ((efuse.macro.m2[i].tx1.iqmismatch << 8)  & 0xFF0000) |
@@ -954,7 +960,8 @@ void DM6300_EFUSE2()
                                               ((efuse.macro.m2[i].tx1.dcoc_q >> 8)  & 0xFF00) |
                                               ((efuse.macro.m2[i].tx1.dcoc_q << 8)  & 0xFF0000) |
                                               ((efuse.macro.m2[i].tx1.dcoc_q << 24) & 0xFF000000);
-					  
+            #endif
+            
             debugf("\r\niqmismatch_old=%lx", efuse.macro.m2[i].tx1.iqmismatch);
             debugf("\r\ndcoc_i_old=%lx", efuse.macro.m2[i].tx1.dcoc_i);
             debugf("\r\ndcoc_q_old=%lx", efuse.macro.m2[i].tx1.dcoc_q);
@@ -962,7 +969,7 @@ void DM6300_EFUSE2()
             //change dc_i/dc_q
             debugf("\r\n version[1] = %c",(uint16_t)version[1]);
             debugf("\r\n version[3] = %c",(uint16_t)version[3]);
-            
+
             //if((version[1]>'2') | ((version[1]>='2') && (version[3]>'1'))){ //version > 2.1
             if((version[1]=='2') && (version[3]=='2')){ //version = 2.2            
                 ef_data = efuse.macro.m2[i].tx1.dcoc_i;
@@ -976,8 +983,8 @@ void DM6300_EFUSE2()
             
             SPI_Write(0x3, 0xD08, 0x00000000,  efuse.macro.m2[i].tx1.iqmismatch);
             SPI_Write(0x3, 0x380, 0x00000000,  efuse.macro.m2[i].tx1.dcoc_i);
-            SPI_Write(0x3, 0x388, 0x00000000,  efuse.macro.m2[i].tx1.dcoc_q);           
-            
+            SPI_Write(0x3, 0x388, 0x00000000,  efuse.macro.m2[i].tx1.dcoc_q);
+
             debugf("\r\niqmismatch=%lx", efuse.macro.m2[i].tx1.iqmismatch);
             debugf("\r\ndcoc_i=%lx", efuse.macro.m2[i].tx1.dcoc_i);
             debugf("\r\ndcoc_q=%lx", efuse.macro.m2[i].tx1.dcoc_q);
