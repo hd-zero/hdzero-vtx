@@ -1,45 +1,55 @@
 import argparse
+import sys
 
 import serial
 import logging
 
-from xmodem import XMODEM
-
+try:
+    from external.xmodem import XMODEM
+except:
+    from xmodem import XMODEM
 
 def dbg_print(line=''):
     print(line, flush=True)
     return
 
+def do_send(port, file):
+    dbg_print("Using serial port %s" % port)
+    ser = serial.Serial(port, baudrate=115200, timeout=5)
 
-parser = argparse.ArgumentParser()
-parser.add_argument('port', type=str)
-parser.add_argument('file', type=str)
-args = parser.parse_args()
+    def getc(size, timeout=1):
+        return ser.read(size) or None
 
-ser = serial.Serial(args.port, baudrate=115200, timeout=5)
+    def putc(data, timeout=1):
+        return ser.write(data)
 
+    logging.basicConfig(level=logging.ERROR)
 
-def getc(size, timeout=1):
-    return ser.read(size) or None
+    modem = XMODEM(getc, putc)
+    modem.log.setLevel(logging.DEBUG)
 
+    dbg_print("Checking flash...")
 
-def putc(data, timeout=1):
-    return ser.write(data)
+    ser.write(b'p')
+    for x in range(4):
+        line = ser.readline().decode().rstrip();
+        dbg_print(line)
+        if len(line) == 0:
+            raise Exception("Flash detection failed!")
 
+    dbg_print("Sending firmware %s..." % file)
+    with open(file, 'rb') as stream:
+        ser.write(b'f')
 
-logging.basicConfig(level=logging.ERROR)
+        if modem.send(stream) == False:
+            raise Exception("Flash failed!")
 
-modem = XMODEM(getc, putc)
-modem.log.setLevel(logging.DEBUG)
+        dbg_print(ser.readline().decode().rstrip())
 
-dbg_print("Checking flash...")
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('port', type=str)
+    parser.add_argument('file', type=str)
+    args = parser.parse_args()
 
-ser.write(b'p')
-for x in range(4):
-    dbg_print(ser.readline().decode().rstrip())
-
-dbg_print("Sending firmware...")
-with open(args.file, 'rb') as stream:
-    ser.write(b'f')
-
-    modem.send(stream)
+    sys.exit(do_send(args.port, args.file))
