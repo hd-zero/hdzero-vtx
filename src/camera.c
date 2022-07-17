@@ -1,5 +1,4 @@
-#pragma save
-#pragma stackauto
+
 
 #include "camera.h"
 #include "i2c_device.h"
@@ -62,49 +61,45 @@ void camMenuSetVdoRatioInit();
 
 uint8_t CamDetect()
 {
-    int cycles = 4;
     int fps = CAM_720P60;
-    int loss = 0;
-    
+    uint8_t cycles = 4;
+    uint8_t loss = 0;
+    uint8_t detect_tries = 0;
+    uint8_t status_reg = 0;
+
     WriteReg(0, 0x8F, 0x91);
 
-    while(cycles){
-        if(fps == CAM_720P50){
+    while (cycles) {
+        if (fps == CAM_720P50) {
             Init_TC3587();
             Set_720P50(IS_RX);
-            //debugf("\r\nCamDetect: Set 50fps.");
-        }
-        else if(fps == CAM_720P60){
+            debugf("\r\nCamDetect: Set 50fps.");
+        } else if (fps == CAM_720P60) {
             Init_TC3587();
             Set_720P60(IS_RX);
-            //debugf("\r\nCamDetect: Set 60fps.");
+            debugf("\r\nCamDetect: Set 60fps.");
         }
-		
         WAIT(100);
-        if((ReadReg(0, 0x02) >> 4))
-            loss = 1;
-        WAIT(5);
-        if((ReadReg(0, 0x02) >> 4))
-            loss = 1;
-        WAIT(5);
-        if((ReadReg(0, 0x02) >> 4))
-            loss = 1;
-        WAIT(5);
-        if((ReadReg(0, 0x02) >> 4))
-            loss = 1;
-        WAIT(5);
-        if((ReadReg(0, 0x02) >> 4))
-            loss = 1;
-        
-        if(loss == 0)
+
+        for (detect_tries = 0; detect_tries < 5; detect_tries++) {
+            status_reg = ReadReg(0, 0x02);
+            debugf("\r\nCamDetect status_reg: %x", status_reg);
+
+            if ((status_reg >> 4) != 0) {
+                loss = 1;
+            }
+            WAIT(5);
+        }
+
+        if (loss == 0)
             break;
-        
+
         fps = (fps == CAM_720P60) ? CAM_720P50 : CAM_720P60;
 
         loss = 0;
         cycles--;
     }
-    
+
     if(cycles == 0){
         fps = CAM_720P60_NEW;
         Set_720P60(IS_RX);
@@ -395,130 +390,103 @@ void Runcam_SetWB(uint8_t* wbRed, uint8_t* wbBlue, uint8_t wbMode)
     }
 }
 
-void CheckCameraParameter(void)
-{
-    uint8_t i, j;
+static void camera_write_eep_parameter(uint16_t addr, uint8_t val) {
+    WAIT(10);
+    I2C_Write(ADDR_EEPROM, addr, val, 0, 0);
+}
 
-    if(cameraID == 0)
+static uint8_t camera_read_eep_parameter(uint16_t addr) {
+    WAIT(10);
+    return I2C_Read(ADDR_EEPROM, addr, 0, 0);
+}
+
+static void camera_check_and_save_parameters() {
+    uint8_t i = 0;
+    uint8_t j = 0;
+
+    if (cameraID == 0)
         return;
 
-    if((camProfile_EEP & 0x0F) > 1)
-    {
+    if ((camProfile_EEP & 0x0F) > 1) {
         camProfile_EEP = (camProfile_EEP & 0xF0);
-        WAIT(10);I2C_Write(ADDR_EEPROM, EEP_ADDR_CAM_PROFILE, camProfile_EEP, 0, 0);
     }
 
-    if(((camProfile_EEP>>4) & 0xF) > 5)
-    {
+    if (((camProfile_EEP >> 4) & 0xF) > 5) {
         camProfile_EEP = camProfile_EEP & 0x01;
-        WAIT(10);I2C_Write(ADDR_EEPROM, EEP_ADDR_CAM_PROFILE, camProfile_EEP, 0, 0);
     }
 
-    for(i=0;i<RUNCAM_PROFILE_M_TYPE; i++)
-    {
-        if(camCfg_EEP[i].brightness < BRIGHTNESS_MIN || camCfg_EEP[i].brightness > BRIGHTNESS_MIN)
-        {
+    for (i = 0; i < RUNCAM_PROFILE_M_TYPE; i++) {
+        if (camCfg_EEP[i].brightness < BRIGHTNESS_MIN || camCfg_EEP[i].brightness > BRIGHTNESS_MIN) {
             camCfg_EEP[i].brightness = camParameterInit[i][0];
-            WAIT(10);I2C_Write(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_BRIGHTNESS, camCfg_EEP[i].brightness, 0, 0);
         }
-        
-        if(camCfg_EEP[i].sharpness > SHARPNESS_MAX)
-        {
+
+        if (camCfg_EEP[i].sharpness > SHARPNESS_MAX) {
             camCfg_EEP[i].sharpness = camParameterInit[i][1];
-            WAIT(10);I2C_Write(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_SHARPNESS, camCfg_EEP[i].sharpness, 0, 0);
         }
 
-        if(camCfg_EEP[i].saturation > SATURATION_MAX)
-        {
+        if (camCfg_EEP[i].saturation > SATURATION_MAX) {
             camCfg_EEP[i].saturation = camParameterInit[i][2];
-            WAIT(10);I2C_Write(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_SATURATION, camCfg_EEP[i].saturation, 0, 0);
         }
 
-        if(camCfg_EEP[i].contrast > CONTRAST_MAX)
-        {
+        if (camCfg_EEP[i].contrast > CONTRAST_MAX) {
             camCfg_EEP[i].contrast = camParameterInit[i][3];
-            WAIT(10);I2C_Write(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_CONTRAST, camCfg_EEP[i].contrast, 0, 0);
         }
-        
-        if(camCfg_EEP[i].hvFlip > HVFLIP_MAX)
-        {
+
+        if (camCfg_EEP[i].hvFlip > HVFLIP_MAX) {
             camCfg_EEP[i].hvFlip = camParameterInit[i][4];
-            WAIT(10);I2C_Write(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_HVFLIP, camCfg_EEP[i].hvFlip, 0, 0);
         }
 
-        if(camCfg_EEP[i].nightMode > NIGHTMODE_MAX)
-        {
+        if (camCfg_EEP[i].nightMode > NIGHTMODE_MAX) {
             camCfg_EEP[i].nightMode = camParameterInit[i][5];
-            WAIT(10);I2C_Write(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_NIGHTMODE, camCfg_EEP[i].nightMode, 0, 0);
         }
 
-        if(camCfg_EEP[i].wbMode > WBMODE_MAX)
-        {
+        if (camCfg_EEP[i].wbMode > WBMODE_MAX) {
             camCfg_EEP[i].wbMode = camParameterInit[i][6];
-            WAIT(10);I2C_Write(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_WBMODE, camCfg_EEP[i].wbMode, 0, 0);
 
-            for(j=0;j<WBMODE_MAX;j++)
-            {
-                camCfg_EEP[i].wbRed[j] = camParameterInit[i][7+j];
-                WAIT(10);I2C_Write(ADDR_EEPROM, (i<<4)+j+EEP_ADDR_CAM_WBRED, camCfg_EEP[i].wbRed[j], 0, 0);
-                camCfg_EEP[i].wbBlue[j] = camParameterInit[i][11+j];
-                WAIT(10);I2C_Write(ADDR_EEPROM, (i<<4)+j+EEP_ADDR_CAM_WBBLUE, camCfg_EEP[i].wbBlue[j], 0, 0);
+            for (j = 0; j < WBMODE_MAX; j++) {
+                camCfg_EEP[i].wbRed[j] = camParameterInit[i][7 + j];
+                camCfg_EEP[i].wbBlue[j] = camParameterInit[i][11 + j];
             }
         }
-    }
-}
 
-void SaveCameraParameter(void)
-{
-    uint8_t i,j;
-
-    CheckCameraParameter();
-
-    for(i=0;i<RUNCAM_PROFILE_M_TYPE;i++)
-    {
-        WAIT(10); I2C_Write(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_BRIGHTNESS, camCfg_EEP[i].brightness, 0, 0);
-        WAIT(10); I2C_Write(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_SHARPNESS, camCfg_EEP[i].sharpness, 0, 0);
-        WAIT(10); I2C_Write(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_SATURATION, camCfg_EEP[i].saturation, 0, 0);
-        WAIT(10); I2C_Write(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_CONTRAST,camCfg_EEP[i].contrast, 0, 0);
-        WAIT(10); I2C_Write(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_HVFLIP, camCfg_EEP[i].hvFlip, 0, 0);
-        WAIT(10); I2C_Write(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_NIGHTMODE, camCfg_EEP[i].nightMode, 0, 0);
-        WAIT(10); I2C_Write(ADDR_EEPROM, EEP_ADDR_CAM_WBMODE+(i<<4), camCfg_EEP[i].wbMode, 0, 0);
-        for(j=0;j<WBMODE_MAX;j++)
-        {
-            WAIT(10); I2C_Write(ADDR_EEPROM, (i<<4)+j+EEP_ADDR_CAM_WBRED, camCfg_EEP[i].wbRed[j], 0, 0);
-            WAIT(10); I2C_Write(ADDR_EEPROM, (i<<4)+j+EEP_ADDR_CAM_WBBLUE, camCfg_EEP[i].wbBlue[j], 0, 0);
+        camera_write_eep_parameter((i << 4) + EEP_ADDR_CAM_BRIGHTNESS, camCfg_EEP[i].brightness);
+        camera_write_eep_parameter((i << 4) + EEP_ADDR_CAM_SHARPNESS, camCfg_EEP[i].sharpness);
+        camera_write_eep_parameter((i << 4) + EEP_ADDR_CAM_SATURATION, camCfg_EEP[i].saturation);
+        camera_write_eep_parameter((i << 4) + EEP_ADDR_CAM_CONTRAST, camCfg_EEP[i].contrast);
+        camera_write_eep_parameter((i << 4) + EEP_ADDR_CAM_HVFLIP, camCfg_EEP[i].hvFlip);
+        camera_write_eep_parameter((i << 4) + EEP_ADDR_CAM_NIGHTMODE, camCfg_EEP[i].nightMode);
+        camera_write_eep_parameter((i << 4) + EEP_ADDR_CAM_WBMODE, camCfg_EEP[i].wbMode);
+        for (j = 0; j < WBMODE_MAX; j++) {
+            camera_write_eep_parameter((i << 4) + j + EEP_ADDR_CAM_WBRED, camCfg_EEP[i].wbRed[j]);
+            camera_write_eep_parameter((i << 4) + j + EEP_ADDR_CAM_WBBLUE, camCfg_EEP[i].wbBlue[j]);
         }
     }
 }
 
-void GetCamCfg_EEP(void)
-{
+void GetCamCfg_EEP(void) {
     uint8_t i, j;
 
-    if(cameraID == 0)
+    if (cameraID == 0)
         return;
 
-    else if(cameraID == RUNCAM_MICRO_V1 || cameraID == RUNCAM_MICRO_V2)
-    {
-        WAIT(10); camProfile_EEP = I2C_Read(ADDR_EEPROM, EEP_ADDR_CAM_PROFILE, 0, 0);
-        for(i=0;i<RUNCAM_PROFILE_M_TYPE;i++)
-        {
-            WAIT(10); camCfg_EEP[i].brightness = I2C_Read(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_BRIGHTNESS, 0, 0);
-            WAIT(10); camCfg_EEP[i].sharpness  = I2C_Read(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_SHARPNESS, 0, 0);
-            WAIT(10); camCfg_EEP[i].saturation = I2C_Read(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_SATURATION, 0, 0);
-            WAIT(10); camCfg_EEP[i].contrast   = I2C_Read(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_CONTRAST, 0, 0);
-            WAIT(10); camCfg_EEP[i].hvFlip     = I2C_Read(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_HVFLIP, 0, 0);
-            WAIT(10); camCfg_EEP[i].nightMode  = I2C_Read(ADDR_EEPROM, (i<<4)+EEP_ADDR_CAM_NIGHTMODE, 0, 0);
-            WAIT(10); camCfg_EEP[i].wbMode     = I2C_Read(ADDR_EEPROM, EEP_ADDR_CAM_WBMODE+(i<<4), 0, 0);
-            for(j=0;j<WBMODE_MAX;j++)
-            {
-                WAIT(10); camCfg_EEP[i].wbRed[j]  = I2C_Read(ADDR_EEPROM, (i<<4)+j+EEP_ADDR_CAM_WBRED, 0, 0);
-                WAIT(10); camCfg_EEP[i].wbBlue[j] = I2C_Read(ADDR_EEPROM, (i<<4)+j+EEP_ADDR_CAM_WBBLUE, 0, 0);
+    if (cameraID == RUNCAM_MICRO_V1 || cameraID == RUNCAM_MICRO_V2) {
+        camProfile_EEP = camera_read_eep_parameter(EEP_ADDR_CAM_PROFILE);
+        for (i = 0; i < RUNCAM_PROFILE_M_TYPE; i++) {
+            camCfg_EEP[i].brightness = camera_read_eep_parameter((i << 4) + EEP_ADDR_CAM_BRIGHTNESS);
+            camCfg_EEP[i].sharpness = camera_read_eep_parameter((i << 4) + EEP_ADDR_CAM_SHARPNESS);
+            camCfg_EEP[i].saturation = camera_read_eep_parameter((i << 4) + EEP_ADDR_CAM_SATURATION);
+            camCfg_EEP[i].contrast = camera_read_eep_parameter((i << 4) + EEP_ADDR_CAM_CONTRAST);
+            camCfg_EEP[i].hvFlip = camera_read_eep_parameter((i << 4) + EEP_ADDR_CAM_HVFLIP);
+            camCfg_EEP[i].nightMode = camera_read_eep_parameter((i << 4) + EEP_ADDR_CAM_NIGHTMODE);
+            camCfg_EEP[i].wbMode = camera_read_eep_parameter((i << 4) + EEP_ADDR_CAM_WBMODE);
+            for (j = 0; j < WBMODE_MAX; j++) {
+                camCfg_EEP[i].wbRed[j] = camera_read_eep_parameter((i << 4) + j + EEP_ADDR_CAM_WBRED);
+                camCfg_EEP[i].wbBlue[j] = camera_read_eep_parameter((i << 4) + j + EEP_ADDR_CAM_WBBLUE);
             }
         }
     }
 
-    CheckCameraParameter();
+    camera_check_and_save_parameters();
 }
 
 void GetCamCfg(uint8_t USE_EEP_PROFILE)
@@ -676,7 +644,7 @@ void SaveCamCfg_Menu(void)
                 camCfg_EEP[0].wbRed[i] = camCfg.wbRed[i];
                 camCfg_EEP[0].wbBlue[i] = camCfg.wbBlue[i];
             }
-            SaveCameraParameter();
+            camera_check_and_save_parameters();
         }
     }
     else if(cameraID == RUNCAM_MICRO_V2)
@@ -699,7 +667,7 @@ void SaveCamCfg_Menu(void)
                 camCfg_EEP[camProfile-2].wbRed[i] = camCfg.wbRed[i];
                 camCfg_EEP[camProfile-2].wbBlue[i] = camCfg.wbBlue[i];
             }
-            SaveCameraParameter();
+            camera_check_and_save_parameters();
         }
     }
 }
@@ -1725,4 +1693,3 @@ void camMenuStringUpdate(uint8_t status)
 
     camMenuDrawBracket();
 }
-#pragma restore
