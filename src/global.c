@@ -81,6 +81,16 @@ uint32_t Asc8Bin(uint8_t *s) // s is 8-digit hex string
 
 #endif
 
+#ifdef SDCC
+void WAIT(uint16_t ms) {
+    while (ms--) {
+        uint16_t __ticks = MS_DLY_SDCC; // Measured manually by trial and error
+        do {                            // 40 ticks total for this loop
+            __ticks--;
+        } while (__ticks);
+    }
+}
+#else
 void WAIT(uint32_t ms)
 {
     uint32_t i,j;
@@ -89,6 +99,7 @@ void WAIT(uint32_t ms)
         }
     }
 }
+#endif
 
 void uint8ToString(uint8_t dec, uint8_t* Str)
 {
