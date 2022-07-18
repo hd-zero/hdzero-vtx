@@ -68,7 +68,7 @@ uint8_t RS_rx1(void)
 	ret = RS_buf1[RS_out1];
 
 	RS_out1++;
-	if(RS_out1 >= BUF_MAX) 
+	if(RS_out1 >= BUF1_MAX) 
 		RS_out1 = 0;
 
 	return ret;
