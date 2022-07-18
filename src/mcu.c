@@ -98,10 +98,10 @@ void main(void)
     //WAIT(100);
 
     #ifdef _DEBUG_MODE
-    Printf("\r\n========================================================");
-    Printf("\r\n     >>>             Divimath DM568X            <<<     ");
-    Printf("\r\n========================================================");
-    Printf("\r\n");
+    debugf("\r\n========================================================");
+    debugf("\r\n     >>>             Divimath DM568X            <<<     ");
+    debugf("\r\n========================================================");
+    debugf("\r\n");
     #endif
 
     
@@ -186,7 +186,7 @@ void SA_Delay_init()
         if(seconds >= WAIT_SA_CONFIG){
             I2C_Write(ADDR_EEPROM, EEP_ADDR_SA_LOCK, SA_lock, 0, 0);
             #ifdef _DEBUG_MODE
-            Printf("\r\nSave SA_lock(%bx) to EEPROM",SA_lock);
+            debugf("\r\nSave SA_lock(%x) to EEPROM", (uint16_t)SA_lock);
             #endif
             SA_saved = 1;
         }
@@ -196,7 +196,7 @@ void SA_Delay_init()
     if(SA_init_done==0){
         if(last_SA_lock && seconds >= WAIT_SA_CONFIG){
             #ifdef _DEBUG_MODE
-            Printf("\r\nInit RF");
+            debugf("\r\nInit RF");
             #endif
             pwr_lmt_sec = PWR_LMT_SEC;
             SA_init_done = 1;
@@ -208,8 +208,8 @@ void SA_Delay_init()
                     Init_6300RF(ch_init, RF_POWER);
                     PIT_MODE = PIT_0MW;
                     #ifdef _DEBUG_MODE
-                    Printf("\r\n SA_dbm:%bx",SA_dbm);
-                    Printf("\r\n ch%bx, pwr%bx", ch_init, pwr_init);
+                    debugf("\r\n SA_dbm:%x", (uint16_t)SA_dbm);
+                    debugf("\r\n ch%x, pwr%x", (uint16_t)ch_init, (uint16_t)pwr_init);
                     #endif
                     #else
                     RF_POWER = POWER_MAX + 2;
@@ -218,23 +218,23 @@ void SA_Delay_init()
                 }else if(PIT_MODE){
                     Init_6300RF(ch_init, POWER_MAX + 1);
                     #ifdef _DEBUG_MODE
-                    Printf("\r\n ch%bx, pwr%bx", ch_init, cur_pwr);
+                    debugf("\r\n ch%x, pwr%x", (uint16_t)ch_init, (uint16_t)cur_pwr);
                     #endif
                 }else{
                     Init_6300RF(ch_init, pwr_init);
                     #ifdef _DEBUG_MODE
-                    Printf("\r\n ch%bx, pwr%bx", ch_init, cur_pwr);
+                    debugf("\r\n ch%x, pwr%x", (uint16_t)ch_init, (uint16_t)cur_pwr);
                     #endif
                 }
             }else if(PIT_MODE){
                 Init_6300RF(RF_FREQ, POWER_MAX+1);
                 #ifdef _DEBUG_MODE
-                Printf("\r\n ch%bx, pwr%bx", RF_FREQ, cur_pwr);
+                debugf("\r\n ch%x, pwr%x", (uint16_t)RF_FREQ, (uint16_t)cur_pwr);
                 #endif
             }else{
                 Init_6300RF(RF_FREQ, 0);
                 #ifdef _DEBUG_MODE
-                Printf("\r\n ch%bx, pwr%bx", RF_FREQ, 0);
+                debugf("\r\n ch%x, pwr%x", (uint16_t)RF_FREQ, 0);
                 #endif
             }
             

@@ -115,7 +115,7 @@ void msp_task(){
         //send osd
         len = get_tx_data_osd(t1);
         #ifdef DBG_DISPLAYPORT
-        Printf("\n\r%bx ",t1);
+        debugf("\n\r%x ", (uint16_t)t1);
         #endif
         insert_tx_buf(len);
 
@@ -219,7 +219,7 @@ uint8_t msp_read_one_frame() {
                     }
                     state = MSP_RX1;
                 }
-                //Printf("\r\n%bx ",rx);
+                //debugf("\r\n%x ",(uint16_t)rx);
                 break;
             
             case MSP_RX1:
@@ -318,7 +318,7 @@ uint8_t msp_read_one_frame() {
                 if(crc == rx)
                     parseMspVtx_V2(cmd_u16);
                 #ifdef _DEBUG_MODE
-                Printf("\r\ncrc : %bx,%bx", crc, rx);
+                debugf("\r\ncrc : %x,%x", (uint16_t)crc, (uint16_t)rx);
                 #endif
 
             default:
@@ -659,7 +659,7 @@ void msp_set_vtx_config(uint8_t power, uint8_t save)
     CMS_tx(crc);
     
     #ifdef _DEBUG_MSP_SET_VTX_CONFIG
-    Printf("\r\nF%bx,P%bx,M:%bx",RF_FREQ, power,PIT_MODE);
+    debugf("\r\nF%x,P%x,M:%x", (uint16_t)RF_FREQ, (uint16_t)power, (uint16_t)PIT_MODE);
     #endif
     
     if(save)
@@ -674,7 +674,7 @@ void parse_status()
     g_IS_ARMED = (msp_rx_buf[6] & 0x01);
     g_IS_PARALYZE = (msp_rx_buf[9] & 0x80);
     disarmed = !g_IS_ARMED;
-    //Printf("\n\rstatus:%bx",msp_rx_buf[6] & 0x01);
+    //debugf("\n\rstatus:%x",msp_rx_buf[6] & 0x01);
 }
 
 void parse_variant()
@@ -748,17 +748,17 @@ void parseMspVtx_V2(uint16_t cmd_u16)
     fc_lp_rx        = msp_rx_buf[8];
     
     #ifdef _DEBUG_MODE
-    Printf("\r\nparseMspVtx_V2");
-    Printf("\r\n    fc_vtx_dev:    %bx", msp_rx_buf[0]);
-    Printf("\r\n    fc_band_rx:    %bx", msp_rx_buf[1]);
-    Printf("\r\n    fc_channel_rx: %bx", msp_rx_buf[2]);
-    Printf("\r\n    fc_pwr_rx:     %bx", msp_rx_buf[3]);
-    Printf("\r\n    fc_pit_rx :    %bx", msp_rx_buf[4]);
-    Printf("\r\n    fc_vtx_status: %bx", msp_rx_buf[7]);
-    Printf("\r\n    fc_lp_rx:      %bx", msp_rx_buf[8]);
-    Printf("\r\n    fc_bands:      %bx", msp_rx_buf[12]);
-    Printf("\r\n    fc_channels:   %bx", msp_rx_buf[13]);
-    Printf("\r\n    fc_powerLevels %bx", msp_rx_buf[14]);
+    debugf("\r\nparseMspVtx_V2");
+    debugf("\r\n    fc_vtx_dev:    %x", (uint16_t)msp_rx_buf[0]);
+    debugf("\r\n    fc_band_rx:    %x", (uint16_t)msp_rx_buf[1]);
+    debugf("\r\n    fc_channel_rx: %x", (uint16_t)msp_rx_buf[2]);
+    debugf("\r\n    fc_pwr_rx:     %x", (uint16_t)msp_rx_buf[3]);
+    debugf("\r\n    fc_pit_rx :    %x", (uint16_t)msp_rx_buf[4]);
+    debugf("\r\n    fc_vtx_status: %x", (uint16_t)msp_rx_buf[7]);
+    debugf("\r\n    fc_lp_rx:      %x", (uint16_t)msp_rx_buf[8]);
+    debugf("\r\n    fc_bands:      %x", (uint16_t)msp_rx_buf[12]);
+    debugf("\r\n    fc_channels:   %x", (uint16_t)msp_rx_buf[13]);
+    debugf("\r\n    fc_powerLevels %x", (uint16_t)msp_rx_buf[14]);
     #endif
     
     if(SA_lock)
@@ -787,13 +787,13 @@ void parseMspVtx_V2(uint16_t cmd_u16)
         DM6300_SetChannel(RF_FREQ);
         needSaveEEP = 1;
     }
-    Printf("\r\nparse_vtx_config pwr:%bx, pit:%bx", nxt_pwr, fc_pit_rx);
+    debugf("\r\nparse_vtx_config pwr:%x, pit:%x", (uint16_t)nxt_pwr, (uint16_t)fc_pit_rx);
 
     //update pit
     if(fc_pit_rx != last_pit)
     {
         PIT_MODE = fc_pit_rx & 1;
-        Printf("\r\nPIT_MODE = %bx", PIT_MODE);
+        debugf("\r\nPIT_MODE = %x", (uint16_t)PIT_MODE);
         if(PIT_MODE)
         {
             DM6300_SetPower(POWER_MAX+1, RF_FREQ, pwr_offset);
@@ -1022,30 +1022,30 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                 if(IS_HI_yaw && IS_LO_throttle && IS_LO_roll && IS_LO_pitch) {
                     if(cur_pwr == POWER_MAX+2) {
                         cms_state = CMS_EXIT_0MW;
-                        //Printf("\r\ncms_state(%bx),cur_pwr(%bx)",cms_state, cur_pwr);
+                        //debugf("\r\ncms_state(%x),cur_pwr(%x)",cms_state, cur_pwr);
                         cms_cnt = 0;
                         break;
                     }
                     /*if(!SA_lock)*/ {
                         cms_state = CMS_ENTER_VTX_MENU;
-                        //Printf("\r\ncms_state(%bx)",cms_state);
+                        //debugf("\r\ncms_state(%x)",cms_state);
                         vtx_menu_init();
                         vtx_state = 0;
                     }
                 }else if(IS_LO_yaw && IS_LO_throttle && IS_HI_roll && IS_LO_pitch){
                     if(cur_pwr != POWER_MAX+2){
                         cms_state = CMS_ENTER_0MW;
-                        //Printf("\r\ncms_state(%bx)",cms_state);
+                        //debugf("\r\ncms_state(%x)",cms_state);
                         cms_cnt = 0;
                     }
                 }else if(VirtualBtn == BTN_ENTER) {
                     cms_state = CMS_ENTER_CAM;
-                    //Printf("\r\ncms_state(%bx)",cms_state);
+                    //debugf("\r\ncms_state(%x)",cms_state);
                     cms_cnt = 0;
                 }else
                     cms_cnt = 0;
             }
-            //Printf("\n\r CMS_OSD");
+            //debugf("\n\r CMS_OSD");
             break;
         
         case CMS_ENTER_0MW:
@@ -1085,9 +1085,9 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     cur_pwr = POWER_MAX+1;
                     DM6300_AUXADC_Calib();
                     #ifdef DBG_DISPLAYPORT
-                    Printf("\r\nExit 0mW\r\n");
+                    debugf("\r\nExit 0mW\r\n");
                     #endif
-                    //Printf("\r\n exit0");
+                    //debugf("\r\n exit0");
                 }else{
                     save_vtx_param();
                     pit_mode_cfg_done = 1; //avoid to config DM6300 again
@@ -1096,9 +1096,9 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     Init_6300RF(RF_FREQ, RF_POWER);
                     DM6300_AUXADC_Calib();
                     #ifdef _DEBUG_MODE
-                    Printf("\r\nExit 0mW\r\n");
+                    debugf("\r\nExit 0mW\r\n");
                     #endif
-                    //Printf("\r\n exit0");
+                    //debugf("\r\n exit0");
                 }
             }
             
@@ -1550,7 +1550,7 @@ void set_vtx_param()
                     //SPI_Write(0x6, 0xFF0, 0x00000000, 0x00000018);
                     //SPI_Write(0x3, 0xd00, 0x00000000, 0x00000000);
                     #ifdef _DEBUG_MODE
-                    Printf("\r\nDM6300 0mW");
+                    debugf("\r\nDM6300 0mW");
                     #endif
                     cur_pwr = POWER_MAX + 2;
                     temp_err = 1;
@@ -1559,7 +1559,7 @@ void set_vtx_param()
                 {
                     DM6300_SetPower(POWER_MAX + 1, RF_FREQ, 0);
                     #ifdef _DEBUG_MODE
-                    Printf("\r\nDM6300 P1mW");
+                    debugf("\r\nDM6300 P1mW");
                     #endif
                     cur_pwr = POWER_MAX + 1;
                 }
@@ -1571,7 +1571,7 @@ void set_vtx_param()
                 DM6300_SetPower(0, RF_FREQ, 0); // limit power to 25mW
                 cur_pwr = 0;
                 #ifdef _DEBUG_MODE
-                Printf("\n\rEnter LP_MODE");
+                debugf("\n\rEnter LP_MODE");
                 #endif
                 lp_mode_cfg_done = 1;
             }
@@ -1592,7 +1592,7 @@ void set_vtx_param()
         {
             //exit pitmode or lp_mode
             #ifdef _DEBUG_MDOE
-            Printf("\n\rExit PIT or LP");
+            debugf("\n\rExit PIT or LP");
             #endif
         #ifndef VIDEO_PAT
         #ifdef VTX_L
@@ -1605,7 +1605,7 @@ void set_vtx_param()
             DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
             cur_pwr = RF_POWER;
             #ifdef _DEBUG_MDOE
-            Printf("\n\rSetPoewer 1");
+            debugf("\n\rSetPoewer 1");
             #endif
         	}
         }
@@ -1620,7 +1620,7 @@ void set_vtx_param()
             DM6300_SetPower(0, RF_FREQ, 0); // limit power to 25mW during disarmed
             cur_pwr = 0;
             #ifdef _DEBUG_MDOE
-            Printf("\n\rEnter LP_MODE");
+            debugf("\n\rEnter LP_MODE");
             #endif
         }
     }
@@ -1658,7 +1658,7 @@ void InitVtxTable()
     uint8_t power1W[9]    = {0x07,0xe4,0x04,0x1e,0x00,0x03,'M','A','X'}; //MAX
     
     #ifdef _DEBUG_MODE
-    Printf("\r\nInitVtxTable");
+    debugf("\r\nInitVtxTable");
     #endif
 
     //set band num, channel num and power level number

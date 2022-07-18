@@ -120,7 +120,7 @@ uint8_t I2C_Write(uint8_t slave_addr, uint16_t reg_addr, uint32_t val, uint8_t a
     I2C_stop();
     
     rdat = I2C_Read(slave_addr, reg_addr, addr16, bnum);
-    //Printf("\r\n0x%4x, 0x%4x", reg_addr, (uint16_t)val);
+    //debugf("\r\n0x%4x, 0x%4x", reg_addr, (uint16_t)val);
     return 0;
 }
 
@@ -207,7 +207,7 @@ uint8_t RUNCAM_Write(uint8_t cam_id, uint32_t addr, uint32_t val)
     value = I2C_write_byte(cam_id);// slave
     if(value){
         I2C_stop();
-        Printf("\r\nerror");
+        debugf("\r\nerror");
         return 1;
     }
     

@@ -3,9 +3,15 @@
 
 #include <stdarg.h>
 
-//void DoPrint(const char *fmt, va_list ap );
-void Printf(const char *fmt, ...);
+void _debugf(const char *fmt, ...);
+void _verbosef(const char *fmt, ...);
 
-//void Puts( char *ptr );
+#ifdef _DEBUG_MODE
+#define debugf _debugf
+#define verbosef _verbosef
+#else
+#define debugf 
+#define verbosef
+#endif
 
 #endif
