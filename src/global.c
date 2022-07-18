@@ -89,20 +89,25 @@ void WAIT(uint32_t ms)
 }
 #endif
 
-void uint8ToString(uint8_t dec, uint8_t* Str)
-{
-    Str[0] = dec/100;
-    Str[1] = dec - (Str[0] * 100);
-    Str[1] = Str[1]/10;
-    Str[2] = dec%10;
-    
-    Str[0] += '0';
-    Str[1] += '0';
-    Str[2] += '0';
-    
-    if(Str[0] == '0'){
+void uint8ToString(uint8_t dec, uint8_t *Str) {
+    uint8_t val = dec / 100;
+    if (val == 0) {
         Str[0] = ' ';
-        if(Str[1] == '0')
-            Str[1] = ' ';
+    } else {
+        Str[0] = '0' + val;
+    }
+
+    val = (dec - (val * 100)) / 10;
+    if (val == 0) {
+        Str[1] = ' ';
+    } else {
+        Str[1] = '0' + val;
+    }
+
+    val = dec % 10;
+    if (val == 0) {
+        Str[2] = ' ';
+    } else {
+        Str[2] = '0' + val;
     }
 }
