@@ -247,11 +247,11 @@ void Monitor(void)
 		DM6300_init7(0);
     else if ( !stricmp( argv[0], "efuse1" ) ){
 		DM6300_EFUSE1();
-        SPI_Write(0x6, 0xFF0, 0x00000000, 0x00000018);
+        SPI_Write(0x6, 0xFF0, 0x00000018);
     }
     else if ( !stricmp( argv[0], "efuse2" ) ){
 		DM6300_EFUSE2();
-        SPI_Write(0x6, 0xFF0, 0x00000000, 0x00000018);
+        SPI_Write(0x6, 0xFF0, 0x00000018);
     }
     else if ( !stricmp( argv[0], "rftest" ) )
 		DM6300_RFTest();
@@ -361,7 +361,7 @@ void MonWrite(uint8_t mode)
         spi_addr   = Asc4Bin( argv[2] );
         //spi_data_H = Asc8Bin( argv[3] );
         spi_data_L = Asc8Bin( argv[3] );
-        SPI_Write(spi_trans, spi_addr, 0, spi_data_L);
+        SPI_Write(spi_trans, spi_addr, spi_data_L);
     }
 
     if(echo){
@@ -371,7 +371,7 @@ void MonWrite(uint8_t mode)
         }
         else{
             spi_data_L = 0;
-            SPI_Read(spi_trans, spi_addr, &spi_data_H, &spi_data_L);
+            SPI_Read(spi_trans, spi_addr, &spi_data_L);
             
             spi_data_L_l = spi_data_L & 0xffff;
             spi_data_L_h = (spi_data_L >> 16) & 0xffff;
@@ -414,7 +414,7 @@ void MonRead(uint8_t mode)
         }
         spi_trans  = Asc2Bin( argv[1] );
         spi_addr   = Asc4Bin( argv[2] );
-        SPI_Read(spi_trans, spi_addr, &spi_data_H, &spi_data_L);
+        SPI_Read(spi_trans, spi_addr, &spi_data_L);
         
         spi_data_L_l = spi_data_L & 0xffff;
         spi_data_L_h = (spi_data_L >> 16) & 0xffff;

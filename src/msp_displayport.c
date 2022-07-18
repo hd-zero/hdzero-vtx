@@ -1136,8 +1136,8 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                 }else{
                     save_vtx_param();
                     pit_mode_cfg_done = 1; //avoid to config DM6300 again
-                    //SPI_Write(0x6, 0xFF0, 0x00000000, 0x00000018);
-                    //SPI_Write(0x3, 0xd00, 0x00000000, 0x00000003);
+                    //SPI_Write(0x6, 0xFF0, 0x00000018);
+                    //SPI_Write(0x3, 0xd00, 0x00000003);
                     Init_6300RF(RF_FREQ, RF_POWER);
                     DM6300_AUXADC_Calib();
                     #ifdef _DEBUG_MODE
@@ -1592,8 +1592,8 @@ void set_vtx_param()
                 if(vtx_pit_save == PIT_0MW)
                 {
                     WriteReg(0, 0x8F, 0x10);
-                    //SPI_Write(0x6, 0xFF0, 0x00000000, 0x00000018);
-                    //SPI_Write(0x3, 0xd00, 0x00000000, 0x00000000);
+                    //SPI_Write(0x6, 0xFF0, 0x00000018);
+                    //SPI_Write(0x3, 0xd00, 0x00000000);
                     #ifdef _DEBUG_MODE
                     debugf("\r\nDM6300 0mW");
                     #endif
