@@ -25,51 +25,52 @@ uint8_t stricmp(uint8_t *ptr1, uint8_t *ptr2) {
 	return 0;
 }
 
-uint8_t Asc1Bin(uint8_t asc)
-{
-	if(asc>='0' && asc <='9') return (asc - '0');
-	else if(asc>='a' && asc <='f') return (asc - 'a' + 0x0a);
-	else if(asc>='A' && asc <='F') return (asc - 'A' + 0x0a);
-    else return 0x00;
+// trick the pre-compiler into doing some generic programing for us
+// this avoids any type-conversions in the following functions
+// as res already has the type we want
+#define hex_to_int(res, val)           \
+    if (val >= '0' && val <= '9')      \
+        res += (val - '0');            \
+    else if (val >= 'a' && val <= 'f') \
+        res += (val - 'a' + 0x0a);     \
+    else if (val >= 'A' && val <= 'F') \
+        res += (val - 'A' + 0x0a);     \
+    else                               \
+        res += (0x00);
+
+// s is 2-digit hex string, such as "1a","3c" ...  => 0x1a, 0x3c
+uint8_t Asc2Bin(uint8_t *s) {
+    uint8_t bin = 0;
+    while (*s != '\0' && *s != ' ') {
+        bin = bin << 4;
+        hex_to_int(bin, *s);
+        s++;
+    }
+    return (bin);
 }
 
-uint8_t Asc2Bin(uint8_t *s) // s is 2-digit hex string, such as "1a","3c" ...  => 0x1a, 0x3c
-{
-	uint8_t bin;
-
-	bin = 0;
-	while(*s != '\0' && *s !=' ') {
-		bin = bin<<4;
-		bin = bin + Asc1Bin(*s);
-		s++;
-	}
-	return (bin);
+// s is 4-digit hex string
+uint16_t Asc4Bin(uint8_t *s) {
+    uint16_t bin = 0;
+    while (*s != '\0' && *s != ' ') {
+        bin = bin << 4;
+        hex_to_int(bin, *s);
+        s++;
+    }
+    return (bin);
 }
 
-uint16_t Asc4Bin(uint8_t *s) // s is 4-digit hex string
-{
-	uint16_t bin;
+// s is 8-digit hex string
+uint32_t Asc8Bin(uint8_t *s) {
+    uint32_t bin = 0;
 
-	bin = 0;
-	while(*s != '\0' && *s !=' ') {
-		bin = bin<<4;
-		bin = bin + Asc1Bin(*s);
-		s++;
-	}
-	return (bin);
-}
+    while (*s != '\0' && *s != ' ') {
+        bin = bin << 4;
+        hex_to_int(bin, *s);
+        s++;
+    }
 
-uint32_t Asc8Bin(uint8_t *s) // s is 8-digit hex string
-{
-	uint32_t bin;
-
-	bin = 0;
-	while(*s != '\0' && *s !=' ') {
-		bin = bin<<4;
-		bin = bin + Asc1Bin(*s);
-		s++;
-	}
-	return (bin);
+    return bin;
 }
 
 #endif
