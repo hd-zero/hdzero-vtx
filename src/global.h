@@ -12,7 +12,7 @@ uint16_t Asc4Bin(uint8_t *s);
 uint32_t Asc8Bin(uint8_t *s);
 uint8_t Asc1Bin(uint8_t asc);
 
-int stricmp(uint8_t *ptr1, uint8_t *ptr2);
+uint8_t stricmp(uint8_t *ptr1, uint8_t *ptr2);
 
 void uint8ToString(uint8_t dec, uint8_t* Str);
 

@@ -4,17 +4,22 @@
 
 #ifdef _DEBUG_MODE
 
-int stricmp(uint8_t *ptr1, uint8_t *ptr2)
-{
-    int diff;
-    
-    while(1){
-        diff = (*ptr1++) - (*ptr2++);
-        if(diff) return 1;
-        
-        if((*ptr1==0) && (*ptr2==0))
+uint8_t stricmp(uint8_t *ptr1, uint8_t *ptr2) {
+    uint8_t lhs, rhs;
+    while (1) {
+        lhs = *ptr1;
+        ptr1++;
+
+        rhs = *ptr2;
+        ptr2++;
+
+        if (lhs != rhs)
+            return 1;
+
+        if ((lhs == 0) && (rhs == 0))
             break;
-        else if((*ptr1==0) || (*ptr2==0))
+
+        if ((lhs == 0) || (rhs == 0))
             return 1;
     }
 	return 0;
