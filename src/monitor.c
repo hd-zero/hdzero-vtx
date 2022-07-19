@@ -327,20 +327,18 @@ void Monitor(void)
 
 
 #ifdef _DEBUG_MODE
-void MonWrite(uint8_t mode)
-{
-	uint16_t addr;
+void MonWrite(uint8_t mode) {
+    uint16_t addr = 0;
     uint8_t value;
-    
-    uint8_t  spi_trans;
-    uint16_t spi_addr;
-    uint32_t spi_data_H;
+
+    uint8_t spi_trans = 0;
+    uint16_t spi_addr = 0;
     uint32_t spi_data_L;
-    
-    uint16_t spi_data_H_h=0;
-    uint16_t spi_data_H_l=0;
-    uint16_t spi_data_L_h=0;
-    uint16_t spi_data_L_l=0;
+
+    uint16_t spi_data_H_h = 0;
+    uint16_t spi_data_H_l = 0;
+    uint16_t spi_data_L_h = 0;
+    uint16_t spi_data_L_l = 0;
 
     if(mode<2){
         if( argc<3 ) {
@@ -382,22 +380,20 @@ void MonWrite(uint8_t mode)
     }
 }
 
-void MonRead(uint8_t mode)
-{
-	uint16_t addr;
+void MonRead(uint8_t mode) {
+    uint16_t addr;
     uint8_t value;
-    
-    uint8_t  spi_trans;
-    uint16_t spi_addr;
-    uint32_t spi_data_H=0;
-    uint32_t spi_data_L=0;
-   
-    uint16_t spi_data_H_h=0;
-    uint16_t spi_data_H_l=0;
-    uint16_t spi_data_L_h=0;
-    uint16_t spi_data_L_l=0;
 
-    
+    uint8_t spi_trans;
+    uint16_t spi_addr;
+    uint32_t spi_data_H = 0;
+    uint32_t spi_data_L = 0;
+
+    uint16_t spi_data_H_h = 0;
+    uint16_t spi_data_H_l = 0;
+    uint16_t spi_data_L_h = 0;
+    uint16_t spi_data_L_l = 0;
+
     if(mode<2){
         if( argc<2 ) {
             debugf("   --> missing parameter!");
