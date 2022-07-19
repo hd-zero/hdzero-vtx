@@ -390,17 +390,17 @@ void Runcam_SetWB(uint8_t* wbRed, uint8_t* wbBlue, uint8_t wbMode)
     }
 }
 
-static void camera_write_eep_parameter(uint16_t addr, uint8_t val) {
+void camera_write_eep_parameter(uint16_t addr, uint8_t val) {
     WAIT(10);
     I2C_Write(ADDR_EEPROM, addr, val, 0, 0);
 }
 
-static uint8_t camera_read_eep_parameter(uint16_t addr) {
+uint8_t camera_read_eep_parameter(uint16_t addr) {
     WAIT(10);
     return I2C_Read(ADDR_EEPROM, addr, 0, 0);
 }
 
-static void camera_check_and_save_parameters() {
+void camera_check_and_save_parameters() {
     uint8_t i = 0;
     uint8_t j = 0;
 

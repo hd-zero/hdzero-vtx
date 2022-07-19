@@ -50,7 +50,7 @@ uint8_t table_power[FREQ_MAX_EXT+1][POWER_MAX+1] = {
 
 #ifndef Raceband
 //ch1-8,5660M/5695M/5735M/5770M/5805M/5839M/5878M/5914M 
-static const uint32_t tab[3][FREQ_MAX+1] = {
+const uint32_t tab[3][FREQ_MAX+1] = {
     {  0x3746,   0x379D,   0x3801,   0x3859,   0x38B0,   0x3905,   0x3967,   0x39C1},
     {    0x93,     0x94,     0x95,     0x96,     0x97,     0x98,     0x99,     0x9A},
     {0xCAAAAB, 0x9D5555, 0xB2AAAB, 0x855555, 0x580000, 0x1D5555, 0x255555,  0x55555}
@@ -59,17 +59,17 @@ static const uint32_t tab[3][FREQ_MAX+1] = {
 //                   5658,  5695,  5732,  5769,  5806,  5843,  5880,  5917
 //uint32_t freq[FREQ_MAX+1] = {113160,113900,114640,115380,116120,116860,117600,118340};
 //                   5658,  5695,  5732,  5769,  5806,  5843,  5880,  5917,  5760,  5800
-static const uint32_t freq_tab[FREQ_MAX_EXT+1] = {113160,113900,114640,115380,116120,116860,117600,118340,115200,116000};
+const uint32_t freq_tab[FREQ_MAX_EXT+1] = {113160,113900,114640,115380,116120,116860,117600,118340,115200,116000};
 #else
 //Raceband1-8,5658M/5695M/5732M/5769M/5806M/5843M/5880M/5917M/5760M/5800M    
-static const uint32_t tab[3][FREQ_MAX_EXT+1] = {
+const uint32_t tab[3][FREQ_MAX_EXT+1] = {
     {  0x3867,   0x379D,   0x3924,   0x3982,   0x39E1,   0x3A3F,   0x3A9E,   0x3AFC,   0x3840,   0x38A4},
     {    0x93,     0x94,     0x95,     0x96,     0x97,     0x98,     0x99,     0x9a,     0x96,     0x97},
     {0xB00000, 0x9D5555, 0x8AAAAB, 0x780000, 0x655555, 0x52AAAB, 0x400000, 0x2D5555, 0x000000, 0x155555}
 };
 
 //                            5660,  5695,  5735,  5770,  5805,  5839,  5878,  5914,  5760,  5800
-static const uint32_t freq_tab[FREQ_MAX_EXT+1] = {113200,113900,114700,115400,116100,116780,117560,118280,115200,116000};
+const uint32_t freq_tab[FREQ_MAX_EXT+1] = {113200,113900,114700,115400,116100,116780,117560,118280,115200,116000};
 #endif        
     
 void DM6300_SetChannel(uint8_t ch)
@@ -285,7 +285,7 @@ int16_t DM6300_GetTemp()
     return temp;
 }
 
-static void DM6300_write_reg_map(const dm6300_reg_value_t *reg_map, uint8_t size) {
+void DM6300_write_reg_map(const dm6300_reg_value_t *reg_map, uint8_t size) {
     uint8_t i = 0;
     for (i = 0; i < size; i++) {
         // debugf("\r\nDM6300_write_reg_map: %bx %x %lx %lx", reg_map[i].trans, reg_map[i].addr, reg_map[i].dat_h, reg_map[i].dat_l);
@@ -293,7 +293,7 @@ static void DM6300_write_reg_map(const dm6300_reg_value_t *reg_map, uint8_t size
     }
 }
 
-static const dm6300_reg_value_t dm6300_init1_regs[] = {
+const dm6300_reg_value_t dm6300_init1_regs[] = {
     {0x6, 0xFFC, 0x00000000, 0x00000000},
     {0x6, 0xFFC, 0x00000000, 0x00000001},
     {0x6, 0x7FC, 0x00000000, 0x00000000},
@@ -314,7 +314,7 @@ void DM6300_init1() {
     DM6300_write_reg_map(dm6300_init1_regs, 13);
 }
 
-static const dm6300_reg_value_t dm6300_init2_regs_bw20[] = {
+const dm6300_reg_value_t dm6300_init2_regs_bw20[] = {
     {0x6, 0xFF0, 0x00000000, 0x00000018},
     {0x3, 0x2AC, 0x00000000, 0x00000300},
     {0x3, 0x2B0, 0x00000000, 0x00007007},
@@ -348,7 +348,7 @@ static const dm6300_reg_value_t dm6300_init2_regs_bw20[] = {
     {0x3, 0x254, 0x00000000, 0x00007813}, // 0x00007813
     {0x3, 0x258, 0x00000000, 0x00010003},
 };
-static const dm6300_reg_value_t dm6300_init2_regs_bw27[] = {
+const dm6300_reg_value_t dm6300_init2_regs_bw27[] = {
     // 02_BBPLL_3456
     {0x6, 0xFF0, 0x00000000, 0x00000018},
     {0x3, 0x2AC, 0x00000000, 0x00000300},
@@ -432,7 +432,7 @@ void DM6300_init3(uint8_t ch) {
     SPI_Write(0x3, 0x030, 0x00000000, 0x00000010);
 }
 
-static const dm6300_reg_value_t dm6300_init4_regs[] = {
+const dm6300_reg_value_t dm6300_init4_regs[] = {
     // 04_TX_CA1_RF
     {0x6, 0xFF0, 0x00000000, 0x00000018},
     {0x3, 0x31C, 0x00000000, 0x00000000}, // 0x00000030
@@ -456,7 +456,7 @@ void DM6300_init4() {
     DM6300_write_reg_map(dm6300_init4_regs, 16);
 }
 
-static const dm6300_reg_value_t dm6300_init5_regs[] = {
+const dm6300_reg_value_t dm6300_init5_regs[] = {
     // 05_tx_cal_DAC_BBF
     {0x6, 0xFF0, 0x00000000, 0x00000019},
     {0x3, 0x194, 0x00000000, 0x0001FFFF},
@@ -516,7 +516,7 @@ void DM6300_init6(BWType_e sel) {
     SPI_Write(0x3, 0xD0C, 0x00000000, 0x00000000);
 }
 
-static const dm6300_reg_value_t dm6300_init7_regs_bw20[] = {
+const dm6300_reg_value_t dm6300_init7_regs_bw20[] = {
     {0x6, 0xFF0, 0x00000000, 0x00000018},
     {0x3, 0xC00, 0x00000000, 0x005B0047},
     {0x3, 0xC04, 0x00000000, 0xFFBB0017},
@@ -583,7 +583,7 @@ static const dm6300_reg_value_t dm6300_init7_regs_bw20[] = {
     {0x3, 0xCF8, 0x00000000, 0x0017FFBB},
     {0x3, 0xCFC, 0x00000000, 0x0047005B},
 };
-static const dm6300_reg_value_t dm6300_init7_regs_bw27[] = {
+const dm6300_reg_value_t dm6300_init7_regs_bw27[] = {
     // 07_fir_128stap
     {0x6, 0xFF0, 0x00000000, 0x00000018},
     {0x3, 0xC00, 0x00000000, 0x004E0041},
