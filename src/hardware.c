@@ -197,9 +197,8 @@ void CFG_Back()
     OFFSET_25MW = (OFFSET_25MW > 20) ? 0 : OFFSET_25MW;
 }
 
-void GetVtxParameter()
-{
-    unsigned char CODE_SEG *ptr = 0xFFE8;
+void GetVtxParameter() {
+    unsigned char CODE_SEG *ptr = (unsigned char CODE_SEG *)0xFFE8;
     uint8_t i, j;
     XDATA_SEG uint8_t tab[FREQ_MAX+1][POWER_MAX+1];
     uint8_t flash_vld = 1;
@@ -1128,11 +1127,10 @@ void Flicker_MAX(uint8_t ch, uint8_t cnt)
     Init_MAX7315(0xFF);
 }
 
-void BlinkPhase()
-{
-    uint8_t bp;
-    
-    if(cfg_step == 1 && (dispF_cnt < DISPF_TIME)){    //display 'F' band
+void BlinkPhase() {
+    uint8_t bp = 0;
+
+    if (cfg_step == 1 && (dispF_cnt < DISPF_TIME)) { // display 'F' band
         bp = BPLED[14];
         I2C_Write(ADDR_KEYBOARD, 0x01, bp, 0, 0);
         I2C_Write(ADDR_KEYBOARD, 0x03, 0x00, 0, 0);
