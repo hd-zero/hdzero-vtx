@@ -71,6 +71,50 @@ const uint32_t tab[3][FREQ_MAX_EXT+1] = {
 const uint32_t freq_tab[FREQ_MAX_EXT+1] = {113200,113900,114700,115400,116100,116780,117560,118280,115200,116000};
 #endif        
     
+void DM6300_write_reg_map(const dm6300_reg_value_t *reg_map, uint8_t size) {
+    uint8_t i = 0;
+    for (i = 0; i < size; i++) {
+        // debugf("\r\nDM6300_write_reg_map: %bx %x %lx", reg_map[i].trans, reg_map[i].addr, reg_map[i].dat);
+        SPI_Write(reg_map[i].trans, reg_map[i].addr, reg_map[i].dat);
+    }
+}
+
+#define REG_MAP_COUNT(regs) sizeof(regs) / sizeof(dm6300_reg_value_t)
+#define WRITE_REG_MAP(regs) DM6300_write_reg_map(regs, REG_MAP_COUNT(regs))
+
+dm6300_reg_value_t dm6300_set_channel_regs[] = {
+    {0x6, 0xFF0, 0x00000018},
+    {0x3, 0x2B0, 0x00077777},
+    {0x3, 0x030, 0x00000013},
+    {0x3, 0x034, 0x00000013},
+    {0x3, 0x038, 0x00000370},
+    {0x3, 0x03C, 0x00000410},
+    {0x3, 0x040, 0x00000000},
+    {0x3, 0x044, 0x0D640735},
+    {0x3, 0x048, 0x01017F03},
+    {0x3, 0x04C, 0x021288A2},
+    {0x3, 0x050, 0x00FFCF33},
+    {0x3, 0x054, 0x1F3C3440},
+    {0x3, 0x028, 0x00008000}, // [12] // 0x00008000 + (init6300_fcnt & 0xFF)
+    {0x3, 0x020, 0x00000000}, // [13] // init6300_fnum[ch]
+    {0x3, 0x01C, 0x00000002},
+    {0x3, 0x018, 0x00000001}, //WAIT(1},
+    {0x3, 0x018, 0x00000000}, //WAIT(1},
+    {0x3, 0x028, 0x00000000}, // [17] // 0x00008000 + (init6300_fcnt & 0xFF)
+    {0x3, 0x020, 0x00000000}, // [18] // init6300_fnum[ch]},
+    {0x3, 0x01C, 0x00000003},
+    {0x3, 0x018, 0x00000001}, //WAIT(1},
+    {0x3, 0x018, 0x00000000}, //WAIT(1},
+    {0x3, 0x050, 0x00FFCFB3},
+    {0x3, 0x004, 0x00000000}, // [23] // tab[1][ch]
+    {0x3, 0x008, 0x00000000}, // [24] // tab[2][ch]
+    {0x3, 0x000, 0x00000000}, //WAIT(1},
+    {0x3, 0x000, 0x00000003},
+    {0x3, 0x050, 0x000333B3},
+    {0x3, 0x040, 0x07070002},
+    {0x3, 0x030, 0x00000010},
+};
+
 void DM6300_SetChannel(uint8_t ch)
 {
     #ifdef _DEBUG_MODE
@@ -86,37 +130,16 @@ void DM6300_SetChannel(uint8_t ch)
 #endif
 #endif
 */   
-    SPI_Write(0x6, 0xFF0, 0x00000018);
+    dm6300_set_channel_regs[12].dat = 0x00008000 + (init6300_fcnt & 0xFF);
+    dm6300_set_channel_regs[13].dat = init6300_fnum[ch];
+
+    dm6300_set_channel_regs[17].dat = 0x00008000 + (init6300_fcnt & 0xFF);
+    dm6300_set_channel_regs[18].dat = init6300_fnum[ch];
     
-    SPI_Write(0x3, 0x2B0, 0x00077777);
-    SPI_Write(0x3, 0x030, 0x00000013);
-    SPI_Write(0x3, 0x034, 0x00000013);
-    SPI_Write(0x3, 0x038, 0x00000370);
-    SPI_Write(0x3, 0x03C, 0x00000410);
-    SPI_Write(0x3, 0x040, 0x00000000);
-    SPI_Write(0x3, 0x044, 0x0D640735);
-    SPI_Write(0x3, 0x048, 0x01017F03);
-    SPI_Write(0x3, 0x04C, 0x021288A2);
-    SPI_Write(0x3, 0x050, 0x00FFCF33);
-    SPI_Write(0x3, 0x054, 0x1F3C3440);
-    SPI_Write(0x3, 0x028, 0x00008000 + (init6300_fcnt & 0xFF));
-    SPI_Write(0x3, 0x020, init6300_fnum[ch]); //tab[0][ch] WAIT(1);
-    SPI_Write(0x3, 0x01C, 0x00000002);
-    SPI_Write(0x3, 0x018, 0x00000001); //WAIT(1);
-    SPI_Write(0x3, 0x018, 0x00000000); //WAIT(1);
-    SPI_Write(0x3, 0x028, 0x00008000 + (init6300_fcnt & 0xFF));
-    SPI_Write(0x3, 0x020, init6300_fnum[ch]); //tab[0][ch]
-    SPI_Write(0x3, 0x01C, 0x00000003);
-    SPI_Write(0x3, 0x018, 0x00000001); //WAIT(1);
-    SPI_Write(0x3, 0x018, 0x00000000); //WAIT(1);
-    SPI_Write(0x3, 0x050, 0x00FFCFB3);
-    SPI_Write(0x3, 0x004, tab[1][ch]);
-    SPI_Write(0x3, 0x008, tab[2][ch]);
-    SPI_Write(0x3, 0x000, 0x00000000); //WAIT(1);
-    SPI_Write(0x3, 0x000, 0x00000003);
-    SPI_Write(0x3, 0x050, 0x000333B3);
-    SPI_Write(0x3, 0x040, 0x07070002);
-    SPI_Write(0x3, 0x030, 0x00000010);
+    dm6300_set_channel_regs[23].dat = tab[1][ch];
+    dm6300_set_channel_regs[24].dat = tab[2][ch];
+    
+    WRITE_REG_MAP(dm6300_set_channel_regs);
 }
 
 void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset)
@@ -190,19 +213,19 @@ void DM6300_RFTest()
 
 void DM6300_InitAUXADC()
 {
-    uint32_t dh,dl;
+    uint32_t dat;
     int16_t dat1,dat2,dat3;
     
     SPI_Write(0x6, 0xFF0, 0x00000018);
-    SPI_Read (0x3, 0x254, &dl);
+    SPI_Read (0x3, 0x254, &dat);
     #ifdef _DEBUG_MODE
-    debugf("\r\nDM6300 0x254 = %x%x.\r\n",(uint16_t)((dl>>16)&0xFFFF), (uint16_t)(dl&0xFFFF));
+    debugf("\r\nDM6300 0x254 = %x%x.\r\n",(uint16_t)((dat>>16)&0xFFFF), (uint16_t)(dat&0xFFFF));
     #endif
-    dl |= 0x200;
+    dat |= 0x200;
     #ifdef _DEBUG_MODE
-    debugf("\r\nDM6300 0x254 = %x%x.\r\n",(uint16_t)((dl>>16)&0xFFFF), (uint16_t)(dl&0xFFFF));
+    debugf("\r\nDM6300 0x254 = %x%x.\r\n",(uint16_t)((dat>>16)&0xFFFF), (uint16_t)(dat&0xFFFF));
     #endif
-    SPI_Write(0x3, 0x254, dl);
+    SPI_Write(0x3, 0x254, dat);
     
     SPI_Write(0x6, 0xFF0, 0x00000019);
     SPI_Write(0x3, 0x17C, 0x19);
@@ -210,20 +233,20 @@ void DM6300_InitAUXADC()
     SPI_Write(0x6, 0xFF0, 0x00000018);
     SPI_Write(0x3, 0x2A0, 0xC05B55FE);
     SPI_Write(0x6, 0xFF0, 0x00000019);
-    SPI_Read (0x3, 0x17C, &dl);
-    dat1 = ((int32_t)dl) >> 20;
+    SPI_Read (0x3, 0x17C, &dat);
+    dat1 = ((int32_t)dat) >> 20;
     
     SPI_Write(0x6, 0xFF0, 0x00000018);
     SPI_Write(0x3, 0x2A0, 0x305B55FE);
     SPI_Write(0x6, 0xFF0, 0x00000019);
-    SPI_Read (0x3, 0x17C, &dl);
-    dat2 = ((int32_t)dl) >> 20;
+    SPI_Read (0x3, 0x17C, &dat);
+    dat2 = ((int32_t)dat) >> 20;
     
     SPI_Write(0x6, 0xFF0, 0x00000018);
     SPI_Write(0x3, 0x2A0, 0xA05B51FE);
     SPI_Write(0x6, 0xFF0, 0x00000019);
-    SPI_Read (0x3, 0x17C, &dl);
-    dat3 = ((int32_t)dl) >> 20;
+    SPI_Read (0x3, 0x17C, &dat);
+    dat3 = ((int32_t)dat) >> 20;
     
     auxadc_offset = dat3 - ((dat1+dat2) >> 1);
     #ifdef _DEBUG_MODE
@@ -267,7 +290,7 @@ void DM6300_AUXADC_Calib()
 int16_t DM6300_GetTemp()
 {
     static uint8_t init = 1;
-    uint32_t dh, dl;
+    uint32_t dat;
     int16_t temp;
     
     if(init){
@@ -278,19 +301,12 @@ int16_t DM6300_GetTemp()
     }
     
     SPI_Write(0x6, 0xFF0, 0x00000019);
-    SPI_Read (0x3, 0x17C, &dl);
-    temp = (((int32_t)dl) >> 20) + auxadc_offset;
+    SPI_Read (0x3, 0x17C, &dat);
+    temp = (((int32_t)dat) >> 20) + auxadc_offset;
     
     return temp;
 }
 
-void DM6300_write_reg_map(const dm6300_reg_value_t *reg_map, uint8_t size) {
-    uint8_t i = 0;
-    for (i = 0; i < size; i++) {
-        // debugf("\r\nDM6300_write_reg_map: %bx %x %lx", reg_map[i].trans, reg_map[i].addr, reg_map[i].dat);
-        SPI_Write(reg_map[i].trans, reg_map[i].addr, reg_map[i].dat);
-    }
-}
 
 const dm6300_reg_value_t dm6300_init1_regs[] = {
     {0x6, 0xFFC, 0x00000000},
@@ -306,11 +322,10 @@ const dm6300_reg_value_t dm6300_init1_regs[] = {
     {0x6, 0xFF0, 0x00000018},
     {0x6, 0xFFC, 0x00000000},
     {0x6, 0xFFC, 0x00000001},
-    {0x0, 0x000, 0x00000000}, // padding
 };
 
 void DM6300_init1() {
-    DM6300_write_reg_map(dm6300_init1_regs, 13);
+    WRITE_REG_MAP(dm6300_init1_regs);
 }
 
 const dm6300_reg_value_t dm6300_init2_regs_bw20[] = {
@@ -380,55 +395,65 @@ const dm6300_reg_value_t dm6300_init2_regs_bw27[] = {
     {0x3, 0x250, 0x0F7F0001},
     {0x3, 0x254, 0x00007813}, // 0x00007813
     {0x3, 0x258, 0x00010002},
-    {0x0, 0x000, 0x00000000}, // pad to the same size
 };
 
 void DM6300_init2(BWType_e sel) {
     if (sel) {
-        DM6300_write_reg_map(dm6300_init2_regs_bw20, 32);
+        WRITE_REG_MAP(dm6300_init2_regs_bw20);
     } else {
-        DM6300_write_reg_map(dm6300_init2_regs_bw27, 31);
+        WRITE_REG_MAP(dm6300_init2_regs_bw27);
     }
 }
 
-void DM6300_init3(uint8_t ch) {
+dm6300_reg_value_t dm6300_init3_regs[] = {
     // 03_RFPLL_CA1_TX_10G
-    SPI_Write(0x6, 0xFF0, 0x00000018);
-    SPI_Write(0x3, 0x2B0, 0x00077777);
-    SPI_Write(0x3, 0x030, 0x00000013);
-    SPI_Write(0x3, 0x034, 0x00000013);
-    SPI_Write(0x3, 0x038, 0x00000370);
-    SPI_Write(0x3, 0x03C, 0x00000410);
-    SPI_Write(0x3, 0x040, 0x00000000);
-    SPI_Write(0x3, 0x044, 0x0D640735);
-    SPI_Write(0x3, 0x048, 0x01017F03);
-    SPI_Write(0x3, 0x04C, 0x021288A2);
-    SPI_Write(0x3, 0x050, 0x00FFCF33);
-    SPI_Write(0x3, 0x054, 0x1F3C3440);
-    // SPI_Write(0x3, 0x028, 0x00008030);
-    SPI_Write(0x3, 0x028, 0x00008000 + (init6300_fcnt & 0xFF));
-    // SPI_Write(0x3, 0x020, 0x00003746);
-    SPI_Write(0x3, 0x020, init6300_fnum[ch]); // tab[0][ch] WAIT(1);
-    SPI_Write(0x3, 0x01C, 0x00000002);
-    SPI_Write(0x3, 0x018, 0x00000001);
-    SPI_Write(0x3, 0x018, 0x00000000);
-    // SPI_Write(0x3, 0x028, 0x00008030);
-    SPI_Write(0x3, 0x028, 0x00008000 + (init6300_fcnt & 0xFF));
-    // SPI_Write(0x3, 0x020, 0x00003746);
-    SPI_Write(0x3, 0x020, init6300_fnum[ch]); // tab[0][ch]
-    SPI_Write(0x3, 0x01C, 0x00000003);
-    SPI_Write(0x3, 0x018, 0x00000001);
-    SPI_Write(0x3, 0x018, 0x00000000);
-    SPI_Write(0x3, 0x050, 0x00FFCFB3);
-    // SPI_Write(0x3, 0x004, 0x00000093);
-    // SPI_Write(0x3, 0x008, 0x00CAAAAB);
-    SPI_Write(0x3, 0x004, tab[1][ch]);
-    SPI_Write(0x3, 0x008, tab[2][ch]);
-    SPI_Write(0x3, 0x000, 0x00000000);
-    SPI_Write(0x3, 0x000, 0x00000003);
-    SPI_Write(0x3, 0x050, 0x000333B3);
-    SPI_Write(0x3, 0x040, 0x07070002);
-    SPI_Write(0x3, 0x030, 0x00000010);
+    {0x6, 0xFF0, 0x00000018},
+    {0x3, 0x2B0, 0x00077777},
+    {0x3, 0x030, 0x00000013},
+    {0x3, 0x034, 0x00000013},
+    {0x3, 0x038, 0x00000370},
+    {0x3, 0x03C, 0x00000410},
+    {0x3, 0x040, 0x00000000},
+    {0x3, 0x044, 0x0D640735},
+    {0x3, 0x048, 0x01017F03},
+    {0x3, 0x04C, 0x021288A2},
+    {0x3, 0x050, 0x00FFCF33},
+    {0x3, 0x054, 0x1F3C3440},
+    // {0x3, 0x028, 0x00008030},
+    {0x3, 0x028, 0x00000000}, // [12] // 0x00008000 + (init6300_fcnt & 0xFF)
+    // {0x3, 0x020, 0x00003746},
+    {0x3, 0x020, 0x00000000}, // [13] // init6300_fnum[ch]}, // tab[0][ch] WAIT(1},
+    {0x3, 0x01C, 0x00000002},
+    {0x3, 0x018, 0x00000001},
+    {0x3, 0x018, 0x00000000},
+    // {0x3, 0x028, 0x00008030},
+    {0x3, 0x028, 0x00000000}, // [17] // 0x00008000 + (init6300_fcnt & 0xFF)},
+    // {0x3, 0x020, 0x00003746},
+    {0x3, 0x020, 0x00000000}, // [18] // init6300_fnum[ch]}, // tab[0][ch]
+    {0x3, 0x01C, 0x00000003},
+    {0x3, 0x018, 0x00000001},
+    {0x3, 0x018, 0x00000000},
+    {0x3, 0x050, 0x00FFCFB3},
+    // {0x3, 0x004, 0x00000093},
+    // {0x3, 0x008, 0x00CAAAAB},
+    {0x3, 0x004, 0x00000000}, // [23] // tab[1][ch]},
+    {0x3, 0x008, 0x00000000}, // [24] // tab[2][ch]},
+    {0x3, 0x000, 0x00000000},
+    {0x3, 0x000, 0x00000003},
+    {0x3, 0x050, 0x000333B3},
+    {0x3, 0x040, 0x07070002},
+    {0x3, 0x030, 0x00000010}
+};
+
+void DM6300_init3(uint8_t ch) {
+    dm6300_init3_regs[12].dat = 0x00008000 + (init6300_fcnt & 0xFF);
+    dm6300_init3_regs[13].dat = init6300_fnum[ch]; // tab[0][ch] WAIT(1);
+
+    dm6300_init3_regs[17].dat = 0x00008000 + (init6300_fcnt & 0xFF);
+    dm6300_init3_regs[18].dat = init6300_fnum[ch]; // tab[0][ch]
+    
+    dm6300_init3_regs[23].dat = tab[1][ch];
+    dm6300_init3_regs[24].dat = tab[2][ch];
 }
 
 const dm6300_reg_value_t dm6300_init4_regs[] = {
@@ -452,7 +477,7 @@ const dm6300_reg_value_t dm6300_init4_regs[] = {
 };
 
 void DM6300_init4() {
-    DM6300_write_reg_map(dm6300_init4_regs, 16);
+    WRITE_REG_MAP(dm6300_init4_regs);
 }
 
 const dm6300_reg_value_t dm6300_init5_regs[] = {
@@ -480,39 +505,46 @@ const dm6300_reg_value_t dm6300_init5_regs[] = {
     {0x3, 0x3D8, 0x0000000A},
     {0x3, 0x380, 0x075F8000},
     {0x3, 0x388, 0x075F8000},
-    {0x0, 0x000, 0x00000000}, // padding
 };
 
 void DM6300_init5() {
-    DM6300_write_reg_map(dm6300_init5_regs, 23);
+    WRITE_REG_MAP(dm6300_init5_regs);
 }
 
+dm6300_reg_value_t dm6300_init6_regs[] = {
+    {0x6, 0xFF0, 0x00000019},
+    {0x3, 0x0E4, 0x00000002},
+    {0x3, 0x0E8, 0x0000000D},
+    {0x3, 0x08c, 0x00000000},
+
+    {0x6, 0xFF0, 0x00000018},
+    {0x3, 0xd04, 0x020019D9}, // 0x0x020000ED
+    {0x3, 0xd08, 0x00000000},
+    {0x3, 0xd1c, 0x00000000}, // remove init DC high
+    {0x3, 0xd00, 0x00000003},
+
+    {0x6, 0xFF0, 0x00000019},
+
+
+    {0x3, 0x080, 0x00000000},  // [10] 
+
+    // if (sel)
+    //     SPI_Write(0x3, 0x080, 0x16318C0C);
+    // else
+    //     SPI_Write(0x3, 0x080, 0x1084210C);
+
+    {0x3, 0x020, 0x0000000C},
+    {0x3, 0x018, 0x04F16040},
+    {0x3, 0x088, 0x00000085},
+
+    {0x6, 0xFF0, 0x00000018},
+    {0x3, 0xD08, 0x03200300},
+    {0x3, 0xD0C, 0x00000000},
+};
+
 void DM6300_init6(BWType_e sel) {
-    // 06_TX_CA1_RBDP_CMOS
-    SPI_Write(0x6, 0xFF0, 0x00000019);
-    SPI_Write(0x3, 0x0E4, 0x00000002);
-    SPI_Write(0x3, 0x0E8, 0x0000000D);
-    SPI_Write(0x3, 0x08c, 0x00000000);
-
-    SPI_Write(0x6, 0xFF0, 0x00000018);
-    SPI_Write(0x3, 0xd04, 0x020019D9); // 0x0x020000ED
-    SPI_Write(0x3, 0xd08, 0x00000000);
-    SPI_Write(0x3, 0xd1c, 0x00000000); // remove init DC high
-    SPI_Write(0x3, 0xd00, 0x00000003);
-
-    SPI_Write(0x6, 0xFF0, 0x00000019);
-    if (sel)
-        SPI_Write(0x3, 0x080, 0x16318C0C);
-    else
-        SPI_Write(0x3, 0x080, 0x1084210C);
-
-    SPI_Write(0x3, 0x020, 0x0000000C);
-    SPI_Write(0x3, 0x018, 0x04F16040);
-    SPI_Write(0x3, 0x088, 0x00000085);
-
-    SPI_Write(0x6, 0xFF0, 0x00000018);
-    SPI_Write(0x3, 0xD08, 0x03200300);
-    SPI_Write(0x3, 0xD0C, 0x00000000);
+    dm6300_init6_regs[10].dat = sel ? 0x16318C0C : 0x1084210C;
+    WRITE_REG_MAP(dm6300_init6_regs);
 }
 
 const dm6300_reg_value_t dm6300_init7_regs_bw20[] = {
@@ -653,16 +685,35 @@ const dm6300_reg_value_t dm6300_init7_regs_bw27[] = {
 
 void DM6300_init7(BWType_e sel) {
     if (sel) {
-        DM6300_write_reg_map(dm6300_init7_regs_bw20, 65);
+        WRITE_REG_MAP(dm6300_init7_regs_bw20);
     } else {
-        DM6300_write_reg_map(dm6300_init7_regs_bw27, 65);
+        WRITE_REG_MAP(dm6300_init7_regs_bw27);
     }
 }
+
+const dm6300_reg_value_t dm6300_init_regs[] = {
+    {0x6, 0xFF0, 0x00000018},
+    {0x3, 0x2B0, 0x00077777},
+    {0x3, 0x030, 0x00000013},
+    {0x3, 0x034, 0x00000013},
+    {0x3, 0x038, 0x00000370},
+    {0x3, 0x03C, 0x00000410},
+    {0x3, 0x040, 0x00000000},
+    {0x3, 0x044, 0x0D640735},
+    {0x3, 0x048, 0x01017F03},
+    {0x3, 0x04C, 0x021288A2},
+    {0x3, 0x050, 0x00FFCF33},
+    {0x3, 0x054, 0x1F3C3440},
+    {0x3, 0x028, 0x00008008},
+    {0x3, 0x01C, 0x0000FFF6},
+    {0x3, 0x018, 0x00000001},
+    {0x3, 0x018, 0x00000000}
+};
 
 void DM6300_Init(uint8_t ch, BWType_e bw)
 {
     int i;
-    uint32_t rh, rl;
+    uint32_t dat;
     
     // 01_INIT
     DM6300_init1();
@@ -671,26 +722,10 @@ void DM6300_Init(uint8_t ch, BWType_e bw)
     DM6300_EFUSE1();
 #endif
     
-    // cnt, num
-    SPI_Write(0x6, 0xFF0, 0x00000018);
-    SPI_Write(0x3, 0x2B0, 0x00077777);
-    SPI_Write(0x3, 0x030, 0x00000013);
-    SPI_Write(0x3, 0x034, 0x00000013);
-    SPI_Write(0x3, 0x038, 0x00000370);
-    SPI_Write(0x3, 0x03C, 0x00000410);
-    SPI_Write(0x3, 0x040, 0x00000000);
-    SPI_Write(0x3, 0x044, 0x0D640735);
-    SPI_Write(0x3, 0x048, 0x01017F03);
-    SPI_Write(0x3, 0x04C, 0x021288A2);
-    SPI_Write(0x3, 0x050, 0x00FFCF33);
-    SPI_Write(0x3, 0x054, 0x1F3C3440);
-    SPI_Write(0x3, 0x028, 0x00008008);
-    SPI_Write(0x3, 0x01C, 0x0000FFF6);
-    SPI_Write(0x3, 0x018, 0x00000001); //WAIT(1);
-    SPI_Write(0x3, 0x018, 0x00000000);
+    WRITE_REG_MAP(dm6300_init_regs);
     
-    SPI_Read(0x3, 0x02C, &rl);
-    init6300_fcnt = rl & 0x3FFF;
+    SPI_Read(0x3, 0x02C, &dat);
+    init6300_fcnt = dat & 0x3FFF;
     init6300_fcnt = 0x20000/init6300_fcnt-3;
     for(i=0; i<FREQ_MAX_EXT+1; i++)
         init6300_fnum[i] = freq_tab[i]*init6300_fcnt/384;
@@ -802,7 +837,7 @@ void DM6300_EFUSE1()
     int i, j;
     int efuse_rdy = 1;
     
-    uint32_t rl;
+    uint32_t dat;
 
     memset((char*)&efuse, 0, sizeof(EFUSE_T));
     
@@ -819,14 +854,14 @@ void DM6300_EFUSE1()
         
         // while(EFUSE_RDY&1);
         while(efuse_rdy){
-            SPI_Read(0x3, 0x7D4, &rl);
-            efuse_rdy = rl & 1;
+            SPI_Read(0x3, 0x7D4, &dat);
+            efuse_rdy = dat & 1;
         }
         efuse_rdy = 1;
         
         // efuse.data[0][j] = EFUSE_DAT;
-        SPI_Read(0x3, 0x7D8, &rl);
-        efuse.dat[0][j] = rl & 0xFF;
+        SPI_Read(0x3, 0x7D8, &dat);
+        efuse.dat[0][j] = dat & 0xFF;
     }
     
     for(j=66; j<68/*EFUSE_SIZE*/; j++) // read macro 0
@@ -836,14 +871,14 @@ void DM6300_EFUSE1()
         
         // while(EFUSE_RDY&1);
         while(efuse_rdy){
-            SPI_Read(0x3, 0x7D4, &rl);
-            efuse_rdy = rl & 1;
+            SPI_Read(0x3, 0x7D4, &dat);
+            efuse_rdy = dat & 1;
         }
         efuse_rdy = 1;
         
         // efuse.data[0][j] = EFUSE_DAT;
-        SPI_Read(0x3, 0x7D8, &rl);
-        efuse.dat[0][j] = rl & 0xFF;
+        SPI_Read(0x3, 0x7D8, &dat);
+        efuse.dat[0][j] = dat & 0xFF;
     }
 
     for(j=0; j<12/*EFUSE_SIZE*/; j++) // read macro 1
@@ -853,14 +888,14 @@ void DM6300_EFUSE1()
         
         // while(EFUSE_RDY&1);
         while(efuse_rdy){
-            SPI_Read(0x3, 0x7D4, &rl);
-            efuse_rdy = rl & 1;
+            SPI_Read(0x3, 0x7D4, &dat);
+            efuse_rdy = dat & 1;
         }
         efuse_rdy = 1;
         
         // efuse.data[1][j] = EFUSE_DAT;
-        SPI_Read(0x3, 0x7D8, &rl);
-        efuse.dat[1][j] = rl & 0xFF;
+        SPI_Read(0x3, 0x7D8, &dat);
+        efuse.dat[1][j] = dat & 0xFF;
     }
 
     //for(i=2; i<efuse.macro.m0.band_num+2; i++) // read macro 2~11
@@ -877,14 +912,14 @@ void DM6300_EFUSE1()
         
             // while(EFUSE_RDY&1);
             while(efuse_rdy){
-                SPI_Read(0x3, 0x7D4, &rl);
-                efuse_rdy = rl & 1;
+                SPI_Read(0x3, 0x7D4, &dat);
+                efuse_rdy = dat & 1;
             }
             efuse_rdy = 1;
             
             // efuse.data[i][j] = EFUSE_DAT;
-            SPI_Read(0x3, 0x7D8, &rl);
-            efuse.dat[i][j] = rl & 0xFF;
+            SPI_Read(0x3, 0x7D8, &dat);
+            efuse.dat[i][j] = dat & 0xFF;
 						
 						if(j == 35){
                             #ifdef KEIL_C51
@@ -926,6 +961,10 @@ void DM6300_EFUSE1()
     SPI_Write(0x6, 0xFF0, 0x00000018);
 }
 
+const dm6300_reg_value_t dm6300_regs_dm6300_efuse2_1[] = {
+    {0x6, 0xFF0, 0x00000018},
+    {0x3, 0x3AC, 0x00000012}
+};
 
 void DM6300_EFUSE2()
 {   
@@ -946,9 +985,9 @@ void DM6300_EFUSE2()
     #endif
     //version[1];  //version[1] M.N---M
     //version[3];  //version[3] M.N---N
-    
-    SPI_Write(0x6, 0xFF0, 0x00000018);
-    SPI_Write(0x3, 0x3AC, 0x00000012);
+
+    WRITE_REG_MAP(dm6300_regs_dm6300_efuse2_1);
+
 	for(i=0; i<efuse.macro.m0.band_num; i++) // find match macro 5.8G
     //for(i=0; i<FREQ_MAX_EXT+1; i++) // find match macro 5.8G
 	{
@@ -1008,9 +1047,9 @@ void DM6300_EFUSE2()
                 efuse.macro.m2[i].tx1.dcoc_q = ef_data;
             }
             
-            SPI_Write(0x3, 0xD08,  efuse.macro.m2[i].tx1.iqmismatch);
-            SPI_Write(0x3, 0x380,  efuse.macro.m2[i].tx1.dcoc_i);
-            SPI_Write(0x3, 0x388,  efuse.macro.m2[i].tx1.dcoc_q);
+            SPI_Write(0x3, 0xD08, efuse.macro.m2[i].tx1.iqmismatch);
+            SPI_Write(0x3, 0x380, efuse.macro.m2[i].tx1.dcoc_i);
+            SPI_Write(0x3, 0x388, efuse.macro.m2[i].tx1.dcoc_q);
 
             debugf("\r\niqmismatch=%lx", efuse.macro.m2[i].tx1.iqmismatch);
             debugf("\r\ndcoc_i=%lx", efuse.macro.m2[i].tx1.dcoc_i);
