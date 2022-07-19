@@ -1,7 +1,7 @@
 #ifndef __MSP_DISPLAYPORT_H_
 #define __MSP_DISPLAYPORT_H_
 
-#include "stdint.h"
+#include "common.h"
 
 #define IS_HI(x)  ((x) > 1750)
 #define IS_LO(x)  ((x) < 1250)

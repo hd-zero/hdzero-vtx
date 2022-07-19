@@ -26,7 +26,7 @@ uint8_t fc_lock = 0;
 uint8_t disp_mode;  //DISPLAY_OSD | DISPLAY_CMS;
 uint8_t osd_ready;
 
-uint8_t fc_variant[4] = {"BTFL"};
+uint8_t fc_variant[4] = {'B', 'T', 'F', 'L'};
 uint8_t fontType = 0x00;
 uint8_t resolution = SD_3016;
 uint8_t resolution_last = HD_5018;
@@ -660,7 +660,7 @@ void msp_eeprom_write()
 void msp_set_vtx_config(uint8_t power, uint8_t save)
 {
     uint8_t crc = 0;
-    uint8_t channel;
+    uint8_t channel = 0;
     uint8_t band;
     
     if(RF_FREQ <8){
@@ -921,11 +921,11 @@ void parseMspVtx_V2(uint16_t cmd_u16)
 
 uint8_t parse_displayport(uint8_t len)
 {
-    uint8_t row,col;
+    uint8_t row = 0, col = 0;
     uint8_t state_osd = MSP_OSD_SUBCMD;
     uint8_t ptr = 0;
     uint8_t ret = 0;
-    uint8_t page_extend;
+    uint8_t page_extend = 0;
     
     while(ptr != 64){
         switch(state_osd){
