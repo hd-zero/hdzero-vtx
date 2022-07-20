@@ -1,17 +1,21 @@
 #ifndef __ISR_H_
 #define __ISR_H_
 
-extern uint8_t btn1_tflg;
-extern uint8_t pwr_sflg;
-extern uint8_t pwr_tflg;
-extern uint8_t cfg_tflg;
-extern uint8_t temp_tflg;
-extern uint16_t  seconds;
+#include "stdint.h"
+
+#include "toolchain.h"
+
+extern BIT_TYPE btn1_tflg;
+extern BIT_TYPE pwr_sflg;
+extern BIT_TYPE pwr_tflg;
+extern BIT_TYPE cfg_tflg;
+extern BIT_TYPE temp_tflg;
+extern uint16_t seconds;
 extern IDATA_SEG volatile uint16_t timer_ms10x;
-extern uint8_t timer_4hz;
-extern uint8_t timer_8hz;
-extern uint8_t timer_16hz;
-extern uint8_t RS0_ERR;
+extern BIT_TYPE timer_4hz;
+extern BIT_TYPE timer_8hz;
+extern BIT_TYPE timer_16hz;
+extern BIT_TYPE RS0_ERR;
 
 
 void CPU_init(void);
