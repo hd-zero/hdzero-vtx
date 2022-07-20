@@ -1,5 +1,6 @@
 Import("env")
 
+import sdcc_map
 
 # hdzero "encryption" as figured out by Peter Peiser https://github.com/pjpei
 bitFlipDictionary = {
@@ -12,6 +13,21 @@ bitFlipDictionary = {
     0x40: 0x01,
     0x80: 0x40
 }
+
+
+def parse_map(*args, **kwargs):
+    sdcc_map.main(env.subst("$BUILD_DIR/${PROGNAME}.map"))
+
+# Multiple actions
+env.AddCustomTarget(
+    name="sdccmap",
+    dependencies=None,
+    actions=[
+        parse_map
+    ],
+    title="Map file size reports",
+    description="Create reports of space used by symbols, sections and modules"
+)
 
 
 def encrypt(source, target, env):
@@ -41,6 +57,7 @@ def encrypt(source, target, env):
 env.AddPostAction(
     "$BUILD_DIR/${PROGNAME}.hex",
     [
+        parse_map,
         env.VerboseAction(" ".join([
             "$OBJCOPY", "-I", "ihex", "-O", "binary",
             "$BUILD_DIR/${PROGNAME}.hex", "$BUILD_DIR/${PROGNAME}.bin"
