@@ -28,9 +28,6 @@
 #define DP_HEADER0                  0x56
 #define DP_HEADER1                  0x80
 
-#define DP_SEND_27M(c)              { uint8_t _i_; for(_i_=0;_i_< 200;_i_++); DP_tx(c);}
-#define DP_SEND_20M(c)              { uint8_t _i_; for(_i_=0;_i_< 200;_i_++); for(_i_=0;_i_< 100;_i_++); DP_tx(c);}
-
 #define FC_OSD_LOCK             0x01
 #define FC_VARIANT_LOCK         0x02
 #define FC_RC_LOCK              0x04

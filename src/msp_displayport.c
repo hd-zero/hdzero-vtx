@@ -542,6 +542,47 @@ void insert_tx_byte(uint8_t c)
         _outchar('*');
 #endif
 }
+
+#ifdef SDCC
+void DP_SEND_27M(uint8_t c) {
+    // found by trial and error, are on the conservative side
+    // could use refinement down the line
+    uint16_t __ticks = 300;
+    do {
+        __ticks--;
+    } while (__ticks);
+    
+    DP_tx(c);
+}
+void DP_SEND_20M(uint8_t c) {
+    // found by trial and error, are on the conservative side
+    // could use refinement down the line
+    uint16_t __ticks = 450;
+    do {
+        __ticks--;
+    } while (__ticks);
+
+    DP_tx(c);
+}
+#else
+#define DP_SEND_27M(c)                  \
+    {                                   \
+        uint8_t _i_;                    \
+        for (_i_ = 0; _i_ < 200; _i_++) \
+            ;                           \
+        DP_tx(c);                       \
+    }
+#define DP_SEND_20M(c)                  \
+    {                                   \
+        uint8_t _i_;                    \
+        for (_i_ = 0; _i_ < 200; _i_++) \
+            ;                           \
+        for (_i_ = 0; _i_ < 100; _i_++) \
+            ;                           \
+        DP_tx(c);                       \
+    }
+#endif
+
 void DP_tx_task()
 {
     uint8_t i;
@@ -549,9 +590,9 @@ void DP_tx_task()
         if(dptx_wptr != dptx_rptr) {
             #if(1)
             if(RF_BW == BW_20M)
-                DP_SEND_20M(dptxbuf[dptx_rptr++])
+                DP_SEND_20M(dptxbuf[dptx_rptr++]);
             else
-                DP_SEND_27M(dptxbuf[dptx_rptr++])
+                DP_SEND_27M(dptxbuf[dptx_rptr++]);
             #else
             _outchar(dptxbuf[dptx_rptr++]);
             #endif
