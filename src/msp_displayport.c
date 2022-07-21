@@ -279,7 +279,6 @@ uint8_t msp_read_one_frame() {
                 crc = crc8tab[rx]; // 0 ^ rx = rx
                 if(rx == 0x00){
                     state = MSP_CMD_L;
-                    state = MSP_CMD_L;
                 }else{
                     state = MSP_HEADER_START;
                 }
