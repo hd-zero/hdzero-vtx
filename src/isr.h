@@ -1,5 +1,5 @@
-#ifndef  _IRS_H_
-#define _IRS_H_
+#ifndef __ISR_H_
+#define __ISR_H_
 
 extern uint8_t btn1_tflg;
 extern uint8_t pwr_sflg;
@@ -16,4 +16,4 @@ extern uint8_t RS0_ERR;
 
 void CPU_init(void);
 
-#endif  //_IRS_H_
+#endif /* __ISR_H_ */

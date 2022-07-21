@@ -161,4 +161,5 @@ extern uint8_t msp_tx_cnt;
 extern uint8_t resolution;
 extern uint8_t msp_vtx_config_enable;
 extern uint8_t first_arm;
-#endif
+
+#endif /* __MSP_DISPLAYPORT_H_ */

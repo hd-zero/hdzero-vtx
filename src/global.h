@@ -1,5 +1,5 @@
-#ifndef _GLOBAL_H_
-#define _GLOBAL_H_
+#ifndef __GLOBAL_H_
+#define __GLOBAL_H_
 
 #define HI_BYTE(a) 	((a>>8)&0xFF)
 #define LO_BYTE(a) 	(a&0xFF)
@@ -21,4 +21,4 @@ void WAIT(uint16_t ms);
 void WAIT(uint32_t ms);
 #endif
 
-#endif //_GLOBAL_H_
+#endif /* __GLOBAL_H_ */

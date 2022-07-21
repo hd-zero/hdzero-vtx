@@ -1,5 +1,5 @@
-#ifndef _SMARTAUDIO_PROTOCOL_H_
-#define _SMARTAUDIO_PROTOCOL_H_
+#ifndef __SMARTAUDIO_PROTOCOL_H_
+#define __SMARTAUDIO_PROTOCOL_H_
 
 #include "common.h"
 
@@ -45,5 +45,6 @@ void    SA_Init();
 extern uint8_t SA_dbm;
 extern uint8_t crc8tab[256];
 uint8_t pwr_to_dbm(uint8_t pwr);
-#endif //USE_SMARTAUDIO
-#endif //_SMARTAUDIO_PROTOCOL_H_
+#endif // USE_SMARTAUDIO
+
+#endif /* __SMARTAUDIO_PROTOCOL_H_ */
