@@ -1,11 +1,8 @@
 #ifndef __CAMERA_H_
 #define __CAMERA_H_
+
 #include <stdint.h>
 #include "common.h"
-
-#ifdef _DEBUG_MODE
-//#define _DEBUG_CAMERA
-#endif
 
 #define RUNCAM_PROFILE_M_TYPE    4
 

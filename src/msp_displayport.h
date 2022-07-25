@@ -3,10 +3,6 @@
 
 #include "stdint.h"
 
-#ifdef _DEBUG_MODE
-//#define DBG_DISPLAYPORT
-#endif
-
 #define IS_HI(x)  ((x) > 1750)
 #define IS_LO(x)  ((x) < 1250)
 #define IS_MID(x) ((!IS_HI(x))  && (!IS_LO(x)))
@@ -31,9 +27,6 @@
 
 #define DP_HEADER0                  0x56
 #define DP_HEADER1                  0x80
-
-#define DP_SEND_27M(c)              { uint8_t _i_; for(_i_=0;_i_< 200;_i_++); DP_tx(c);}
-#define DP_SEND_20M(c)              { uint8_t _i_; for(_i_=0;_i_< 200;_i_++); for(_i_=0;_i_< 100;_i_++); DP_tx(c);}
 
 #define FC_OSD_LOCK             0x01
 #define FC_VARIANT_LOCK         0x02

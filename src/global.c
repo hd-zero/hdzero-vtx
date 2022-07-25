@@ -2,6 +2,7 @@
 #include "global.h"
 #include "print.h"
 
+#ifdef _DEBUG_MODE
 
 int stricmp(uint8_t *ptr1, uint8_t *ptr2)
 {
@@ -18,18 +19,6 @@ int stricmp(uint8_t *ptr1, uint8_t *ptr2)
     }
 	return 0;
 }
-
-/*uint32_t a2i(uint8_t *str)   // str in dec string, such as "345", "738" ... => 345,738
-{
-	uint32_t num=0;
-	uint8_t i;
-
-	for(i=0; ; i++, str++) {
-		if( *str=='\0' || *str==' ' ) break;
-		num = num*10 + *str - '0';
-	}
-	return num;
-}*/
 
 uint8_t Asc1Bin(uint8_t asc)
 {
@@ -65,7 +54,6 @@ uint16_t Asc4Bin(uint8_t *s) // s is 4-digit hex string
 	return (bin);
 }
 
-#ifdef _DEBUG_MODE
 uint32_t Asc8Bin(uint8_t *s) // s is 8-digit hex string
 {
 	uint32_t bin;
@@ -81,6 +69,16 @@ uint32_t Asc8Bin(uint8_t *s) // s is 8-digit hex string
 
 #endif
 
+#ifdef SDCC
+void WAIT(uint16_t ms) {
+    while (ms--) {
+        uint16_t __ticks = MS_DLY_SDCC; // Measured manually by trial and error
+        do {                            // 40 ticks total for this loop
+            __ticks--;
+        } while (__ticks);
+    }
+}
+#else
 void WAIT(uint32_t ms)
 {
     uint32_t i,j;
@@ -89,21 +87,27 @@ void WAIT(uint32_t ms)
         }
     }
 }
+#endif
 
-void uint8ToString(uint8_t dec, uint8_t* Str)
-{
-    Str[0] = dec/100;
-    Str[1] = dec - (Str[0] * 100);
-    Str[1] = Str[1]/10;
-    Str[2] = dec%10;
-    
-    Str[0] += '0';
-    Str[1] += '0';
-    Str[2] += '0';
-    
-    if(Str[0] == '0'){
+void uint8ToString(uint8_t dec, uint8_t *Str) {
+    uint8_t val = dec / 100;
+    if (val == 0) {
         Str[0] = ' ';
-        if(Str[1] == '0')
-            Str[1] = ' ';
+    } else {
+        Str[0] = '0' + val;
+    }
+
+    val = (dec - (val * 100)) / 10;
+    if (val == 0) {
+        Str[1] = ' ';
+    } else {
+        Str[1] = '0' + val;
+    }
+
+    val = dec % 10;
+    if (val == 0) {
+        Str[2] = ' ';
+    } else {
+        Str[2] = '0' + val;
     }
 }

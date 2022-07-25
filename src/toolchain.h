@@ -16,6 +16,10 @@
 
 #else // Keil
 
+#ifndef KEIL_C51
+#define KEIL_C51
+#endif
+
 #define IDATA_SEG idata
 #define XDATA_SEG xdata
 #define CODE_SEG code

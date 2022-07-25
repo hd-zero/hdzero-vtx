@@ -34,12 +34,17 @@
 //#define _DEBUG_MODE
 //#define _DEBUG_DM6300
 //#define _DEBUG_TC3587
+//#define _DEBUG_CAMERA
 //#define _DEBUG_MSP_SET_VTX_CONFIG
 //#define _DEBUG_LIFETIME
+//#define _DEBUG_SA
+//#define _DEBUG_DISPLAYPORT
 #endif
 
 #define Raceband
 #define USE_EFUSE
+#define USE_MSP
+
 #ifndef VTX_S
 #define USE_SMARTAUDIO
 #endif
@@ -52,7 +57,8 @@
 #define TIMER0_1SD2     (TIMER0_1S>>1)
 #define TIMER0_1SD16    (TIMER0_1S>>4)
 #define I2C_BIT_DLY     40
-#define MS_DLY          237
+#define MS_DLY          (237)
+#define MS_DLY_SDCC     (2746)
 #define PRESS_L         3
 #define PRESS_LL        8
 #define PWR_LMT_SEC     10

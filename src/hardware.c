@@ -42,7 +42,7 @@ uint8_t LP_MODE = 0;
 uint8_t PIT_MODE = 0;
 uint8_t OFFSET_25MW = 0; // 0~10 -> 0~10    11~20 -> -1~-10
 
-uint8_t RF_BW = BW_27M;
+BWType_e RF_BW = BW_27M;
 
 uint8_t g_IS_ARMED = 0;
 uint8_t g_IS_PARALYZE = 0;
@@ -201,7 +201,7 @@ void GetVtxParameter()
 {
     unsigned char CODE_SEG *ptr = 0xFFE8;
     uint8_t i, j;
-    uint8_t tab[FREQ_MAX+1][POWER_MAX+1];
+    XDATA_SEG uint8_t tab[FREQ_MAX+1][POWER_MAX+1];
     uint8_t flash_vld = 1;
     uint8_t ee_vld = 1;
 

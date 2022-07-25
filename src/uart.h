@@ -1,8 +1,7 @@
 #ifndef __UART_H__
 #define __UART_H__
 
-
-//#define DEBUG_SA
+#include "common.h"
 
 #ifdef EXTEND_BUF
 #define  BUF_MAX        2048 //30
@@ -14,7 +13,7 @@
 #else
 #define  BUF1_MAX	    255     //30
 #endif
-#include "common.h"
+
 
 #define RS_tx(c)  while(1) { if( !RS_Xbusy  ) { SBUF0 = c; RS_Xbusy = 1;  break; } }
 #define RS_tx1(c) while(1) { if( !RS_Xbusy1 ) { SBUF1 = c; RS_Xbusy1 = 1; break; } }
@@ -41,20 +40,24 @@ uint8_t RS_rx1_len(void);
 
 uint8_t RS_rx1(void);
 
-extern BIT_TYPE RS_Xbusy;
+extern volatile BIT_TYPE RS_Xbusy;
 extern XDATA_SEG uint8_t RS_buf[BUF_MAX];
 #ifdef EXTEND_BUF
-extern XDATA_SEG uint16_t RS_in, RS_out;
+extern XDATA_SEG volatile uint16_t RS_in;
+extern XDATA_SEG volatile uint16_t RS_out;
 #else
-extern XDATA_SEG uint8_t RS_in, RS_out;
+extern XDATA_SEG volatile uint8_t RS_in;
+extern XDATA_SEG volatile uint8_t RS_out;
 #endif
 
-extern BIT_TYPE RS_Xbusy1;
+extern volatile BIT_TYPE RS_Xbusy1;
 extern XDATA_SEG uint8_t RS_buf1[BUF1_MAX];
 #ifdef EXTEND_BUF1
-extern XDATA_SEG uint16_t RS_in1, RS_out1;
+extern XDATA_SEG volatile uint16_t RS_in1;
+extern XDATA_SEG volatile uint16_t RS_out1;
 #else
-extern XDATA_SEG uint8_t RS_in1, RS_out1;
+extern XDATA_SEG volatile uint8_t RS_in1;
+extern XDATA_SEG volatile uint8_t RS_out1;
 #endif
 
 #ifdef USE_SMARTAUDIO
