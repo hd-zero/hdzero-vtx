@@ -588,10 +588,11 @@ void DP_tx_task()
     for(i=0;i<32;i++) {
         if(dptx_wptr != dptx_rptr) {
             #if(1)
-            if(RF_BW == BW_20M)
+            if(RF_BW == BW_20M) {
                 DP_SEND_20M(dptxbuf[dptx_rptr++]);
-            else
+            } else {
                 DP_SEND_27M(dptxbuf[dptx_rptr++]);
+            }
             #else
             _outchar(dptxbuf[dptx_rptr++]);
             #endif
