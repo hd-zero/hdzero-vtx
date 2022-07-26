@@ -15,12 +15,6 @@ env.Append(
     LINKFLAGS=SDCC_OPTS
 )
 
-
-def dbg_print(line=''):
-    print(line, flush=True)
-    return
-
-
 def upload_firmware(source, target, env):
     ports = list(serial.tools.list_ports.grep("USB"))
 
