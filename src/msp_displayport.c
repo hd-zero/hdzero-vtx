@@ -871,6 +871,7 @@ void parseMspVtx_V2(uint16_t cmd_u16)
                     Init_6300RF(RF_FREQ, POWER_MAX+1);
                 else
                     Init_6300RF(RF_FREQ, RF_POWER);
+                vtx_pit_save = PIT_MODE;
                 needSaveEEP = 1;
             }
         }else if(nxt_pwr == POWER_MAX+1){
