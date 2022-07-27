@@ -15,6 +15,16 @@ Edit `./src/common.h`: define MACROs for different VTXs.
 
 See: [https://www.hd-zero.com/](https://www.hd-zero.com/) for more production information.
 
+## To build:
+- Recommended build environment is Visual Studio Code
+- Install PlatformIO IDE extension in Visual Studio Code
+- Build source inside of PlatformIO (ctrl + alt + b)
+
+## To flash firmware:
+- Navigate to `.pio\build\{vtx model}`
+- Copy HDZERO_TX.bin to root of VRX SD Card
+- Follow normal flashing proceedure
+
 ## hex2bin.exe
 
 Generate **firmware.bin** from **firmware.hex**.
