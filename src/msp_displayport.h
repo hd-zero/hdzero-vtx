@@ -159,6 +159,7 @@ extern uint8_t osd_buf[HD_VMAX][HD_HMAX];
 extern uint8_t disp_mode;
 extern uint8_t msp_tx_cnt;
 extern uint8_t resolution;
-extern uint8_t msp_vtx_config_enable;
 extern uint8_t first_arm;
+extern uint8_t mspVtxLock;
+extern uint8_t rf_init_done;
 #endif

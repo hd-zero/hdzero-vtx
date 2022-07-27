@@ -47,10 +47,6 @@ uint8_t fc_channel_rx   = 0;
 uint8_t fc_pwr_rx       = 0;
 uint8_t fc_pit_rx       = 0;
 uint8_t fc_lp_rx        = 0;
-uint8_t fc_band_tx      = 0;
-uint8_t fc_channel_tx   = 0;
-uint8_t fc_pwr_tx       = 0;
-uint8_t fc_pit_tx       = 0;
 
 uint8_t pit_mode_cfg_done = 0;
 uint8_t lp_mode_cfg_done = 0;
@@ -67,6 +63,8 @@ uint16_t tick_8hz = 0;
 uint16_t msp_rcv_tick_8hz = 0;
 
 uint8_t msp_rbuf[64];
+
+uint8_t mspVtxLock = 0;
 
 #ifdef USE_MSP
 
@@ -320,9 +318,7 @@ uint8_t msp_read_one_frame() {
             case MSP_CRC2:
                 if(crc == rx)
                     parseMspVtx_V2(cmd_u16);
-                #ifdef _DEBUG_MODE
-                debugf("\r\ncrc : %x,%x", (uint16_t)crc, (uint16_t)rx);
-                #endif
+                break;
 
             default:
                 state = MSP_HEADER_START;
@@ -703,8 +699,8 @@ void msp_set_vtx_config(uint8_t power, uint8_t save)
     CMS_tx(0x00);       crc ^= 0x00;      //disable table
     CMS_tx(crc);
     
-    #ifdef _DEBUG_MSP_SET_VTX_CONFIG
-    debugf("\r\nF%x,P%x,M:%x", (uint16_t)RF_FREQ, (uint16_t)power, (uint16_t)PIT_MODE);
+    #ifdef _DEBUG_MODE
+    debugf("\r\nmsp_set_vtx_config:F%bx,P%bx,M:%bx",RF_FREQ, power,PIT_MODE);
     #endif
     
     if(save)
@@ -771,6 +767,9 @@ void parse_vtx_config()
     else
         return;
 
+    fc_pwr_rx = msp_rx_buf[3] - 1;
+    if(fc_pwr_rx > POWER_MAX+2)
+        fc_pwr_rx = 0;
 }
 
 void parseMspVtx_V2(uint16_t cmd_u16)
@@ -784,6 +783,9 @@ void parseMspVtx_V2(uint16_t cmd_u16)
     static uint8_t last_pit = 255;
 
     if(cmd_u16 != MSP_CMD_VTX_CONFIG)
+        return;
+    
+    if(!(fc_lock & FC_VTX_CONFIG_LOCK))
         return;
 
     fc_band_rx      = msp_rx_buf[1];
@@ -809,6 +811,8 @@ void parseMspVtx_V2(uint16_t cmd_u16)
     if(SA_lock)
         return;
 
+    mspVtxLock |= 1;
+    
     //update LP_MODE
     if(fc_lp_rx != last_lp){
         last_lp = fc_lp_rx;
@@ -832,13 +836,16 @@ void parseMspVtx_V2(uint16_t cmd_u16)
         DM6300_SetChannel(RF_FREQ);
         needSaveEEP = 1;
     }
-    debugf("\r\nparse_vtx_config pwr:%x, pit:%x", (uint16_t)nxt_pwr, (uint16_t)fc_pit_rx);
 
     //update pit
+    nxt_pwr = fc_pwr_rx - 1;
+
     if(fc_pit_rx != last_pit)
     {
         PIT_MODE = fc_pit_rx & 1;
+        #ifdef _DEBUG_MODE
         debugf("\r\nPIT_MODE = %x", (uint16_t)PIT_MODE);
+        #endif
         if(PIT_MODE)
         {
             DM6300_SetPower(POWER_MAX+1, RF_FREQ, pwr_offset);
@@ -851,7 +858,12 @@ void parseMspVtx_V2(uint16_t cmd_u16)
             else
             #endif
             #endif
-            {
+            if(nxt_pwr == POWER_MAX+1) {
+                WriteReg(0, 0x8F, 0x10);
+                cur_pwr = POWER_MAX + 2;
+                vtx_pit_save = PIT_0MW;
+                temp_err = 1;
+            } else {
                 DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
                 cur_pwr = RF_POWER;
             }
@@ -862,7 +874,6 @@ void parseMspVtx_V2(uint16_t cmd_u16)
     }
     
     //update power
-    nxt_pwr = fc_pwr_rx - 1;
     if(last_pwr != nxt_pwr){
         if(last_pwr == POWER_MAX+1){
             //Exit 0mW
@@ -886,15 +897,12 @@ void parseMspVtx_V2(uint16_t cmd_u16)
             }
         }else if(nxt_pwr <= POWER_MAX){
             RF_POWER = nxt_pwr;
-            if(cur_pwr != RF_POWER)
+            if(PIT_MODE)
+                RF_POWER = POWER_MAX + 1;
+            
+            if(rf_init_done)
             {
-                if(PIT_MODE)
-                {
-                    
-                    DM6300_SetPower(POWER_MAX+1, RF_FREQ, pwr_offset);
-                    cur_pwr = RF_POWER + 1;
-                }
-                else
+                if(cur_pwr != RF_POWER)
                 {
                     #ifndef VIDEO_PAT
                     #ifdef VTX_L
@@ -907,8 +915,13 @@ void parseMspVtx_V2(uint16_t cmd_u16)
                         DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
                         cur_pwr = RF_POWER;
                     }
+                    needSaveEEP = 1;
                 }
-                needSaveEEP = 1;
+            }
+            else
+            {
+                Init_6300RF(RF_FREQ, RF_POWER);
+                DM6300_AUXADC_Calib();
             }
         }
         last_pwr = nxt_pwr;
@@ -917,6 +930,9 @@ void parseMspVtx_V2(uint16_t cmd_u16)
     if(needSaveEEP)
         Setting_Save();
 
+    #ifdef _DEBUG_MODE
+    Printf("\r\nparseMspVtx_V2 pwr:%bx, pit:%bx", nxt_pwr, fc_pit_rx);
+    #endif
     
 }
 
@@ -1650,9 +1666,6 @@ void set_vtx_param()
             {
             DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
             cur_pwr = RF_POWER;
-            #ifdef _DEBUG_MDOE
-            debugf("\n\rSetPoewer 1");
-            #endif
         	}
         }
         
@@ -1710,9 +1723,8 @@ void InitVtxTable() {
 
     // set band num, channel num and power level number
     LP_MODE = fc_lp_rx;
+    msp_set_vtx_config(fc_pwr_rx, 0);
 
-    fc_pwr_tx = fc_pwr_rx - 1;
-    msp_set_vtx_config(fc_pwr_tx, 0);
     // set band/channel
     for (i = 0; i < 6; i++) {
         msp_send_header(1);

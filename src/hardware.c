@@ -412,35 +412,7 @@ void Init_HW()
 //---------- Camera ---------------
     CameraInit();
 //--------- dm6300 --------------------
-    if(last_SA_lock == 0){
-        if(PIT_MODE == PIT_0MW){
-        /*
-            pwr_lmt_done = 1;
-            RF_POWER = POWER_MAX + 2;
-            cur_pwr = POWER_MAX + 2;
-            vtx_pit = PIT_0MW;
-        }else if(PIT_MODE == PIT_P1MW)
-        */
-            Init_6300RF(RF_FREQ, POWER_MAX+1);
-        }
-        else{
-            WriteReg(0, 0x8F, 0x00);
-            WriteReg(0, 0x8F, 0x01);
-            DM6300_Init(RF_FREQ, RF_BW);
-            DM6300_SetChannel(RF_FREQ);
-            DM6300_SetPower(0, RF_FREQ, 0);
-            cur_pwr = RF_POWER;
-            WriteReg(0, 0x8F, 0x11);
-        }
-        
-        DM6300_AUXADC_Calib();
-    }else{
-        ch_init = RF_FREQ;
-        if(PIT_MODE)
-            pwr_init = POWER_MAX+1;
-        else
-            pwr_init = 0;
-    }
+    // move to RF_Delay_Init()
 #endif
 
     
