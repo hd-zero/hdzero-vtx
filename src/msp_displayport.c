@@ -931,7 +931,7 @@ void parseMspVtx_V2(uint16_t cmd_u16)
         Setting_Save();
 
     #ifdef _DEBUG_MODE
-    Printf("\r\nparseMspVtx_V2 pwr:%bx, pit:%bx", nxt_pwr, fc_pit_rx);
+    debugf("\r\nparseMspVtx_V2 pwr:%bx, pit:%bx", nxt_pwr, fc_pit_rx);
     #endif
     
 }

@@ -182,7 +182,7 @@ void RF_Delay_Init()
         if(seconds >= WAIT_SA_CONFIG){
             I2C_Write(ADDR_EEPROM, EEP_ADDR_SA_LOCK, SA_lock, 0, 0);
             #ifdef _DEBUG_MODE
-            Printf("\r\nSave SA_lock(%bx) to EEPROM",SA_lock);
+            debugf("\r\nSave SA_lock(%bx) to EEPROM",SA_lock);
             #endif
             SA_saved = 1;
         }
@@ -196,7 +196,7 @@ void RF_Delay_Init()
 
         if(last_SA_lock) {
             #ifdef _DEBUG_MODE
-            Printf("\r\nRF_Delay_Init: SA");
+            debugf("\r\nRF_Delay_Init: SA");
             #endif
             pwr_lmt_sec = PWR_LMT_SEC;
             if(SA_lock) {
@@ -206,19 +206,19 @@ void RF_Delay_Init()
                 }else if(PIT_MODE){
                     Init_6300RF(ch_init, POWER_MAX + 1);
                     #ifdef _DEBUG_MODE
-                    Printf("\r\n ch%bx, pwr%bx", ch_init, cur_pwr);
+                    debugf("\r\n ch%bx, pwr%bx", ch_init, cur_pwr);
                     #endif
                 }else{
                     Init_6300RF(ch_init, pwr_init);
                     #ifdef _DEBUG_MODE
-                    Printf("\r\n ch%bx, pwr%bx", ch_init, cur_pwr);
+                    debugf("\r\n ch%bx, pwr%bx", ch_init, cur_pwr);
                     #endif
                 }
                 DM6300_AUXADC_Calib();
             }
         } else if(!mspVtxLock) {
             #ifdef _DEBUG_MODE
-            Printf("\r\nRF_Delay_Init: None");
+            debugf("\r\nRF_Delay_Init: None");
             #endif
             if(PIT_MODE == PIT_0MW){
             /*
