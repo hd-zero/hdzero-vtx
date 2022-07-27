@@ -7,7 +7,7 @@
 extern BIT_TYPE verbose;
 
 #ifdef _DEBUG_MODE
-static XDATA_SEG char print_buf[128];
+XDATA_SEG char print_buf[128];
 
 void _debugf(const char *fmt, ...) {
     int len = 0;
