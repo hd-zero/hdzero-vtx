@@ -752,7 +752,7 @@ void PwrLMT()
                                 p_init = 0;
                             }
                                 
-                            SPI_Write(0x6, 0xFF0, 0x00000000, 0x00000018);
+                            SPI_Write(0x6, 0xFF0, 0x00000018);
                             
                             if(p >= table_power[RF_FREQ][3]){
                                 p = table_power[RF_FREQ][3];
@@ -761,8 +761,8 @@ void PwrLMT()
                                 debugf("\r\npwr_plus 2dbm,p=%x",(uint16_t)p);
                             }
                             
-                            SPI_Write(0x3, 0xD1C, 0x00000000, (uint32_t)p);
-                            SPI_Write(0x3, 0x330, 0x00000000, 0x31F); //1W
+                            SPI_Write(0x3, 0xD1C, (uint32_t)p);
+                            SPI_Write(0x3, 0x330, 0x31F); //1W
                         }
                     }
                     #endif
@@ -827,7 +827,7 @@ void PwrLMT()
                                     p = table_power[RF_FREQ][3] - 0x1C;
                                     p_init = 0;
                                 }
-                                SPI_Write(0x6, 0xFF0, 0x00000000, 0x00000018); //set page
+                                SPI_Write(0x6, 0xFF0, 0x00000018); //set page
                                 
                                 if(p >= table_power[RF_FREQ][3])
                                     p = table_power[RF_FREQ][3];
@@ -835,8 +835,8 @@ void PwrLMT()
                                     p += 0x4;
                                     debugf("\r\npwr_plus 2dbm,p=%x",(uint16_t)p + pwr_offset);
                                 }
-                                SPI_Write(0x3, 0xD1C, 0x00000000, (uint32_t)(p+pwr_offset)); //digital offset
-                                SPI_Write(0x3, 0x330, 0x00000000, 0x31F); // analog offset 1W
+                                SPI_Write(0x3, 0xD1C, (uint32_t)(p+pwr_offset)); //digital offset
+                                SPI_Write(0x3, 0x330, 0x31F); // analog offset 1W
                             }
                         }
                         #endif//VTX_L

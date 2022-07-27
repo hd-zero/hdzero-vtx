@@ -588,10 +588,11 @@ void DP_tx_task()
     for(i=0;i<32;i++) {
         if(dptx_wptr != dptx_rptr) {
             #if(1)
-            if(RF_BW == BW_20M)
+            if(RF_BW == BW_20M) {
                 DP_SEND_20M(dptxbuf[dptx_rptr++]);
-            else
+            } else {
                 DP_SEND_27M(dptxbuf[dptx_rptr++]);
+            }
             #else
             _outchar(dptxbuf[dptx_rptr++]);
             #endif
@@ -1135,8 +1136,8 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                 }else{
                     save_vtx_param();
                     pit_mode_cfg_done = 1; //avoid to config DM6300 again
-                    //SPI_Write(0x6, 0xFF0, 0x00000000, 0x00000018);
-                    //SPI_Write(0x3, 0xd00, 0x00000000, 0x00000003);
+                    //SPI_Write(0x6, 0xFF0, 0x00000018);
+                    //SPI_Write(0x3, 0xd00, 0x00000003);
                     Init_6300RF(RF_FREQ, RF_POWER);
                     DM6300_AUXADC_Calib();
                     #ifdef _DEBUG_MODE
@@ -1591,8 +1592,8 @@ void set_vtx_param()
                 if(vtx_pit_save == PIT_0MW)
                 {
                     WriteReg(0, 0x8F, 0x10);
-                    //SPI_Write(0x6, 0xFF0, 0x00000000, 0x00000018);
-                    //SPI_Write(0x3, 0xd00, 0x00000000, 0x00000000);
+                    //SPI_Write(0x6, 0xFF0, 0x00000018);
+                    //SPI_Write(0x3, 0xd00, 0x00000000);
                     #ifdef _DEBUG_MODE
                     debugf("\r\nDM6300 0mW");
                     #endif
@@ -1673,7 +1674,7 @@ void set_vtx_param()
 }
 
 #ifdef INIT_VTX_TABLE
-static const uint8_t bf_vtx_band_table[6][31] = {
+ const uint8_t bf_vtx_band_table[6][31] = {
     /*BOSCAM_A*/
     {/*0x24,0x4d,0x3c,*/0x1d,0xe3,0x01,0x08,'B','O','S','C','A','M','_','A','A',0x01,0x08,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,},
     /*BOSCAM_B*/
@@ -1687,15 +1688,15 @@ static const uint8_t bf_vtx_band_table[6][31] = {
     /*IMD6*/
     {/*0x24,0x4d,0x3c,*/0x1d,0xe3,0x06,0x08,'I','M','D','6',' ',' ',' ',' ','I',0x01,0x08,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,},
 };
-static const uint8_t bf_vtx_power_table[5][9] = {
+ const uint8_t bf_vtx_power_table[5][9] = {
     {/*0x24,0x4d,0x3c,*/0x07,0xe4,0x01,0x0e,0x00,0x03,'2','5',' '},//25mW
     {/*0x24,0x4d,0x3c,*/0x07,0xe4,0x02,0x17,0x00,0x03,'2','0','0'},//200mW
     {/*0x24,0x4d,0x3c,*/0x07,0xe4,0x03,0x00,0x00,0x03,'0',' ',' '},//0mW
     {/*0x24,0x4d,0x3c,*/0x07,0xe4,0x04,0x00,0x00,0x03,'0',' ',' '},//0mW
     {/*0x24,0x4d,0x3c,*/0x07,0xe4,0x05,0x00,0x00,0x03,'0',' ',' '},//0mW
 };
-static const uint8_t bf_vtx_power_500mW[9] = {0x07,0xe4,0x03,0x1b,0x00,0x03,'5','0','0'}; //500mW
-static const uint8_t bf_vtx_power_1W[9]    = {0x07,0xe4,0x04,0x1e,0x00,0x03,'M','A','X'}; //MAX
+ const uint8_t bf_vtx_power_500mW[9] = {0x07,0xe4,0x03,0x1b,0x00,0x03,'5','0','0'}; //500mW
+ const uint8_t bf_vtx_power_1W[9]    = {0x07,0xe4,0x04,0x1e,0x00,0x03,'M','A','X'}; //MAX
 
 void InitVtxTable() {
     uint8_t i, j;

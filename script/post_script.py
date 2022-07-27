@@ -60,7 +60,7 @@ env.AddPostAction(
         parse_map,
         env.VerboseAction(" ".join([
             "$OBJCOPY", "-I", "ihex", "-O", "binary",
-            "$BUILD_DIR/${PROGNAME}.hex", "$BUILD_DIR/${PROGNAME}.bin"
+            "\"$BUILD_DIR/${PROGNAME}.hex\"", "\"$BUILD_DIR/${PROGNAME}.bin\""
         ]), "Building $BUILD_DIR/${PROGNAME}.bin"),
         encrypt
     ]

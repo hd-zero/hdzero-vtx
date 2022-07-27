@@ -11,7 +11,7 @@
 #define SDA_GET() SDA
 
 #ifdef SDCC
-static void delay_10us() {
+void delay_10us() {
   __asm__(
       "mov r7,#91\n"
       "00000$:\n"
