@@ -566,7 +566,7 @@ void DP_SEND_20M(uint8_t c) {
         for (_i_ = 0; _i_ < 200; _i_++) \
             ;                           \
         DP_tx(c);                       \
-    }                                   \
+    }
 #define DP_SEND_20M(c)                  \
     {                                   \
         uint8_t _i_;                    \
@@ -700,7 +700,7 @@ void msp_set_vtx_config(uint8_t power, uint8_t save)
     CMS_tx(crc);
     
     #ifdef _DEBUG_MODE
-    debugf("\r\nmsp_set_vtx_config:F%bx,P%bx,M:%bx",RF_FREQ, power,PIT_MODE);
+    debugf("\r\nmsp_set_vtx_config:F%x,P%x,M:%x", (uint16_t)RF_FREQ, (uint16_t)power, (uint16_t)PIT_MODE);
     #endif
     
     if(save)
@@ -931,7 +931,7 @@ void parseMspVtx_V2(uint16_t cmd_u16)
         Setting_Save();
 
     #ifdef _DEBUG_MODE
-    debugf("\r\nparseMspVtx_V2 pwr:%bx, pit:%bx", nxt_pwr, fc_pit_rx);
+    debugf("\r\nparseMspVtx_V2 pwr:%x, pit:%x", (uint16_t)nxt_pwr, (uint16_t)fc_pit_rx);
     #endif
     
 }

@@ -182,7 +182,7 @@ void RF_Delay_Init()
         if(seconds >= WAIT_SA_CONFIG){
             I2C_Write(ADDR_EEPROM, EEP_ADDR_SA_LOCK, SA_lock, 0, 0);
             #ifdef _DEBUG_MODE
-            debugf("\r\nSave SA_lock(%bx) to EEPROM",SA_lock);
+            debugf("\r\nSave SA_lock(%x) to EEPROM", (uint16_t)SA_lock);
             #endif
             SA_saved = 1;
         }
@@ -206,12 +206,12 @@ void RF_Delay_Init()
                 }else if(PIT_MODE){
                     Init_6300RF(ch_init, POWER_MAX + 1);
                     #ifdef _DEBUG_MODE
-                    debugf("\r\n ch%bx, pwr%bx", ch_init, cur_pwr);
+                    debugf("\r\n ch%x, pwr%x", (uint16_t)ch_init, (uint16_t)cur_pwr);
                     #endif
                 }else{
                     Init_6300RF(ch_init, pwr_init);
                     #ifdef _DEBUG_MODE
-                    debugf("\r\n ch%bx, pwr%bx", ch_init, cur_pwr);
+                    debugf("\r\n ch%x, pwr%x", (uint16_t)ch_init, (uint16_t)cur_pwr);
                     #endif
                 }
                 DM6300_AUXADC_Calib();
