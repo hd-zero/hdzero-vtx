@@ -560,22 +560,22 @@ void DP_SEND_20M(uint8_t c) {
     DP_tx(c);
 }
 #else
-void DP_SEND_27M(c)
-{
-    uint8_t _i_;
-    for (_i_ = 0; _i_ < 200; _i_++)
-        ;
-    DP_tx(c);
-}
-void DP_SEND_20M(c)
-{
-    uint8_t _i_;
-    for (_i_ = 0; _i_ < 200; _i_++)
-        ;
-    for (_i_ = 0; _i_ < 100; _i_++)
-        ;
-    DP_tx(c);
-}
+#define DP_SEND_27M(c)                  \
+    {                                   \
+        uint8_t _i_;                    \
+        for (_i_ = 0; _i_ < 200; _i_++) \
+            ;                           \
+        DP_tx(c);                       \
+    }                                   \
+#define DP_SEND_20M(c)                  \
+    {                                   \
+        uint8_t _i_;                    \
+        for (_i_ = 0; _i_ < 200; _i_++) \
+            ;                           \
+        for (_i_ = 0; _i_ < 100; _i_++) \
+            ;                           \
+        DP_tx(c);                       \
+    }
 #endif
 
 void DP_tx_task()
