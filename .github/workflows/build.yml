@@ -52,3 +52,9 @@ jobs:
           platformio platform install native
           rm -rf .pio
           platformio run -e ${{ matrix.target }}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.target }}
+          path: .pio/build/${{ matrix.target }}/HDZERO_TX.bin
