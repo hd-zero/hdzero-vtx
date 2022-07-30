@@ -166,15 +166,15 @@ void Setting_Save()
     
     if(EE_VALID){
         WAIT(10);
-        rcv |= I2C_Write(ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ, 0, 0);
+        rcv |= I2C_Write8(ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
         WAIT(10);
-        rcv |= I2C_Write(ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER, 0, 0);
+        rcv |= I2C_Write8(ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
         WAIT(10);
-        rcv |= I2C_Write(ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE, 0, 0);
+        rcv |= I2C_Write8(ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
         WAIT(10);
-        rcv |= I2C_Write(ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE, 0, 0);
+        rcv |= I2C_Write8(ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
         WAIT(10);
-        rcv |= I2C_Write(ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW, 0, 0);
+        rcv |= I2C_Write8(ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
         #ifdef _DEBUG_MODE
         if(!rcv)
             debugf("\r\nEEPROM write success");
@@ -204,7 +204,7 @@ void GetVtxParameter() {
     uint8_t ee_vld = 1;
 
     WAIT(10);
-    EE_VALID = !I2C_Write(ADDR_EEPROM, 0x40, 0xFF, 0, 0);
+    EE_VALID = !I2C_Write8(ADDR_EEPROM, 0x40, 0xFF);
     
     #ifdef _DEBUG_MODE
     debugf("\r\nEE_VALID:%x", (uint16_t)EE_VALID);
@@ -215,7 +215,7 @@ void GetVtxParameter() {
         #ifdef FIX_EEP
         for(i=0;i<=FREQ_MAX;i++) {
             for(j=0;j<=POWER_MAX;j++){
-                WAIT(10);I2C_Write(ADDR_EEPROM, i*(POWER_MAX+1) + j, table_power[i][j], 0, 0);
+                WAIT(10);I2C_Write8(ADDR_EEPROM, i*(POWER_MAX+1) + j, table_power[i][j]);
             }
         }
         #endif
@@ -223,7 +223,7 @@ void GetVtxParameter() {
         for(i=0;i<=FREQ_MAX;i++) {
             for(j=0;j<=POWER_MAX;j++){
                 WAIT(10);
-                tab[i][j] = I2C_Read(ADDR_EEPROM, i*(POWER_MAX+1) + j, 0, 0);
+                tab[i][j] = I2C_Read8(ADDR_EEPROM, i*(POWER_MAX+1) + j);
                 if(tab[i][j] == 0xFF)
                     ee_vld = 0;
             }
@@ -260,26 +260,26 @@ void GetVtxParameter() {
             #ifdef _RF_CALIB
             for(i=0;i<=FREQ_MAX;i++) {
                 for(j=0;j<=POWER_MAX;j++){
-                    WAIT(10);I2C_Write(ADDR_EEPROM, i*(POWER_MAX+1) + j, table_power[i][j], 0, 0);
+                    WAIT(10);I2C_Write8(ADDR_EEPROM, i*(POWER_MAX+1) + j, table_power[i][j]);
                 }
             }
             #endif
         }
         
         // VTX Setting
-        RF_FREQ = I2C_Read(ADDR_EEPROM, EEP_ADDR_RF_FREQ, 0, 0);
-        RF_POWER = I2C_Read(ADDR_EEPROM, EEP_ADDR_RF_POWER, 0, 0);
-        LP_MODE = I2C_Read(ADDR_EEPROM, EEP_ADDR_LPMODE, 0, 0);
-        PIT_MODE = I2C_Read(ADDR_EEPROM, EEP_ADDR_PITMODE, 0, 0);
-        OFFSET_25MW = I2C_Read(ADDR_EEPROM, EEP_ADDR_25MW, 0, 0);
+        RF_FREQ = I2C_Read8(ADDR_EEPROM, EEP_ADDR_RF_FREQ);
+        RF_POWER = I2C_Read8(ADDR_EEPROM, EEP_ADDR_RF_POWER);
+        LP_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_LPMODE);
+        PIT_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_PITMODE);
+        OFFSET_25MW = I2C_Read8(ADDR_EEPROM, EEP_ADDR_25MW);
         
         if(RF_FREQ == 0xff || RF_POWER == 0xff || LP_MODE == 0xff || PIT_MODE == 0xff || OFFSET_25MW == 0xff){
             CFG_Back();
-            WAIT(10);I2C_Write(ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ, 0, 0);
-            WAIT(10);I2C_Write(ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER, 0, 0);
-            WAIT(10);I2C_Write(ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE, 0, 0);
-            WAIT(10);I2C_Write(ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE, 0, 0);
-            WAIT(10);I2C_Write(ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW, 0, 0);
+            WAIT(10);I2C_Write8(ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
+            WAIT(10);I2C_Write8(ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
+            WAIT(10);I2C_Write8(ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
+            WAIT(10);I2C_Write8(ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
+            WAIT(10);I2C_Write8(ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
             #ifdef _DEBUG_MODE
             debugf("\r\nEEPROM is NOT initialized. USE CAM for VTX setting.");
             #endif
@@ -293,11 +293,11 @@ void GetVtxParameter() {
         //last_SA_lock
         #ifdef USE_SMARTAUDIO
         WAIT(10);
-        last_SA_lock = I2C_Read(ADDR_EEPROM, EEP_ADDR_SA_LOCK, 0, 0);
+        last_SA_lock = I2C_Read8(ADDR_EEPROM, EEP_ADDR_SA_LOCK);
         WAIT(10);
         if(last_SA_lock == 0xff){
             last_SA_lock = 0;
-            I2C_Write(ADDR_EEPROM, EEP_ADDR_SA_LOCK, last_SA_lock, 0, 0);
+            I2C_Write8(ADDR_EEPROM, EEP_ADDR_SA_LOCK, last_SA_lock);
         }
         #ifdef _DEBUG_MODE
         debugf("\r\nlast_SA_lock %x", (uint16_t)last_SA_lock);
@@ -306,7 +306,7 @@ void GetVtxParameter() {
 
         #ifdef VTX_L
         //powerLock
-        WAIT(10); powerLock = 0x01 & I2C_Read(ADDR_EEPROM, EEP_ADDR_POWER_LOCK, 0, 0);
+        WAIT(10); powerLock = 0x01 & I2C_Read8(ADDR_EEPROM, EEP_ADDR_POWER_LOCK);
         #endif
     }
     else{
@@ -432,7 +432,7 @@ void TempDetect()
             temp0 = DM6300_GetTemp();
             temp0 <<= 2;
             
-            temperature = I2C_Read(ADDR_TEMPADC, 0, 0, 0); //NCT75 MSB 8bit
+            temperature = I2C_Read8(ADDR_TEMPADC, 0); //NCT75 MSB 8bit
             //temperature >>= 5; //LM75AD
 
             if(temperature >= 0x7D) //MAX +125 
@@ -442,7 +442,7 @@ void TempDetect()
         else{
             temp_new0 = DM6300_GetTemp();
             
-            temp_new = I2C_Read(ADDR_TEMPADC, 0, 0, 0);
+            temp_new = I2C_Read8(ADDR_TEMPADC, 0);
             if(temp_new >= 0x7D) //MAX +125 
                 temp_new = 0x7D;            
             //temp_new >>= 5; //LM75AD
@@ -1107,8 +1107,8 @@ void BlinkPhase() {
 
     if (cfg_step == 1 && (dispF_cnt < DISPF_TIME)) { // display 'F' band
         bp = BPLED[14];
-        I2C_Write(ADDR_KEYBOARD, 0x01, bp, 0, 0);
-        I2C_Write(ADDR_KEYBOARD, 0x03, 0x00, 0, 0);
+        I2C_Write8(ADDR_KEYBOARD, 0x01, bp);
+        I2C_Write8(ADDR_KEYBOARD, 0x03, 0x00);
     }else{
         switch(cfg_step){
             case 0:
@@ -1122,20 +1122,20 @@ void BlinkPhase() {
                     bp = BPLED[2];
                 else if(RF_FREQ == 9)   //F4
                     bp = BPLED[4];
-                I2C_Write(ADDR_KEYBOARD, 0x01, bp, 0, 0);
-                I2C_Write(ADDR_KEYBOARD, 0x03, 0x00, 0, 0);
+                I2C_Write8(ADDR_KEYBOARD, 0x01, bp);
+                I2C_Write8(ADDR_KEYBOARD, 0x03, 0x00);
                 break;
 
             case 2:
                 bp = BPLED[RF_POWER+1] & 0x7F;
-                I2C_Write(ADDR_KEYBOARD, 0x01, bp, 0, 0);
-                I2C_Write(ADDR_KEYBOARD, 0x03, 0x00, 0, 0);
+                I2C_Write8(ADDR_KEYBOARD, 0x01, bp);
+                I2C_Write8(ADDR_KEYBOARD, 0x03, 0x00);
                 break;
 
             case 3:
                 bp = BPLED[LP_MODE+1];
-                I2C_Write(ADDR_KEYBOARD, 0x01, bp, 0, 0);
-                I2C_Write(ADDR_KEYBOARD, 0x03, 0x00, 0, 0);
+                I2C_Write8(ADDR_KEYBOARD, 0x01, bp);
+                I2C_Write8(ADDR_KEYBOARD, 0x03, 0x00);
                 break;
         }
     }
@@ -1172,8 +1172,8 @@ void OnButton1()
     if(cur_sec != seconds){
         cur_sec = seconds;
         
-        USE_MAX7315 = !I2C_Write(ADDR_MAX7315, 0x09, 0, 0, 0);
-        USE_PCA9554 = !I2C_Write(ADDR_PCA9554, 0x09, 0, 0, 0);
+        USE_MAX7315 = !I2C_Write8(ADDR_MAX7315, 0x09, 0);
+        USE_PCA9554 = !I2C_Write8(ADDR_PCA9554, 0x09, 0);
         
         KEYBOARD_ON = USE_MAX7315 | USE_PCA9554;
         if(KEYBOARD_ON && (last_keyon == 0))

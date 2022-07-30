@@ -1059,21 +1059,21 @@ void DM6300_EFUSE2()
             dcoc_qh = efuse.macro.m2[i].tx1.dcoc_q & 0xFFFF0000;
             
             if(EE_VALID){
-                WAIT(10); rdat = I2C_Read(ADDR_EEPROM, EEP_ADDR_DCOC_EN, 0, 0);
+                WAIT(10); rdat = I2C_Read8(ADDR_EEPROM, EEP_ADDR_DCOC_EN);
                 if((rdat & 0xFF) == 0){
                     debugf("\r\nDCOC read from EEPROM:");
                     SPI_Write(0x6, 0xFF0, 0x00000018);
                     
-                    WAIT(10); rdat = I2C_Read(ADDR_EEPROM, EEP_ADDR_DCOC_IH, 0, 0);
+                    WAIT(10); rdat = I2C_Read8(ADDR_EEPROM, EEP_ADDR_DCOC_IH);
                     rdat <<= 8;
-                    WAIT(10); rdat |= I2C_Read(ADDR_EEPROM, EEP_ADDR_DCOC_IL, 0, 0);
+                    WAIT(10); rdat |= I2C_Read8(ADDR_EEPROM, EEP_ADDR_DCOC_IL);
                     rdat |= dcoc_ih;
                     SPI_Write(0x3, 0x380, rdat);
                     debugf("\r\ndcoc_i=%lx", rdat);
                     
-                    WAIT(10); rdat = I2C_Read(ADDR_EEPROM, EEP_ADDR_DCOC_QH, 0, 0);
+                    WAIT(10); rdat = I2C_Read8(ADDR_EEPROM, EEP_ADDR_DCOC_QH);
                     rdat <<= 8;
-                    WAIT(10); rdat |= I2C_Read(ADDR_EEPROM, EEP_ADDR_DCOC_QL, 0, 0);
+                    WAIT(10); rdat |= I2C_Read8(ADDR_EEPROM, EEP_ADDR_DCOC_QL);
                     rdat |= dcoc_qh;
                     SPI_Write(0x3, 0x388, rdat);
                     debugf("\r\ndcoc_q=%lx", rdat);
@@ -1081,14 +1081,14 @@ void DM6300_EFUSE2()
             }
             
             /*if(EE_VALID){
-                WAIT(10); d0 = I2C_Read(ADDR_EEPROM, 0xa8, 0, 0);
-                WAIT(10); d1 = I2C_Read(ADDR_EEPROM, 0xa9, 0, 0);
-                WAIT(10); d2 = I2C_Read(ADDR_EEPROM, 0xaa, 0, 0);
-                WAIT(10); d3 = I2C_Read(ADDR_EEPROM, 0xab, 0, 0);
-                WAIT(10); d4 = I2C_Read(ADDR_EEPROM, 0xac, 0, 0);
-                WAIT(10); d5 = I2C_Read(ADDR_EEPROM, 0xad, 0, 0);
-                WAIT(10); d6 = I2C_Read(ADDR_EEPROM, 0xae, 0, 0);
-                WAIT(10); d7 = I2C_Read(ADDR_EEPROM, 0xaf, 0, 0);
+                WAIT(10); d0 = I2C_Read8(ADDR_EEPROM, 0xa8);
+                WAIT(10); d1 = I2C_Read8(ADDR_EEPROM, 0xa9);
+                WAIT(10); d2 = I2C_Read8(ADDR_EEPROM, 0xaa);
+                WAIT(10); d3 = I2C_Read8(ADDR_EEPROM, 0xab);
+                WAIT(10); d4 = I2C_Read8(ADDR_EEPROM, 0xac);
+                WAIT(10); d5 = I2C_Read8(ADDR_EEPROM, 0xad);
+                WAIT(10); d6 = I2C_Read8(ADDR_EEPROM, 0xae);
+                WAIT(10); d7 = I2C_Read8(ADDR_EEPROM, 0xaf);
                 
                 debugf("\r\nd0=%lx,d1=%lx,d2=%lx,d3=%lx", d0,d1,d2,d3);
                 debugf("\r\nd4=%lx,d5=%lx,d6=%lx,d7=%lx", d4,d5,d6,d7);

@@ -103,7 +103,7 @@ uint8_t CamDetect()
     if(cycles == 0){
         fps = CAM_720P60_NEW;
         Set_720P60(IS_RX);
-        I2C_Write(ADDR_TC3587, 0x0058, 0x00e0, 1, 1);
+        I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
         if(!RUNCAM_Write(RUNCAM_MICRO_V1,0x50, 0x0452484E))
             cameraID = RUNCAM_MICRO_V1;
         else if(!RUNCAM_Write(RUNCAM_MICRO_V2,0x50, 0x0452484E))
@@ -392,12 +392,12 @@ void Runcam_SetWB(uint8_t* wbRed, uint8_t* wbBlue, uint8_t wbMode)
 
 void camera_write_eep_parameter(uint16_t addr, uint8_t val) {
     WAIT(10);
-    I2C_Write(ADDR_EEPROM, addr, val, 0, 0);
+    I2C_Write8(ADDR_EEPROM, addr, val);
 }
 
 uint8_t camera_read_eep_parameter(uint16_t addr) {
     WAIT(10);
-    return I2C_Read(ADDR_EEPROM, addr, 0, 0);
+    return I2C_Read8(ADDR_EEPROM, addr);
 }
 
 void camera_check_and_save_parameters() {
@@ -628,7 +628,7 @@ void SaveCamCfg_Menu(void)
     {
         camProfile_EEP &= 0xf0;
         camProfile_EEP |= (camProfile & 0x0f);
-        WAIT(10); I2C_Write(ADDR_EEPROM, EEP_ADDR_CAM_PROFILE, camProfile_EEP, 0, 0);
+        WAIT(10); I2C_Write8(ADDR_EEPROM, EEP_ADDR_CAM_PROFILE, camProfile_EEP);
 
         if(camProfile == 1)
         {
@@ -651,7 +651,7 @@ void SaveCamCfg_Menu(void)
     {
         camProfile_EEP &= 0x0f;
         camProfile_EEP |= (camProfile << 4);
-        WAIT(10); I2C_Write(ADDR_EEPROM, EEP_ADDR_CAM_PROFILE, camProfile_EEP, 0, 0);
+        WAIT(10); I2C_Write8(ADDR_EEPROM, EEP_ADDR_CAM_PROFILE, camProfile_EEP);
 
         if(camProfile > 2)
         {
