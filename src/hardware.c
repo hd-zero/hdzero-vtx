@@ -165,16 +165,11 @@ void Setting_Save()
     #endif
     
     if(EE_VALID){
-        WAIT(10);
-        rcv |= I2C_Write8(ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
-        WAIT(10);
-        rcv |= I2C_Write8(ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
-        WAIT(10);
-        rcv |= I2C_Write8(ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
-        WAIT(10);
-        rcv |= I2C_Write8(ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
-        WAIT(10);
-        rcv |= I2C_Write8(ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
+        rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
+        rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
+        rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
+        rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
+        rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
         #ifdef _DEBUG_MODE
         if(!rcv)
             debugf("\r\nEEPROM write success");
@@ -203,8 +198,7 @@ void GetVtxParameter() {
     uint8_t flash_vld = 1;
     uint8_t ee_vld = 1;
 
-    WAIT(10);
-    EE_VALID = !I2C_Write8(ADDR_EEPROM, 0x40, 0xFF);
+    EE_VALID = !I2C_Write8_Wait(10, ADDR_EEPROM, 0x40, 0xFF);
     
     #ifdef _DEBUG_MODE
     debugf("\r\nEE_VALID:%x", (uint16_t)EE_VALID);
@@ -215,15 +209,14 @@ void GetVtxParameter() {
         #ifdef FIX_EEP
         for(i=0;i<=FREQ_MAX;i++) {
             for(j=0;j<=POWER_MAX;j++){
-                WAIT(10);I2C_Write8(ADDR_EEPROM, i*(POWER_MAX+1) + j, table_power[i][j]);
+                I2C_Write8(ADDR_EEPROM, i*_Wait(10, POWER_MAX+1) + j, table_power[i][j]);
             }
         }
         #endif
         // RF Tab
         for(i=0;i<=FREQ_MAX;i++) {
             for(j=0;j<=POWER_MAX;j++){
-                WAIT(10);
-                tab[i][j] = I2C_Read8(ADDR_EEPROM, i*(POWER_MAX+1) + j);
+                tab[i][j] = I2C_Read8_Wait(10, ADDR_EEPROM, i*(POWER_MAX+1) + j);
                 if(tab[i][j] == 0xFF)
                     ee_vld = 0;
             }
@@ -260,7 +253,7 @@ void GetVtxParameter() {
             #ifdef _RF_CALIB
             for(i=0;i<=FREQ_MAX;i++) {
                 for(j=0;j<=POWER_MAX;j++){
-                    WAIT(10);I2C_Write8(ADDR_EEPROM, i*(POWER_MAX+1) + j, table_power[i][j]);
+                    I2C_Write8(ADDR_EEPROM, i*_Wait(10, POWER_MAX+1) + j, table_power[i][j]);
                 }
             }
             #endif
@@ -275,11 +268,11 @@ void GetVtxParameter() {
         
         if(RF_FREQ == 0xff || RF_POWER == 0xff || LP_MODE == 0xff || PIT_MODE == 0xff || OFFSET_25MW == 0xff){
             CFG_Back();
-            WAIT(10);I2C_Write8(ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
-            WAIT(10);I2C_Write8(ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
-            WAIT(10);I2C_Write8(ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
-            WAIT(10);I2C_Write8(ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
-            WAIT(10);I2C_Write8(ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
+            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
+            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
+            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
+            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
+            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
             #ifdef _DEBUG_MODE
             debugf("\r\nEEPROM is NOT initialized. USE CAM for VTX setting.");
             #endif
@@ -292,8 +285,7 @@ void GetVtxParameter() {
         
         //last_SA_lock
         #ifdef USE_SMARTAUDIO
-        WAIT(10);
-        last_SA_lock = I2C_Read8(ADDR_EEPROM, EEP_ADDR_SA_LOCK);
+        last_SA_lock = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK);
         WAIT(10);
         if(last_SA_lock == 0xff){
             last_SA_lock = 0;
@@ -306,7 +298,7 @@ void GetVtxParameter() {
 
         #ifdef VTX_L
         //powerLock
-        WAIT(10); powerLock = 0x01 & I2C_Read8(ADDR_EEPROM, EEP_ADDR_POWER_LOCK);
+        powerLock = 0x01 & I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_POWER_LOCK);
         #endif
     }
     else{

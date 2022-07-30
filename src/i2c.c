@@ -123,6 +123,11 @@ uint8_t I2C_Write8(uint8_t slave_addr, uint8_t reg_addr, uint8_t val) {
     return 0;
 }
 
+uint8_t I2C_Write8_Wait(uint16_t ms, uint8_t slave_addr, uint8_t reg_addr, uint8_t val) {
+    WAIT(ms);
+    return I2C_Write8(slave_addr, reg_addr, val);
+}
+
 uint8_t I2C_Write16(uint8_t slave_addr, uint16_t reg_addr, uint16_t val) {
     uint8_t slave, reg_addr_1, value;
     uint16_t rdat;
@@ -213,6 +218,11 @@ uint8_t I2C_Read8(uint8_t slave_addr, uint8_t reg_addr) {
     I2C_stop();
 
     return val;
+}
+
+uint8_t I2C_Read8_Wait(uint16_t ms, uint8_t slave_addr, uint8_t reg_addr) {
+    WAIT(ms);
+    return I2C_Read8(slave_addr, reg_addr);
 }
 
 uint16_t I2C_Read16(uint8_t slave_addr, uint16_t reg_addr) {
