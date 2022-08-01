@@ -25,13 +25,13 @@
 
 // mode
 //#define _RF_CALIB
-#define REV_UART
+//#define REV_UART
 //#define VIDEO_PAT
 
 //#define FIX_EEP
 
 #ifndef _RF_CALIB
-#define _DEBUG_MODE
+//#define _DEBUG_MODE
 //#define _DEBUG_DM6300
 //#define _DEBUG_TC3587
 //#define _DEBUG_CAMERA
