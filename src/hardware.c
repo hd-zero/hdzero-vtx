@@ -62,10 +62,9 @@ uint8_t cur_pwr = 0;
 uint8_t led_status = 0;
 
 uint8_t temp_err = 0;
-#ifdef VTX_L
+#ifdef USE_TEMPERATURA_SENSOR
 int16_t temp0 = 0;
 uint8_t p;
-#else
 #endif
 
 uint8_t i = 0;
@@ -447,7 +446,7 @@ void Init_HW()
     //WriteReg(0, 0x25, 0xf6);
     //WriteReg(0, 0x26, 0x00);
 }
-#ifdef VTX_L
+#ifdef USE_TEMPERATURA_SENSOR
 void TempDetect()
 {
     static uint8_t init = 1;
@@ -515,7 +514,7 @@ void TempDetect()
 #endif
 
 
-#ifdef VTX_L
+#ifdef USE_TEMPERATURA_SENSOR
 void PowerAutoSwitch()
 {
     int16_t temp;
@@ -551,6 +550,10 @@ void PowerAutoSwitch()
     else if(temp < 78) pwr_offset = 19;
     else if(temp < 80) pwr_offset = 20;
     else               pwr_offset = 20;
+
+    #ifdef VTX_WL
+    pwr_offset >>= 1;
+    #endif
 
     if((!g_IS_ARMED) && (last_ofs == pwr_offset));
     else {
@@ -645,7 +648,7 @@ void HeatProtect()
     static uint8_t cnt = 0;
     int16_t temp;
     
-    #ifdef VTX_L
+    #ifdef USE_TEMPERATURA_SENSOR
     int16_t temp_max = 0x5A;
     #else
     int16_t temp_max = 0x5C0;
@@ -662,14 +665,14 @@ void HeatProtect()
                     temp = temperature >> 2;
                     //temp = temperature >> 5;  //LM75AD
                     #ifdef _DEBUG_MODE
-                    #ifdef VTX_L
+                    #ifdef USE_TEMPERATURA_SENSOR
                     verbosef("\r\nHeat detect: temp = %d, pwr_offset=%d", (uint16_t)temp, (uint16_t)pwr_offset);
                     #else
                     verbosef("\r\nHeat Protect detect: %x",temp);
                     #endif
                     #endif
                     
-                    #ifdef VTX_L
+                    #ifdef USE_TEMPERATURA_SENSOR
                     ;
                     #else
                     if(temp > temp_err_data){
@@ -678,7 +681,7 @@ void HeatProtect()
                     }
                     #endif
                     
-                    #ifdef VTX_L
+                    #ifdef USE_TEMPERATURA_SENSOR
                     if(temp >= temp_max){
                     #else
                     if((temp_err== 0) && temp >= temp_max){

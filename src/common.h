@@ -43,11 +43,19 @@
 
 #define Raceband
 #define USE_EFUSE
+
+#ifndef _RF_CALIB
 #define USE_MSP
+#endif
 
 #ifndef VTX_S
 #define USE_SMARTAUDIO
 #endif
+
+#if defined(VTX_L) || defined(VTX_WL)
+#define USE_TEMPERATURA_SENSOR
+#endif
+
 #define INIT_VTX_TABLE
 
 #define IS_RX 0

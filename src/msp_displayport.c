@@ -321,9 +321,8 @@ uint8_t msp_read_one_frame() {
             case MSP_CRC2:
                 if(crc == rx)
                     parseMspVtx_V2(cmd_u16);
-                #ifdef _DEBUG_MODE
-                debugf("\r\ncrc : %x,%x", (uint16_t)crc, (uint16_t)rx);
-                #endif
+                state = MSP_HEADER_START;
+                break;
 
             default:
                 state = MSP_HEADER_START;
