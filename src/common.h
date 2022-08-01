@@ -1,5 +1,5 @@
-#ifndef _COMMON_H_
-#define _COMMON_H_
+#ifndef __COMMON_H_
+#define __COMMON_H_
 
 #include <stdint.h>
 #include <string.h>
@@ -113,4 +113,4 @@
 #define Rom_rx()        RS_rx()
 #define Rom_ready()     RS_ready()
 
-#endif //_COMMON_H_
+#endif /* __COMMON_H_ */

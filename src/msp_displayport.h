@@ -1,7 +1,7 @@
 #ifndef __MSP_DISPLAYPORT_H_
 #define __MSP_DISPLAYPORT_H_
 
-#include "stdint.h"
+#include "common.h"
 
 #define IS_HI(x)  ((x) > 1750)
 #define IS_LO(x)  ((x) < 1250)
@@ -161,4 +161,5 @@ extern uint8_t msp_tx_cnt;
 extern uint8_t resolution;
 extern uint8_t msp_vtx_config_enable;
 extern uint8_t first_arm;
-#endif
+
+#endif /* __MSP_DISPLAYPORT_H_ */

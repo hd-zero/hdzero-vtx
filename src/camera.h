@@ -101,4 +101,5 @@ void camMenuInit();
 extern uint8_t cam_4_3;
 extern uint8_t CAM_MODE;
 extern uint8_t cameraID;
-#endif
+
+#endif /* __CAMERA_H_ */

@@ -18,10 +18,9 @@ void SPI_Init()
     SET_DI(1);
 }
 
-void SPI_Write_Byte(uint8_t dat)
-{
-    int i;
-    for(i=7; i>=0; i--){
+void SPI_Write_Byte(uint8_t dat) {
+    int8_t i;
+    for (i = 7; i >= 0; i--) {
         SPI_DLY;
         
         SET_DO( (dat>>i) & 0x01 );
@@ -34,12 +33,11 @@ void SPI_Write_Byte(uint8_t dat)
     }
 }
 
-uint8_t SPI_Read_Byte()
-{
-    int i;
-    uint8_t ret;
-    
-    for(i=7; i>=0; i--){
+uint8_t SPI_Read_Byte() {
+    int8_t i;
+    uint8_t ret = 0;
+
+    for (i = 7; i >= 0; i--) {
         SPI_DLY;
         
         SET_CK(1);

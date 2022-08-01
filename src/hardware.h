@@ -138,4 +138,5 @@ extern uint8_t led_status;
 
 extern uint8_t dispF_cnt;
 extern uint8_t temp_err;
-#endif
+
+#endif /* __HARDWARE_H_ */

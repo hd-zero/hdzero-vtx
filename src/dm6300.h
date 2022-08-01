@@ -1,5 +1,5 @@
-#ifndef _DM6300_H_
-#define _DM6300_H_
+#ifndef __DM6300_H_
+#define __DM6300_H_
 
 #include "common.h"
 
@@ -33,4 +33,4 @@ extern uint8_t table_power[FREQ_MAX_EXT+1][POWER_MAX+1];
 
 extern uint32_t dcoc_ih,dcoc_qh;
 
-#endif
+#endif /* __DM6300_H_ */
