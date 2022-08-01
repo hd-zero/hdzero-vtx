@@ -1,5 +1,5 @@
-#ifndef __UART_H__
-#define __UART_H__
+#ifndef __UART_H_
+#define __UART_H_
 
 #include "common.h"
 
@@ -76,4 +76,4 @@ extern uint8_t SA_is_0;
 extern uint8_t SA_config;
 #endif //USE_SMARTAUDIO
 
-#endif
+#endif /* __UART_H_ */
