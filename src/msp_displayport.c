@@ -117,7 +117,7 @@ void msp_task(){
         //send osd
         len = get_tx_data_osd(t1);
         #ifdef _DEBUG_DISPLAYPORT
-        debugf("\n\r%x ", (uint16_t)t1);
+        //debugf("\n\r%x ", (uint16_t)t1);
         #endif
         insert_tx_buf(len);
 
@@ -318,6 +318,7 @@ uint8_t msp_read_one_frame() {
             case MSP_CRC2:
                 if(crc == rx)
                     parseMspVtx_V2(cmd_u16);
+                state = MSP_HEADER_START;
                 break;
 
             default:
