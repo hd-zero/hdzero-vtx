@@ -25,13 +25,13 @@
 
 // mode
 //#define _RF_CALIB
-//#define REV_UART
+#define REV_UART
 //#define VIDEO_PAT
 
 //#define FIX_EEP
 
 #ifndef _RF_CALIB
-//#define _DEBUG_MODE
+#define _DEBUG_MODE
 //#define _DEBUG_DM6300
 //#define _DEBUG_TC3587
 //#define _DEBUG_CAMERA
@@ -42,11 +42,19 @@
 
 #define Raceband
 #define USE_EFUSE
-#define USE_MSP
+
+#ifndef _RF_CALIB
+//#define USE_MSP
+#endif
 
 #ifndef VTX_S
 #define USE_SMARTAUDIO
 #endif
+
+#if defined(VTX_L) || defined(VTX_WL)
+#define USE_TEMPERATURA_SENSOR
+#endif
+
 #define INIT_VTX_TABLE
 
 #define IS_RX 0
