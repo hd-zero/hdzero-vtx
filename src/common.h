@@ -52,7 +52,7 @@
 #endif
 
 #if defined(VTX_L) || defined(VTX_WL)
-#define USE_TEMPERATURA_SENSOR
+#define USE_TEMPERATURE_SENSOR
 #endif
 
 #define INIT_VTX_TABLE
