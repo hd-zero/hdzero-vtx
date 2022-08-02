@@ -44,7 +44,7 @@
 #define USE_EFUSE
 
 #ifndef _RF_CALIB
-//#define USE_MSP
+#define USE_MSP
 #endif
 
 #ifndef VTX_S
