@@ -16,11 +16,10 @@
 #include "lifetime.h"
 
 uint8_t UNUSED = 0;
+uint8_t rf_init_done = 0;
 
 void timer_task();
-#ifdef USE_SMARTAUDIO
-void SA_Delay_init();
-#endif
+void RF_Delay_Init();
 
 BIT_TYPE int0_req = 0;
 BIT_TYPE int1_req = 0;
@@ -140,9 +139,8 @@ void main(void)
             msp_task(); // msp displayport process
             Update_EEP_LifeTime();
         }
-        #ifdef USE_SMARTAUDIO
-        SA_Delay_init();
-        #endif
+        
+        RF_Delay_Init();
 
     }
 }
@@ -176,11 +174,9 @@ void timer_task()
     }
 }
 
-#ifdef USE_SMARTAUDIO
-void SA_Delay_init()
+void RF_Delay_Init()
 {
     static uint8_t SA_saved = 0;
-    static uint8_t SA_init_done = 0;
     
     if(SA_saved == 0){
         if(seconds >= WAIT_SA_CONFIG){
@@ -193,28 +189,20 @@ void SA_Delay_init()
     }
     
     //init_rf
-    if(SA_init_done==0){
-        if(last_SA_lock && seconds >= WAIT_SA_CONFIG){
+    if(rf_init_done == 0) {
+
+        if(seconds < WAIT_SA_CONFIG)
+            return;
+
+        if(last_SA_lock) {
             #ifdef _DEBUG_MODE
-            debugf("\r\nInit RF");
+            debugf("\r\nRF_Delay_Init: SA");
             #endif
             pwr_lmt_sec = PWR_LMT_SEC;
-            SA_init_done = 1;
-            if(SA_lock){
-                if(pwr_init == POWER_MAX+2){ //0mW
-                    #if(0)
-                    SA_dbm = pwr_to_dbm(pwr_init);
-                    RF_POWER = POWER_MAX + 1;
-                    Init_6300RF(ch_init, RF_POWER);
-                    PIT_MODE = PIT_0MW;
-                    #ifdef _DEBUG_MODE
-                    debugf("\r\n SA_dbm:%x", (uint16_t)SA_dbm);
-                    debugf("\r\n ch%x, pwr%x", (uint16_t)ch_init, (uint16_t)pwr_init);
-                    #endif
-                    #else
+            if(SA_lock) {
+                if(pwr_init == POWER_MAX+2) { //0mW
                     RF_POWER = POWER_MAX + 2;
                     cur_pwr = POWER_MAX + 2;
-                    #endif
                 }else if(PIT_MODE){
                     Init_6300RF(ch_init, POWER_MAX + 1);
                     #ifdef _DEBUG_MODE
@@ -226,20 +214,34 @@ void SA_Delay_init()
                     debugf("\r\n ch%x, pwr%x", (uint16_t)ch_init, (uint16_t)cur_pwr);
                     #endif
                 }
-            }else if(PIT_MODE){
+                DM6300_AUXADC_Calib();
+            }
+        } else if(!mspVtxLock) {
+            #ifdef _DEBUG_MODE
+            debugf("\r\nRF_Delay_Init: None");
+            #endif
+            if(PIT_MODE == PIT_0MW){
+            /*
+                pwr_lmt_done = 1;
+                RF_POWER = POWER_MAX + 2;
+                cur_pwr = POWER_MAX + 2;
+                vtx_pit = PIT_0MW;
+            }else if(PIT_MODE == PIT_P1MW)
+            */
                 Init_6300RF(RF_FREQ, POWER_MAX+1);
-                #ifdef _DEBUG_MODE
-                debugf("\r\n ch%x, pwr%x", (uint16_t)RF_FREQ, (uint16_t)cur_pwr);
-                #endif
-            }else{
-                Init_6300RF(RF_FREQ, 0);
-                #ifdef _DEBUG_MODE
-                debugf("\r\n ch%x, pwr%x", (uint16_t)RF_FREQ, 0);
-                #endif
+            }
+            else{
+                WriteReg(0, 0x8F, 0x00);
+                WriteReg(0, 0x8F, 0x01);
+                DM6300_Init(RF_FREQ, RF_BW);
+                DM6300_SetChannel(RF_FREQ);
+                DM6300_SetPower(0, RF_FREQ, 0);
+                cur_pwr = RF_POWER;
+                WriteReg(0, 0x8F, 0x11);
             }
             
             DM6300_AUXADC_Calib();
         }
+        rf_init_done = 1;
     }
 }
-#endif

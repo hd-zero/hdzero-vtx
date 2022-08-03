@@ -35,7 +35,6 @@
 //#define _DEBUG_DM6300
 //#define _DEBUG_TC3587
 //#define _DEBUG_CAMERA
-//#define _DEBUG_MSP_SET_VTX_CONFIG
 //#define _DEBUG_LIFETIME
 //#define _DEBUG_SA
 //#define _DEBUG_DISPLAYPORT
@@ -43,11 +42,19 @@
 
 #define Raceband
 #define USE_EFUSE
+
+#ifndef _RF_CALIB
 #define USE_MSP
+#endif
 
 #ifndef VTX_S
 #define USE_SMARTAUDIO
 #endif
+
+#if defined(VTX_L) || defined(VTX_WL)
+#define USE_TEMPERATURE_SENSOR
+#endif
+
 #define INIT_VTX_TABLE
 
 #define IS_RX 0
