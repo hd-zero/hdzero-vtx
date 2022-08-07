@@ -454,6 +454,8 @@ void DM6300_init3(uint8_t ch) {
     
     dm6300_init3_regs[23].dat = tab[1][ch];
     dm6300_init3_regs[24].dat = tab[2][ch];
+
+    WRITE_REG_MAP(dm6300_init3_regs);
 }
 
 const dm6300_reg_value_t dm6300_init4_regs[] = {
