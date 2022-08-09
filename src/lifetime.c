@@ -8,21 +8,21 @@ void Get_EEP_LifeTime(void)
 {
     uint8_t u8;
 
-    u8 = I2C_Read(ADDR_EEPROM, EEP_ADDR_LIFETIME_0, 0, 0);
+    u8 = I2C_Read8(ADDR_EEPROM, EEP_ADDR_LIFETIME_0);
     sysLifeTime = (uint32_t)u8;
-    u8 = I2C_Read(ADDR_EEPROM, EEP_ADDR_LIFETIME_1, 0, 0);
+    u8 = I2C_Read8(ADDR_EEPROM, EEP_ADDR_LIFETIME_1);
     sysLifeTime += (uint32_t)u8 << 8;
-    u8 = I2C_Read(ADDR_EEPROM, EEP_ADDR_LIFETIME_2, 0, 0);
+    u8 = I2C_Read8(ADDR_EEPROM, EEP_ADDR_LIFETIME_2);
     sysLifeTime += (uint32_t)u8 << 16;
-    u8 = I2C_Read(ADDR_EEPROM, EEP_ADDR_LIFETIME_3, 0, 0);
+    u8 = I2C_Read8(ADDR_EEPROM, EEP_ADDR_LIFETIME_3);
     sysLifeTime += (uint32_t)u8 << 24;
 
     if(sysLifeTime == 0xffffffff)
     {
-        WAIT(10); I2C_Write(ADDR_EEPROM, EEP_ADDR_LIFETIME_0, 0x00, 0, 0);
-        WAIT(10); I2C_Write(ADDR_EEPROM, EEP_ADDR_LIFETIME_1, 0x00, 0, 0);
-        WAIT(10); I2C_Write(ADDR_EEPROM, EEP_ADDR_LIFETIME_2, 0x00, 0, 0);
-        WAIT(10); I2C_Write(ADDR_EEPROM, EEP_ADDR_LIFETIME_3, 0x00, 0, 0);
+        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LIFETIME_0, 0x00);
+        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LIFETIME_1, 0x00);
+        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LIFETIME_2, 0x00);
+        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LIFETIME_3, 0x00);
         sysLifeTime = 0;
     }
 
@@ -66,25 +66,25 @@ void Update_EEP_LifeTime(void)
     if((diff >> 0) & 0xff)
     {
         u8 = (sysLifeTime >> 0)& 0xff;
-        WAIT(10); I2C_Write(ADDR_EEPROM, EEP_ADDR_LIFETIME_0, u8, 0, 0);
+        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LIFETIME_0, u8);
     }
 
     if((diff >> 8) & 0xff)
     {
         u8 = (sysLifeTime >> 8) & 0xff;
-        WAIT(10); I2C_Write(ADDR_EEPROM, EEP_ADDR_LIFETIME_1, u8, 0, 0);
+        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LIFETIME_1, u8);
     }
 
     if((diff >> 16) & 0xff)
     {
         u8 = (sysLifeTime >> 16) & 0xff;
-        WAIT(10); I2C_Write(ADDR_EEPROM, EEP_ADDR_LIFETIME_2, u8, 0, 0);
+        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LIFETIME_2, u8);
     }
 
     if((diff >> 24) & 0xff)
     {
         u8 = (sysLifeTime >> 24) & 0xff;
-        WAIT(10); I2C_Write(ADDR_EEPROM, EEP_ADDR_LIFETIME_3, u8, 0, 0);
+        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LIFETIME_3, u8);
     }
 
     sysLifeTime_last = sysLifeTime;

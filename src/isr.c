@@ -4,17 +4,17 @@
 #include "isr.h"
 #include "uart.h"
 
-uint8_t btn1_tflg = 0;
-uint8_t pwr_sflg = 0;    //power autoswitch flag
-uint8_t pwr_tflg = 0;
-uint8_t cfg_tflg = 0;
-uint8_t temp_tflg = 0;
-uint8_t timer_4hz = 0;
-uint8_t timer_8hz = 0;
-uint8_t timer_16hz = 0;
+BIT_TYPE btn1_tflg = 0;
+BIT_TYPE pwr_sflg = 0; // power autoswitch flag
+BIT_TYPE pwr_tflg = 0;
+BIT_TYPE cfg_tflg = 0;
+BIT_TYPE temp_tflg = 0;
+BIT_TYPE timer_4hz = 0;
+BIT_TYPE timer_8hz = 0;
+BIT_TYPE timer_16hz = 0;
+BIT_TYPE RS0_ERR = 0;
 IDATA_SEG volatile uint16_t timer_ms10x = 0;
 uint16_t seconds = 0;
-uint8_t RS0_ERR = 0;
 
 void CPU_init(void)
 {

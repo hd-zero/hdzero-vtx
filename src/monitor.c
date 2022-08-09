@@ -167,12 +167,11 @@ void MonEE(uint8_t op, uint8_t d)
     uint8_t addr;
     
     addr = RF_FREQ * (POWER_MAX+1) + RF_POWER;
-    val = I2C_Read(ADDR_EEPROM, addr, 0, 0);
+    val = I2C_Read8(ADDR_EEPROM, addr);
     
     switch(op){
         case 0: // ew
-            WAIT(10);
-            I2C_Write(ADDR_EEPROM, addr, d, 0, 0);
+            I2C_Write8_Wait(10, ADDR_EEPROM, addr, d);
             break;
         
         case 1: // er
@@ -181,20 +180,17 @@ void MonEE(uint8_t op, uint8_t d)
         case 2: // ea
             if(val != 0xFF)
                 val++;
-            WAIT(10);
-            I2C_Write(ADDR_EEPROM, addr, val, 0, 0);
+            I2C_Write8_Wait(10, ADDR_EEPROM, addr, val);
             break;
         
         case 3: // es
             if(val != 0)
                 val--;
-            WAIT(10);
-            I2C_Write(ADDR_EEPROM, addr, val, 0, 0);
+            I2C_Write8_Wait(10, ADDR_EEPROM, addr, val);
             break;
     }
     
-    WAIT(10);
-    val = I2C_Read(ADDR_EEPROM, addr, 0, 0);
+    val = I2C_Read8_Wait(10, ADDR_EEPROM, addr);
     table_power[RF_FREQ][RF_POWER] = val;
     debugf("\r\nRF TAB[%d][%d] = %x", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, val);
     
@@ -279,14 +275,10 @@ void Monitor(void)
 		MonEE(3, 0);
     else if ( !stricmp( argv[0], "dc" ) ){
         if(argc == 5){
-            WAIT(10);
-            I2C_Write(ADDR_EEPROM, 0x88, Asc2Bin(argv[1]), 0, 0);
-            WAIT(10);
-            I2C_Write(ADDR_EEPROM, 0x89, Asc2Bin(argv[2]), 0, 0);
-            WAIT(10);
-            I2C_Write(ADDR_EEPROM, 0x8a, Asc2Bin(argv[3]), 0, 0);
-            WAIT(10);
-            I2C_Write(ADDR_EEPROM, 0x8b, Asc2Bin(argv[4]), 0, 0);
+            I2C_Write8_Wait(10, ADDR_EEPROM, 0x88, Asc2Bin(argv[1]));
+            I2C_Write8_Wait(10, ADDR_EEPROM, 0x89, Asc2Bin(argv[2]));
+            I2C_Write8_Wait(10, ADDR_EEPROM, 0x8a, Asc2Bin(argv[3]));
+            I2C_Write8_Wait(10, ADDR_EEPROM, 0x8b, Asc2Bin(argv[4]));
             //debugf("\r\nWrite in eeprom, 0x88=%x,0x89=%x,0x8a=%x,0x8b=%x", 
                    //Asc2Bin(argv[1]),Asc2Bin(argv[2]),Asc2Bin(argv[3]),Asc2Bin(argv[4]));
         }
@@ -295,14 +287,10 @@ void Monitor(void)
     }
     else if ( !stricmp( argv[0], "iq" ) ){
         if(argc == 5){
-            WAIT(10);
-            I2C_Write(ADDR_EEPROM, 0x8c, Asc2Bin(argv[1]), 0, 0);
-            WAIT(10);
-            I2C_Write(ADDR_EEPROM, 0x8d, Asc2Bin(argv[2]), 0, 0);
-            WAIT(10);
-            I2C_Write(ADDR_EEPROM, 0x8e, Asc2Bin(argv[3]), 0, 0);
-            WAIT(10);
-            I2C_Write(ADDR_EEPROM, 0x8f, Asc2Bin(argv[4]), 0, 0);
+            I2C_Write8_Wait(10, ADDR_EEPROM, 0x8c, Asc2Bin(argv[1]));
+            I2C_Write8_Wait(10, ADDR_EEPROM, 0x8d, Asc2Bin(argv[2]));
+            I2C_Write8_Wait(10, ADDR_EEPROM, 0x8e, Asc2Bin(argv[3]));
+            I2C_Write8_Wait(10, ADDR_EEPROM, 0x8f, Asc2Bin(argv[4]));
             debugf("\r\nWrite in eeprom, 0x88=%x,0x89=%x,0x8a=%x,0x8b=%x", 
                    (uint16_t)Asc2Bin(argv[1]),(uint16_t)Asc2Bin(argv[2]),(uint16_t)Asc2Bin(argv[3]),(uint16_t)Asc2Bin(argv[4]));
         }

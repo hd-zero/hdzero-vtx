@@ -39,8 +39,7 @@ void CalibProc()
 
                     DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
 
-                    WAIT(10);
-                    I2C_Write(ADDR_EEPROM, RF_FREQ * (POWER_MAX+1) + RF_POWER, table_power[RF_FREQ][RF_POWER], 0, 0);
+                    I2C_Write8_Wait(10, ADDR_EEPROM, RF_FREQ * (POWER_MAX+1) + RF_POWER, table_power[RF_FREQ][RF_POWER]);
                     break;
                 
                 case 'c':
@@ -117,11 +116,11 @@ void CalibProc()
                             SPI_Write(0x3, 0x388, dcoc);
                         
                             // write to eeprom
-                            WAIT(10); I2C_Write(ADDR_EEPROM, EEP_ADDR_DCOC_EN, 0x00, 0, 0);
-                            WAIT(10); I2C_Write(ADDR_EEPROM, EEP_ADDR_DCOC_IH, rxbuf[2], 0, 0);
-                            WAIT(10); I2C_Write(ADDR_EEPROM, EEP_ADDR_DCOC_IL, rxbuf[3], 0, 0);
-                            WAIT(10); I2C_Write(ADDR_EEPROM, EEP_ADDR_DCOC_QH, rxbuf[4], 0, 0);
-                            WAIT(10); I2C_Write(ADDR_EEPROM, EEP_ADDR_DCOC_QL, rxbuf[5], 0, 0);
+                            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_EN, 0x00);
+                            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_IH, rxbuf[2]);
+                            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_IL, rxbuf[3]);
+                            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_QH, rxbuf[4]);
+                            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_QL, rxbuf[5]);
                             break;
                     }
                     break;

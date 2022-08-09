@@ -78,8 +78,8 @@ typedef enum{
 #endif
 
 #ifdef VTX_L
-    #define LED_BLUE_ON     I2C_Write(ADDR_TC3587, 0x0014, 0x0000, 1, 1)
-    #define LED_BLUE_OFF    I2C_Write(ADDR_TC3587, 0x0014, 0x8000, 1, 1)
+    #define LED_BLUE_ON     I2C_Write16(ADDR_TC3587, 0x0014, 0x0000)
+    #define LED_BLUE_OFF    I2C_Write16(ADDR_TC3587, 0x0014, 0x8000)
 #else
     #define LED_BLUE_ON     LED_1 = ON
     #define LED_BLUE_OFF    LED_1 = OFF

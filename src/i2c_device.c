@@ -47,9 +47,9 @@ uint8_t USE_PCA9554 = 0;
 
 void Init_MAX7315(uint32_t val)
 {
-    I2C_Write(ADDR_KEYBOARD, 0x01, val, 0, 0);  // set blink phase 0
-    I2C_Write(ADDR_KEYBOARD, 0x0F, 0x01, 0, 0); // use phase 0
-    I2C_Write(ADDR_KEYBOARD, 0x03, 0x00, 0, 0); // set MAX7315 data pin output
+    I2C_Write8(ADDR_KEYBOARD, 0x01, val);  // set blink phase 0
+    I2C_Write8(ADDR_KEYBOARD, 0x0F, 0x01); // use phase 0
+    I2C_Write8(ADDR_KEYBOARD, 0x03, 0x00); // set MAX7315 data pin output
 }
 
 /////////////////////////////////////////////////////////////////
@@ -57,12 +57,12 @@ void Init_MAX7315(uint32_t val)
 #ifdef VTX_L
 void LED_TC3587_Init()
 {
-    I2C_Write(ADDR_TC3587, 0x0002, 0x0001, 1, 1);
-    I2C_Write(ADDR_TC3587, 0x0002, 0x0000, 1, 1); //srst
+    I2C_Write16(ADDR_TC3587, 0x0002, 0x0001);
+    I2C_Write16(ADDR_TC3587, 0x0002, 0x0000); //srst
     
-    I2C_Write(ADDR_TC3587, 0x000E, 0x8000, 1, 1); //GPIO PD[23]--GPIO[15]
-    I2C_Write(ADDR_TC3587, 0x0010, 0x7FFF, 1, 1); //output
-    I2C_Write(ADDR_TC3587, 0x0014, 0x8000, 1, 1); //output 
+    I2C_Write16(ADDR_TC3587, 0x000E, 0x8000); //GPIO PD[23]--GPIO[15]
+    I2C_Write16(ADDR_TC3587, 0x0010, 0x7FFF); //output
+    I2C_Write16(ADDR_TC3587, 0x0014, 0x8000); //output 
 }
 #endif
 
@@ -77,85 +77,85 @@ void Init_TC3587()
 	WAIT(20);
 	#endif
     
-    I2C_Write(ADDR_TC3587, 0x0002, 0x0001, 1, 1);
-    I2C_Write(ADDR_TC3587, 0x0002, 0x0000, 1, 1); //srst
+    I2C_Write16(ADDR_TC3587, 0x0002, 0x0001);
+    I2C_Write16(ADDR_TC3587, 0x0002, 0x0000); //srst
     
-    I2C_Write(ADDR_TC3587, 0x0004, 0x026f, 1, 1); //config
+    I2C_Write16(ADDR_TC3587, 0x0004, 0x026f); //config
     
-    I2C_Write(ADDR_TC3587, 0x0006, 0x0062, 1, 1); //fifo
-    I2C_Write(ADDR_TC3587, 0x0008, 0x0061, 1, 1); //data format
+    I2C_Write16(ADDR_TC3587, 0x0006, 0x0062); //fifo
+    I2C_Write16(ADDR_TC3587, 0x0008, 0x0061); //data format
     
-    I2C_Write(ADDR_TC3587, 0x0060, 0x800a, 1, 1); //mipi phy timing delay ; 0x800a
+    I2C_Write16(ADDR_TC3587, 0x0060, 0x800a); //mipi phy timing delay ; 0x800a
     
-    I2C_Write(ADDR_TC3587, 0x0018, 0x0111, 1, 1); //pll
-    I2C_Write(ADDR_TC3587, 0x0018, 0x0113, 1, 1); //pll
-    I2C_Write(ADDR_TC3587, 0x0016, 0x3057, 1, 1); //pll
-    I2C_Write(ADDR_TC3587, 0x0020, 0x0000, 1, 1); //clk config
-    I2C_Write(ADDR_TC3587, 0x000c, 0x0101, 1, 1); //mclk
-    I2C_Write(ADDR_TC3587, 0x0018, 0x0111, 1, 1); //pll //0111
-    I2C_Write(ADDR_TC3587, 0x0018, 0x0113, 1, 1); //pll //0113
-    I2C_Write(ADDR_TC3587, 0x0002, 0x0001, 1, 1);
-    I2C_Write(ADDR_TC3587, 0x0002, 0x0000, 1, 1);
+    I2C_Write16(ADDR_TC3587, 0x0018, 0x0111); //pll
+    I2C_Write16(ADDR_TC3587, 0x0018, 0x0113); //pll
+    I2C_Write16(ADDR_TC3587, 0x0016, 0x3057); //pll
+    I2C_Write16(ADDR_TC3587, 0x0020, 0x0000); //clk config
+    I2C_Write16(ADDR_TC3587, 0x000c, 0x0101); //mclk
+    I2C_Write16(ADDR_TC3587, 0x0018, 0x0111); //pll //0111
+    I2C_Write16(ADDR_TC3587, 0x0018, 0x0113); //pll //0113
+    I2C_Write16(ADDR_TC3587, 0x0002, 0x0001);
+    I2C_Write16(ADDR_TC3587, 0x0002, 0x0000);
     //WAIT(100);
 
 #ifdef _DEBUG_TC3587
-    val = I2C_Read(ADDR_TC3587, 0x0002, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0002);
     debugf("\r\n0x0002 = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x0004, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0004);
     debugf("\r\n0x0004 = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x0006, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0006);
     debugf("\r\n0x0006 = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x0008, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0008);
     debugf("\r\n0x0008 = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x000C, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x000C);
     debugf("\r\n0x000C = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x0016, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0016);
     debugf("\r\n0x0016 = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x0018, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0018);
     debugf("\r\n0x0018 = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x0020, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0020);
     debugf("\r\n0x0020 = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x0060, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0060);
     debugf("\r\n0x0060 = 0x%x", val);
 
-    val = I2C_Read(ADDR_TC3587, 0x0062, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0062);
     debugf("\r\n0x0062 = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x0064, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0064);
     debugf("\r\n0x0064 = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x0066, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0066);
     debugf("\r\n0x0066 = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x0068, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0068);
     debugf("\r\n0x0068 = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x006A, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x006A);
     debugf("\r\n0x006A = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x006C, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x006C);
     debugf("\r\n0x006C = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x006E, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x006E);
     debugf("\r\n0x006E = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x0070, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0070);
     debugf("\r\n0x0070 = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x0080, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0080);
     debugf("\r\n0x0080 = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x0082, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0082);
     debugf("\r\n0x0082 = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x0084, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0084);
     debugf("\r\n0x0084 = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x0086, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0086);
     debugf("\r\n0x0086 = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x0088, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0088);
     debugf("\r\n0x0088 = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x008A, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x008A);
     debugf("\r\n0x008A = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x008C, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x008C);
     debugf("\r\n0x008C = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x008E, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x008E);
     debugf("\r\n0x008E = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x0090, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x0090);
     debugf("\r\n0x0090 = 0x%x", val);
-    val = I2C_Read(ADDR_TC3587, 0x00F8, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x00F8);
     debugf("\r\n0x00F8 = 0x%x", val);
 
-    val = I2C_Read(ADDR_TC3587, 0x006A, 1, 1);
+    val = I2C_Read16(ADDR_TC3587, 0x006A);
     debugf("\r\n0x006A = 0x%x", val);
 #endif
 }

@@ -99,52 +99,67 @@ uint8_t I2C_write_byte(uint8_t val)
     return i;
 }
 
-// addr16(reg_addr bits): 0 = 8bit; 1 = 16bit
-// bnum(data bits): 0 = 8bit; 1 = 16bit; 2 = 24bit; 3 = 32 bit
-uint8_t I2C_Write(uint8_t slave_addr, uint16_t reg_addr, uint32_t val, uint8_t addr16, uint8_t bnum)
-{
-    uint8_t slave, reg_addr_1,value;
-    uint32_t rdat;
-    
-    slave = slave_addr << 1;
-    
+uint8_t I2C_Write8(uint8_t slave_addr, uint8_t reg_addr, uint8_t val) {
+    uint8_t slave = slave_addr << 1;
+    uint8_t value;
+
     I2C_start();
-    
+
     value = I2C_write_byte(slave);
-    if(value){
+    if (value) {
         I2C_stop();
         return 1;
     }
-    
-    // reg addr
-    if(addr16){
-        reg_addr_1 = reg_addr >> 8;
-        I2C_write_byte(reg_addr_1);
-    }
-    
-    reg_addr_1 = reg_addr &0xFF;
-    I2C_write_byte(reg_addr_1);
-    
+
+    I2C_write_byte(reg_addr);
+
     // data
-    if(bnum > 2){
-        value = val >> 24;
-        I2C_write_byte(value);
+    I2C_write_byte(val);
+
+    I2C_stop();
+
+    value = I2C_Read8(slave_addr, reg_addr);
+    // debugf("\r\n0x%4x, 0x%4x", reg_addr, (uint16_t)val);
+    return 0;
+}
+
+uint8_t I2C_Write8_Wait(uint16_t ms, uint8_t slave_addr, uint8_t reg_addr, uint8_t val) {
+    WAIT(ms);
+    return I2C_Write8(slave_addr, reg_addr, val);
+}
+
+uint8_t I2C_Write16(uint8_t slave_addr, uint16_t reg_addr, uint16_t val) {
+    uint8_t slave, reg_addr_1, value;
+    uint16_t rdat;
+
+    slave = slave_addr << 1;
+
+    I2C_start();
+
+    value = I2C_write_byte(slave);
+    if (value) {
+        I2C_stop();
+        return 1;
     }
-    if(bnum > 1){
-        value = val >> 16;
-        I2C_write_byte(value);
-    }
-    if(bnum > 0){
-        value = val >> 8;
-        I2C_write_byte(value);
-    }
+
+    // reg addr
+    reg_addr_1 = reg_addr >> 8;
+    I2C_write_byte(reg_addr_1);
+
+    reg_addr_1 = reg_addr & 0xFF;
+    I2C_write_byte(reg_addr_1);
+
+    // data
+    value = val >> 8;
+    I2C_write_byte(value);
+
     value = val;
     I2C_write_byte(value);
-    
+
     I2C_stop();
-    
-    rdat = I2C_Read(slave_addr, reg_addr, addr16, bnum);
-    //debugf("\r\n0x%4x, 0x%4x", reg_addr, (uint16_t)val);
+
+    rdat = I2C_Read16(slave_addr, reg_addr);
+    // debugf("\r\n0x%4x, 0x%4x", reg_addr, (uint16_t)val);
     return 0;
 }
 
@@ -183,37 +198,59 @@ uint8_t I2C_read_byte(uint8_t no_ack)
     return val;
 }
 
-// addr16(reg_addr bits): 0 = 8bit; 1 = 16bit
-// bnum(data bits): 0 = 8bit; 1 = 16bit; 2 = 24bit; 3 = 32 bit
-uint32_t I2C_Read(uint8_t slave_addr, uint16_t reg_addr, uint8_t addr16, uint8_t bnum)
-{
-    uint8_t slave, reg_addr_1, val, i, last;
-    uint32_t value = 0;
+uint8_t I2C_Read8(uint8_t slave_addr, uint8_t reg_addr) {
+    uint8_t slave, val;
     slave = slave_addr << 1;
-    
+
     I2C_start();
 
     I2C_write_byte(slave);
-    
-    // reg addr
-    if(addr16){
-        reg_addr_1 = reg_addr >> 8;
-        I2C_write_byte(reg_addr_1);
-    }
-    
-    reg_addr_1 = reg_addr &0xFF;
-    I2C_write_byte(reg_addr_1);
-    
+
+    I2C_write_byte(reg_addr);
+
     I2C_start();
-    
-    I2C_write_byte(slave|0x01);
-    
+
+    I2C_write_byte(slave | 0x01);
+
     // data
-    for(i=bnum+1; i>0; i--){
-        last = (i==1);
-        val = I2C_read_byte(last);
-        value = (value<<8) | val;
-    }
+    val = I2C_read_byte(1);
+
+    I2C_stop();
+
+    return val;
+}
+
+uint8_t I2C_Read8_Wait(uint16_t ms, uint8_t slave_addr, uint8_t reg_addr) {
+    WAIT(ms);
+    return I2C_Read8(slave_addr, reg_addr);
+}
+
+uint16_t I2C_Read16(uint8_t slave_addr, uint16_t reg_addr) {
+    uint8_t slave = slave_addr << 1;
+    uint8_t reg_addr_1, val;
+    uint16_t value = 0;
+
+    I2C_start();
+
+    I2C_write_byte(slave);
+
+    // reg addr
+    reg_addr_1 = reg_addr >> 8;
+    I2C_write_byte(reg_addr_1);
+
+    reg_addr_1 = reg_addr & 0xFF;
+    I2C_write_byte(reg_addr_1);
+
+    I2C_start();
+
+    I2C_write_byte(slave | 0x01);
+
+    // data
+    val = I2C_read_byte(1);
+    value = (value << 8) | val;
+
+    val = I2C_read_byte(0);
+    value = (value << 8) | val;
 
     I2C_stop();
 
