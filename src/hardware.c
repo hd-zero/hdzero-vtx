@@ -853,6 +853,7 @@ void Video_Detect()
     static uint16_t last_sec = 0;
     static uint8_t sec = 0;
     uint8_t vdet;
+    uint16_t val = 0;
     
     if(last_sec != seconds){
         last_sec = seconds;
@@ -862,8 +863,17 @@ void Video_Detect()
             return;
 
         if(cameraID){
-        	LED_BLUE_ON;
-        	led_status = ON;
+            for(i=0; i<5; i++){
+                val |= I2C_Read16(ADDR_TC3587, 0x006A);
+                val |= I2C_Read16(ADDR_TC3587, 0x006E);
+            }
+            if(val){
+                LED_BLUE_ON;
+                led_status = ON;
+            }else{
+                LED_BLUE_OFF;
+                led_status = OFF;
+            }
             return;
         }
         

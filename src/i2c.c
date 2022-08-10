@@ -246,10 +246,10 @@ uint16_t I2C_Read16(uint8_t slave_addr, uint16_t reg_addr) {
     I2C_write_byte(slave | 0x01);
 
     // data
-    val = I2C_read_byte(1);
+    val = I2C_read_byte(0);
     value = (value << 8) | val;
 
-    val = I2C_read_byte(0);
+    val = I2C_read_byte(1);
     value = (value << 8) | val;
 
     I2C_stop();
