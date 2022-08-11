@@ -375,6 +375,9 @@ void Init_HW()
 {
 //--------- gpio init -----------------
     SPI_Init();
+    
+    LED_BLUE_ON;
+    led_status = ON;
 
 #ifdef VIDEO_PAT
     Set_720P60(0);
@@ -858,6 +861,57 @@ void Video_Detect()
     if(last_sec != seconds){
         last_sec = seconds;
         sec++;
+        
+#ifdef _DEBUG_TC3587
+    val = I2C_Read16(ADDR_TC3587, 0x0062);
+    debugf("\r\n0x0062 = 0x%x", val);
+    val = I2C_Read16(ADDR_TC3587, 0x0064);
+    debugf("\r\n0x0064 = 0x%x", val);
+    val = I2C_Read16(ADDR_TC3587, 0x0066);
+    debugf("\r\n0x0066 = 0x%x", val);
+    val = I2C_Read16(ADDR_TC3587, 0x0068);
+    debugf("\r\n0x0068 = 0x%x", val);
+    val = I2C_Read16(ADDR_TC3587, 0x006A);
+    debugf("\r\n0x006A = 0x%x", val);
+    val = I2C_Read16(ADDR_TC3587, 0x006C);
+    debugf("\r\n0x006C = 0x%x", val);
+    val = I2C_Read16(ADDR_TC3587, 0x006E);
+    debugf("\r\n0x006E = 0x%x", val);
+    val = I2C_Read16(ADDR_TC3587, 0x0070);
+    debugf("\r\n0x0070 = 0x%x", val);
+    val = I2C_Read16(ADDR_TC3587, 0x0080);
+    debugf("\r\n0x0080 = 0x%x", val);
+    val = I2C_Read16(ADDR_TC3587, 0x0082);
+    debugf("\r\n0x0082 = 0x%x", val);
+    val = I2C_Read16(ADDR_TC3587, 0x0084);
+    debugf("\r\n0x0084 = 0x%x", val);
+    val = I2C_Read16(ADDR_TC3587, 0x0086);
+    debugf("\r\n0x0086 = 0x%x", val);
+    val = I2C_Read16(ADDR_TC3587, 0x0088);
+    debugf("\r\n0x0088 = 0x%x", val);
+    val = I2C_Read16(ADDR_TC3587, 0x008A);
+    debugf("\r\n0x008A = 0x%x", val);
+    val = I2C_Read16(ADDR_TC3587, 0x008C);
+    debugf("\r\n0x008C = 0x%x", val);
+    val = I2C_Read16(ADDR_TC3587, 0x008E);
+    debugf("\r\n0x008E = 0x%x", val);
+    val = I2C_Read16(ADDR_TC3587, 0x0090);
+    debugf("\r\n0x0090 = 0x%x", val);
+    val = I2C_Read16(ADDR_TC3587, 0x00F8);
+    debugf("\r\n0x00F8 = 0x%x", val);
+    I2C_Write16(ADDR_TC3587, 0x0064, 0x01ff);
+    I2C_Write16(ADDR_TC3587, 0x0068, 0x0000);
+    I2C_Write16(ADDR_TC3587, 0x006C, 0x0000);
+    I2C_Write16(ADDR_TC3587, 0x0080, 0x0000);
+    I2C_Write16(ADDR_TC3587, 0x0082, 0x0000);
+    I2C_Write16(ADDR_TC3587, 0x0084, 0x0000);
+    I2C_Write16(ADDR_TC3587, 0x0086, 0x0000);
+    I2C_Write16(ADDR_TC3587, 0x0088, 0x0000);
+    I2C_Write16(ADDR_TC3587, 0x008A, 0x0000);
+    I2C_Write16(ADDR_TC3587, 0x008C, 0x0000);
+    I2C_Write16(ADDR_TC3587, 0x008E, 0x0000);
+    I2C_Write16(ADDR_TC3587, 0x0090, 0x0000);
+#endif
 
         if(heat_protect)
             return;
