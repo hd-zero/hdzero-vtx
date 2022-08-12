@@ -146,7 +146,7 @@ void Runcam_SetBrightness(uint8_t val)
     
     RUNCAM_Write(cameraID, 0x50, d);
     #ifdef _DEBUG_CAMERA
-    debugf("\r\nRUNCAM brightness:%x", (uint16_t)val);
+    debugf("\r\nRUNCAM brightness:0x%02x", (uint16_t)val);
     #endif
 }
 
@@ -175,7 +175,7 @@ void Runcam_SetSharpness(uint8_t val)
         RUNCAM_Write(cameraID, 0x0003D8, 0x0A0C0E10);
     }
     #ifdef _DEBUG_CAMERA
-    debugf("\r\nRUNCAM sharpness:%x", (uint16_t)val);
+    debugf("\r\nRUNCAM sharpness:0x%02x", (uint16_t)val);
     #endif
 }
 
@@ -208,7 +208,7 @@ uint8_t Runcam_SetSaturation(uint8_t val)
     else if(val == 6) //high
         d += 0x04041418;
     #ifdef _DEBUG_CAMERA
-    debugf("\r\nRUNCAM saturation:%x", (uint16_t)val);
+    debugf("\r\nRUNCAM saturation:%02x", (uint16_t)val);
     #endif
     
     ret = RUNCAM_Write(cameraID, 0x0003A4, d);
@@ -235,7 +235,7 @@ void Runcam_SetContrast(uint8_t val)
     
     RUNCAM_Write(cameraID, 0x00038C, d);
     #ifdef _DEBUG_CAMERA
-    debugf("\r\nRUNCAM contrast:%x", (uint16_t)val);
+    debugf("\r\nRUNCAM contrast:%02x", (uint16_t)val);
     #endif
 }
 
@@ -259,7 +259,7 @@ void Runcam_SetVdoRatio(uint8_t ratio)
     RUNCAM_Write(cameraID, 0x000694, 0x00000310);
     RUNCAM_Write(cameraID, 0x000694, 0x00000311);
     #ifdef _DEBUG_CAMERA
-    debugf("\r\nRUNCAM VdoRatio:%x", (uint16_t)ratio);
+    debugf("\r\nRUNCAM VdoRatio:%02x", (uint16_t)ratio);
     #endif
 }
 
@@ -304,7 +304,7 @@ uint8_t Runcam_GetVdoFormat(uint8_t cameraID)
     }
     
     #ifdef _DEBUG_CAMERA
-    debugf("\r\nVdoFormat:%x, 4_3:%x", (uint16_t)ret, (uint16_t)cam_4_3);
+    debugf("\r\nVdoFormat:%02x, 4_3:%02x", (uint16_t)ret, (uint16_t)cam_4_3);
     #endif
     return ret;
 }
@@ -352,7 +352,7 @@ void Runcam_SetNightMode(uint8_t val)
     RUNCAM_Write(cameraID, 0x000694, 0x00000310);
     RUNCAM_Write(cameraID, 0x000694, 0x00000311);
     #ifdef _DEBUG_CAMERA
-    debugf("\r\nRUNCAM NightMode:%x", (uint16_t)val);
+    debugf("\r\nRUNCAM NightMode:%02x", (uint16_t)val);
     #endif
 }
 
@@ -387,10 +387,18 @@ void Runcam_SetWB(uint8_t* wbRed, uint8_t* wbBlue, uint8_t wbMode)
 
 void camera_write_eep_parameter(uint16_t addr, uint8_t val) {
     I2C_Write8_Wait(10, ADDR_EEPROM, addr, val);
+    #ifdef _DEBUG_CAMERA
+    debugf("\r\ncamera_write_eep_parameter:  %02x,%02x.", addr, val);
+    #endif
 }
 
 uint8_t camera_read_eep_parameter(uint16_t addr) {
-    return I2C_Read8_Wait(10, ADDR_EEPROM, addr);
+    uint8_t val;
+    val = I2C_Read8_Wait(10, ADDR_EEPROM, addr);
+    #ifdef _DEBUG_CAMERA
+    debugf("\r\camera_read_eep_parameter:    %02x,%02x.", addr, val);
+    #endif
+    return val;
 }
 
 void camera_check_and_save_parameters() {
@@ -507,14 +515,15 @@ void GetCamCfg(uint8_t USE_EEP_PROFILE)
     }
 
     #ifdef _DEBUG_CAMERA
-    debugf("\r\n    camPprofile:0x%02x", (uint16_t)camProfile);
-    debugf("\r\n    brightness: 0x%02x", (uint16_t)camCfg.brightness);
-    debugf("\r\n    sharpness:  0x%02x", (uint16_t)camCfg.sharpness);
-    debugf("\r\n    saturation: 0x%02x", (uint16_t)camCfg.saturation);
-    debugf("\r\n    contrast:   0x%02x", (uint16_t)camCfg.contrast);
-    debugf("\r\n    hvFlip:     0x%02x", (uint16_t)camCfg.hvFlip);
-    debugf("\r\n    nightMode:  0x%02x", (uint16_t)camCfg.nightMode);
-    debugf("\r\n    wbMode:     0x%02x", (uint16_t)camCfg.wbMode);
+    debugf("\r\nGetCamCfg->camProfile: 0x%02x", (uint16_t)camProfile);
+    debugf("\r\nGetCamCfg->index:      0x%02x", (uint16_t)index);
+    debugf("\r\nGetCamCfg->brightness: 0x%02x", (uint16_t)camCfg.brightness);
+    debugf("\r\nGetCamCfg->sharpness:  0x%02x", (uint16_t)camCfg.sharpness);
+    debugf("\r\nGetCamCfg->saturation: 0x%02x", (uint16_t)camCfg.saturation);
+    debugf("\r\nGetCamCfg->contrast:   0x%02x", (uint16_t)camCfg.contrast);
+    debugf("\r\nGetCamCfg->hvFlip:     0x%02x", (uint16_t)camCfg.hvFlip);
+    debugf("\r\nGetCamCfg->nightMode:  0x%02x", (uint16_t)camCfg.nightMode);
+    debugf("\r\nGetCamCfg->wbMode:     0x%02x", (uint16_t)camCfg.wbMode);
     #endif
 }
 
@@ -581,6 +590,18 @@ void SaveCamCfg_Menu(void)
         camCfg_EEP[index].wbBlue[i] = camCfg.wbBlue[i];
     }
     camera_check_and_save_parameters();
+
+    #ifdef _DEBUG_CAMERA
+    debugf("\r\nSaveCamCfg->camProfile: 0x%02x", (uint16_t)camProfile_EEP);
+    debugf("\r\nSaveCamCfg->index:      0x%02x", (uint16_t)index);
+    debugf("\r\nSaveCamCfg->brightness: 0x%02x", (uint16_t)camCfg_EEP[index].brightness);
+    debugf("\r\nSaveCamCfg->sharpness:  0x%02x", (uint16_t)camCfg_EEP[index].sharpness);
+    debugf("\r\nSaveCamCfg->saturation: 0x%02x", (uint16_t)camCfg_EEP[index].saturation);
+    debugf("\r\nSaveCamCfg->contrast:   0x%02x", (uint16_t)camCfg_EEP[index].contrast);
+    debugf("\r\nSaveCamCfg->hvFlip:     0x%02x", (uint16_t)camCfg_EEP[index].hvFlip);
+    debugf("\r\nSaveCamCfg->nightMode:  0x%02x", (uint16_t)camCfg_EEP[index].nightMode);
+    debugf("\r\nSaveCamCfg->wbMode:     0x%02x", (uint16_t)camCfg_EEP[index].wbMode);
+    #endif
 }
 
 void SetCamCfg(cameraConfig_t *cfg, uint8_t INIT)
@@ -711,21 +732,23 @@ uint8_t camStatusUpdate(uint8_t op)
                 camMenuStatus = CAM_STATUS_SAVE_EXIT;
             else if (op == BTN_DOWN)
                 camMenuStatus = CAM_STATUS_BRIGHTNESS;
-            else 
+            else if (op == BTN_LEFT)
             {
-                if (op == BTN_LEFT)
-                {
-                    camProfile_Menu --;
-                    if(camProfile_Menu  >= Profile_Max)
-                        camProfile_Menu = Profile_Max - 1;
-                }
-                else if (op == BTN_RIGHT)
-                {
-                    camProfile_Menu ++;
-                    if(camProfile_Menu >= Profile_Max)
-                        camProfile_Menu = 0;
-                }
-            
+                camProfile_Menu --;
+                if(camProfile_Menu  >= Profile_Max)
+                    camProfile_Menu = Profile_Max - 1;
+        
+                camProfile = camProfile_Menu;
+                GetCamCfg(0);
+                GetCamCfg_Menu(0);
+                SetCamCfg(&camCfg_Menu, 0);
+            }
+            else if (op == BTN_RIGHT)
+            {
+                camProfile_Menu ++;
+                if(camProfile_Menu >= Profile_Max)
+                    camProfile_Menu = 0;
+        
                 camProfile = camProfile_Menu;
                 GetCamCfg(0);
                 GetCamCfg_Menu(0);
@@ -1358,7 +1381,7 @@ void camMenuStringUpdate(uint8_t status) {
     if (cameraID == RUNCAM_MICRO_V1)
         strcpy(osd_buf[CAM_STATUS_PROFILE] + osd_menu_offset + 18, "   MICRO V1");
     else
-        strcpy(osd_buf[CAM_STATUS_PROFILE] + osd_menu_offset + 18, cam_names[camProfile_Menu % 6]);
+        strcpy(osd_buf[CAM_STATUS_PROFILE] + osd_menu_offset + 18, cam_names[camProfile_Menu % 3]);
 
     // Brightness
     dat = (int8_t)CAM_BRIGHTNESS_INITIAL - (int8_t)camCfg_Menu.brightness;
