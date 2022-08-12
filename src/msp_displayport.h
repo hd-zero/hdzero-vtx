@@ -156,6 +156,7 @@ void set_vtx_param();
 void InitVtxTable();
 #endif
 extern uint8_t osd_buf[HD_VMAX][HD_HMAX];
+extern uint8_t osd_menu_offset;
 extern uint8_t disp_mode;
 extern uint8_t msp_tx_cnt;
 extern uint8_t resolution;

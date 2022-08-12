@@ -11,8 +11,6 @@
 #include "spi.h"
 #include "lifetime.h"
 
-
-
 uint8_t osd_buf[HD_VMAX][HD_HMAX];
 uint8_t loc_buf[HD_VMAX][7];
 uint8_t page_extend_buf[HD_VMAX][7];
@@ -84,6 +82,8 @@ uint8_t crc8tab[256] = {
     0xD6, 0x03, 0xA9, 0x7C, 0x28, 0xFD, 0x57, 0x82, 0xFF, 0x2A, 0x80, 0x55, 0x01, 0xD4, 0x7E, 0xAB,
     0x84, 0x51, 0xFB, 0x2E, 0x7A, 0xAF, 0x05, 0xD0, 0xAD, 0x78, 0xD2, 0x07, 0x53, 0x86, 0x2C, 0xF9
 };
+
+uint8_t osd_menu_offset = 0;
 
 #ifdef USE_MSP
 
@@ -377,6 +377,11 @@ void fc_init()
     clear_screen();
     init_tx_buf();
     //vtx_menu_init();
+
+    if(resolution == HD_5018)
+        osd_menu_offset = 8;
+    else
+        osd_menu_offset = 0;
 }
 
 uint8_t get_tx_data_5680() //prepare data to VRX
@@ -1412,63 +1417,62 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
 void vtx_menu_init()
 {
     uint8_t i;
-    uint8_t offset = (resolution == HD_5018) ? 8 : 0;
     uint8_t hourString[4];
     uint8_t minuteString[2];
     
     disp_mode = DISPLAY_CMS;
     clear_screen();
     
-    strcpy(osd_buf[0]+offset+2,"----VTX_MENU----");
-    strcpy(osd_buf[2]+offset+2,">CHANNEL");
-    strcpy(osd_buf[3]+offset+3,"POWER");
-    strcpy(osd_buf[4]+offset+3,"LP_MODE");
-    strcpy(osd_buf[5]+offset+3,"PIT_MODE");
-    strcpy(osd_buf[6]+offset+3,"OFFSET_25MW");
-    strcpy(osd_buf[7]+offset+3,"EXIT");
-    strcpy(osd_buf[8]+offset+3,"SAVE&EXIT");
-    strcpy(osd_buf[9]+offset+2,"------INFO------");
-    strcpy(osd_buf[10]+offset+3,"VTX");
-    strcpy(osd_buf[11]+offset+3,"VER");
-    strcpy(osd_buf[12]+offset+3,"LIFETIME");
+    strcpy(osd_buf[0]+osd_menu_offset+2,"----VTX_MENU----");
+    strcpy(osd_buf[2]+osd_menu_offset+2,">CHANNEL");
+    strcpy(osd_buf[3]+osd_menu_offset+3,"POWER");
+    strcpy(osd_buf[4]+osd_menu_offset+3,"LP_MODE");
+    strcpy(osd_buf[5]+osd_menu_offset+3,"PIT_MODE");
+    strcpy(osd_buf[6]+osd_menu_offset+3,"OFFSET_25MW");
+    strcpy(osd_buf[7]+osd_menu_offset+3,"EXIT");
+    strcpy(osd_buf[8]+osd_menu_offset+3,"SAVE&EXIT");
+    strcpy(osd_buf[9]+osd_menu_offset+2,"------INFO------");
+    strcpy(osd_buf[10]+osd_menu_offset+3,"VTX");
+    strcpy(osd_buf[11]+osd_menu_offset+3,"VER");
+    strcpy(osd_buf[12]+osd_menu_offset+3,"LIFETIME");
 
     for(i=0;i<5;i++){
-        osd_buf[2+i][offset+19] = '<';
-        osd_buf[2+i][offset+26] = '>';
+        osd_buf[2+i][osd_menu_offset+19] = '<';
+        osd_buf[2+i][osd_menu_offset+26] = '>';
     }
 
     //draw variant
     #if defined VTX_B
-        strcpy(osd_buf[10]+offset+10,"            BF");
+        strcpy(osd_buf[10]+osd_menu_offset+10,"            BF");
     #elif defined VTX_M
-        strcpy(osd_buf[10]+offset+10,"FREESTYLE LITE");
+        strcpy(osd_buf[10]+osd_menu_offset+10,"FREESTYLE LITE");
     #elif defined VTX_S
-        strcpy(osd_buf[10]+offset+10,"         WHOOP");
+        strcpy(osd_buf[10]+osd_menu_offset+10,"         WHOOP");
     #elif defined VTX_R
-        strcpy(osd_buf[10]+offset+10,"          RACE");
+        strcpy(osd_buf[10]+osd_menu_offset+10,"          RACE");
     #elif defined VTX_WL
-        strcpy(osd_buf[10]+offset+10,"    WHOOP LITE");
+        strcpy(osd_buf[10]+osd_menu_offset+10,"    WHOOP LITE");
     #elif defined VTX_L
-        strcpy(osd_buf[10]+offset+10,"     FREESTYLE");
+        strcpy(osd_buf[10]+osd_menu_offset+10,"     FREESTYLE");
     #endif
     //draw version
-    osd_buf[11][offset+22] = (uint8_t)((VERSION >> 4) & 0x0f) + '0';
-    osd_buf[11][offset+23] = (uint8_t)(VERSION & 0x0f) + '0';
+    osd_buf[11][osd_menu_offset+22] = (uint8_t)((VERSION >> 4) & 0x0f) + '0';
+    osd_buf[11][osd_menu_offset+23] = (uint8_t)(VERSION & 0x0f) + '0';
     #ifdef BETA
-    osd_buf[11][offset+25] = 'B';
-    osd_buf[11][offset+26] = (uint8_t)((BETA >> 4) & 0x0f) + '0';
-    osd_buf[11][offset+27] = (uint8_t)(BETA & 0x0f) + '0';
+    osd_buf[11][osd_menu_offset+25] = 'B';
+    osd_buf[11][osd_menu_offset+26] = (uint8_t)((BETA >> 4) & 0x0f) + '0';
+    osd_buf[11][osd_menu_offset+27] = (uint8_t)(BETA & 0x0f) + '0';
     #endif
 
     ParseLifeTime(hourString,minuteString);
-    osd_buf[12][offset+16] = hourString[0];
-    osd_buf[12][offset+17] = hourString[1];
-    osd_buf[12][offset+18] = hourString[2];
-    osd_buf[12][offset+19] = hourString[3];
-    osd_buf[12][offset+20] = 'H';
-    osd_buf[12][offset+21] = minuteString[0];
-    osd_buf[12][offset+22] = minuteString[1];
-    osd_buf[12][offset+23] = 'M';
+    osd_buf[12][osd_menu_offset+16] = hourString[0];
+    osd_buf[12][osd_menu_offset+17] = hourString[1];
+    osd_buf[12][osd_menu_offset+18] = hourString[2];
+    osd_buf[12][osd_menu_offset+19] = hourString[3];
+    osd_buf[12][osd_menu_offset+20] = 'H';
+    osd_buf[12][osd_menu_offset+21] = minuteString[0];
+    osd_buf[12][osd_menu_offset+22] = minuteString[1];
+    osd_buf[12][osd_menu_offset+23] = 'M';
     
     vtx_channel = RF_FREQ;
     vtx_power = RF_POWER;
@@ -1481,88 +1485,87 @@ void vtx_menu_init()
 void update_vtx_menu_param(uint8_t vtx_state)
 {
     uint8_t i;
-    uint8_t offset = (resolution == HD_5018) ? 8 : 0;
     uint8_t hourString[4];
     uint8_t minuteString[2];
 
     //state
     for(i=0;i<7;i++){
         if( i == vtx_state)
-            osd_buf[i+2][offset+2] = '>';
+            osd_buf[i+2][osd_menu_offset+2] = '>';
         else
-            osd_buf[i+2][offset+2] = ' ';
+            osd_buf[i+2][osd_menu_offset+2] = ' ';
     }
 
     //channel display
     if(vtx_channel < 8){
-        osd_buf[2][offset+23] = 'R';
-        osd_buf[2][offset+24] = vtx_channel + '1';
+        osd_buf[2][osd_menu_offset+23] = 'R';
+        osd_buf[2][osd_menu_offset+24] = vtx_channel + '1';
     }else{
-        osd_buf[2][offset+23] = 'F';
+        osd_buf[2][osd_menu_offset+23] = 'F';
         if(vtx_channel == 8)
-            osd_buf[2][offset+24] = '2';
+            osd_buf[2][osd_menu_offset+24] = '2';
         else if(vtx_channel == 9)
-            osd_buf[2][offset+24] = '4';
+            osd_buf[2][osd_menu_offset+24] = '4';
     }
  
     //power display
     switch(vtx_power){
         case 0:
-            strcpy(osd_buf[3]+offset+20,"   25");
+            strcpy(osd_buf[3]+osd_menu_offset+20,"   25");
             break;
         case 1:
-            strcpy(osd_buf[3]+offset+20,"  200");
+            strcpy(osd_buf[3]+osd_menu_offset+20,"  200");
             break;
         case 2:
             #ifdef VTX_B
-            strcpy(osd_buf[3]+offset+20,"  450");
+            strcpy(osd_buf[3]+osd_menu_offset+20,"  450");
             #else
-            strcpy(osd_buf[3]+offset+20,"  500");
+            strcpy(osd_buf[3]+osd_menu_offset+20,"  500");
             #endif
             break;
         case 3:
-            strcpy(osd_buf[3]+offset+20,"  MAX");
+            strcpy(osd_buf[3]+osd_menu_offset+20,"  MAX");
             break;
         default:
-            strcpy(osd_buf[3]+offset+20,"     ");
+            strcpy(osd_buf[3]+osd_menu_offset+20,"     ");
             break;
     }
 
     if(vtx_lp == 0)
-        strcpy(osd_buf[4]+offset+20,"  OFF");
+        strcpy(osd_buf[4]+osd_menu_offset+20,"  OFF");
     else if(vtx_lp == 1)
-        strcpy(osd_buf[4]+offset+20,"   ON");
+        strcpy(osd_buf[4]+osd_menu_offset+20,"   ON");
     else if(vtx_lp == 2)
-        strcpy(osd_buf[4]+offset+20,"  1ST");
+        strcpy(osd_buf[4]+osd_menu_offset+20,"  1ST");
     
     if(vtx_pit==PIT_P1MW)
-        strcpy(osd_buf[5]+offset+20," P1MW");
+        strcpy(osd_buf[5]+osd_menu_offset+20," P1MW");
     else if(vtx_pit == PIT_0MW)
-        strcpy(osd_buf[5]+offset+20,"  0MW");
+        strcpy(osd_buf[5]+osd_menu_offset+20,"  0MW");
     else if(vtx_pit == PIT_OFF)
-        strcpy(osd_buf[5]+offset+20,"  OFF");
+        strcpy(osd_buf[5]+osd_menu_offset+20,"  OFF");
     
     if(vtx_offset < 10){
-        strcpy(osd_buf[6]+offset+20,"     ");
-        osd_buf[6][offset+23] = '0' + vtx_offset;
+        strcpy(osd_buf[6]+osd_menu_offset+20,"     ");
+        osd_buf[6][osd_menu_offset+23] = '0' + vtx_offset;
     }else if(vtx_offset == 10)
-        strcpy(osd_buf[6]+offset+20,"   10");
+        strcpy(osd_buf[6]+osd_menu_offset+20,"   10");
     else if(vtx_offset < 20){
-        strcpy(osd_buf[6]+offset+20,"   -");
-        osd_buf[6][offset+24] = '0' + (vtx_offset - 10);
+        strcpy(osd_buf[6]+osd_menu_offset+20,"   -");
+        osd_buf[6][osd_menu_offset+24] = '0' + (vtx_offset - 10);
     }
     else if(vtx_offset == 20)
-        strcpy(osd_buf[6]+offset+20,"  -10");
+        strcpy(osd_buf[6]+osd_menu_offset+20,"  -10");
     
     ParseLifeTime(hourString,minuteString);
-    osd_buf[12][offset+16] = hourString[0];
-    osd_buf[12][offset+17] = hourString[1];
-    osd_buf[12][offset+18] = hourString[2];
-    osd_buf[12][offset+19] = hourString[3];
-    osd_buf[12][offset+20] = 'H';
-    osd_buf[12][offset+21] = minuteString[0];
-    osd_buf[12][offset+22] = minuteString[1];
-    osd_buf[12][offset+23] = 'M';
+    osd_buf[12][osd_menu_offset+16] = hourString[0];
+    osd_buf[12][osd_menu_offset+17] = hourString[1];
+    osd_buf[12][osd_menu_offset+18] = hourString[2];
+    osd_buf[12][osd_menu_offset+19] = hourString[3];
+    osd_buf[12][osd_menu_offset+20] = 'H';
+    osd_buf[12][osd_menu_offset+21] = minuteString[0];
+    osd_buf[12][osd_menu_offset+22] = minuteString[1];
+    osd_buf[12][osd_menu_offset+23] = 'M';
 }
 
 void save_vtx_param()
