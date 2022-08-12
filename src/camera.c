@@ -1419,16 +1419,18 @@ void camMenuStringUpdate(uint8_t status) {
 
     // wb
     if (camCfg_Menu.wbMode == 0) {
-        strcpy(osd_buf[CAM_STATUS_WBMODE] + osd_menu_offset + 21, "  AUTO ");
-        strcpy(osd_buf[CAM_STATUS_WBRED] + osd_menu_offset + 21, "       ");
-        strcpy(osd_buf[CAM_STATUS_WBBLUE] + osd_menu_offset + 21, "       ");
+        strcpy(osd_buf[CAM_STATUS_WBMODE] + osd_menu_offset + 21, "  AUTO  ");
+        strcpy(osd_buf[CAM_STATUS_WBRED] + osd_menu_offset + 21, "        ");
+        strcpy(osd_buf[CAM_STATUS_WBBLUE] + osd_menu_offset + 21, "        ");
     } else {
         strcpy(osd_buf[CAM_STATUS_WBMODE] + osd_menu_offset + 21, "MANUAL ");
         osd_buf[CAM_STATUS_WBMODE][osd_menu_offset + 27] = '0' + camCfg_Menu.wbMode;
         uint8ToString(camCfg_Menu.wbRed[camCfg_Menu.wbMode - 1], Str);
         strcpy(osd_buf[CAM_STATUS_WBRED] + osd_menu_offset + 24, Str);
+        strcpy(osd_buf[CAM_STATUS_WBRED] + osd_menu_offset + 27, "  ");
         uint8ToString(camCfg_Menu.wbBlue[camCfg_Menu.wbMode - 1], Str);
         strcpy(osd_buf[CAM_STATUS_WBBLUE] + osd_menu_offset + 24, Str);
+        strcpy(osd_buf[CAM_STATUS_WBBLUE] + osd_menu_offset + 27, "  ");
     }
 
     camMenuDrawBracket();
