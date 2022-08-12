@@ -387,18 +387,10 @@ void Runcam_SetWB(uint8_t* wbRed, uint8_t* wbBlue, uint8_t wbMode)
 
 void camera_write_eep_parameter(uint16_t addr, uint8_t val) {
     I2C_Write8_Wait(10, ADDR_EEPROM, addr, val);
-    #ifdef _DEBUG_CAMERA
-    debugf("\r\ncamera_write_eep_parameter:  %02x,%02x.", addr, val);
-    #endif
 }
 
 uint8_t camera_read_eep_parameter(uint16_t addr) {
-    uint8_t val;
-    val = I2C_Read8_Wait(10, ADDR_EEPROM, addr);
-    #ifdef _DEBUG_CAMERA
-    debugf("\r\camera_read_eep_parameter:    %02x,%02x.", addr, val);
-    #endif
-    return val;
+    return I2C_Read8_Wait(10, ADDR_EEPROM, addr);
 }
 
 void camera_check_and_save_parameters() {
@@ -412,7 +404,7 @@ void camera_check_and_save_parameters() {
         camProfile_EEP = Profile_MicroV2;
 
     for (i = 0; i < CAM_PROFILE_NUM; i++) {
-        if (camCfg_EEP[i].brightness < BRIGHTNESS_MIN || camCfg_EEP[i].brightness > BRIGHTNESS_MIN) {
+        if (camCfg_EEP[i].brightness < BRIGHTNESS_MIN || camCfg_EEP[i].brightness > BRIGHTNESS_MAX) {
             camCfg_EEP[i].brightness = camParameterInit[i][0];
         }
 
@@ -558,7 +550,7 @@ void SaveCamCfg_Menu(void)
 
     if(cameraID == 0)
         return;
-    
+
     if(cameraID == RUNCAM_MICRO_V2)
     {
         camProfile = camProfile_Menu;
@@ -577,6 +569,7 @@ void SaveCamCfg_Menu(void)
         camCfg.wbBlue[i] = camCfg_Menu.wbBlue[i];
     }
 
+    camProfile_EEP = camProfile;
     camCfg_EEP[index].brightness = camCfg.brightness;
     camCfg_EEP[index].sharpness = camCfg.sharpness;
     camCfg_EEP[index].saturation = camCfg.saturation;
@@ -589,6 +582,7 @@ void SaveCamCfg_Menu(void)
         camCfg_EEP[index].wbRed[i] = camCfg.wbRed[i];
         camCfg_EEP[index].wbBlue[i] = camCfg.wbBlue[i];
     }
+
     camera_check_and_save_parameters();
 
     #ifdef _DEBUG_CAMERA
