@@ -104,16 +104,12 @@ void uint8ToString(uint8_t dec, uint8_t *Str) {
     }
 
     val = (dec - (val * 100)) / 10;
-    if (val == 0) {
+    if (val == 0 && Str[0] == ' ') {
         Str[1] = ' ';
     } else {
         Str[1] = '0' + val;
     }
 
     val = dec % 10;
-    if (val == 0) {
-        Str[2] = ' ';
-    } else {
-        Str[2] = '0' + val;
-    }
+    Str[2] = '0' + val;
 }
