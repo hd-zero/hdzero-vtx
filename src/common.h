@@ -9,7 +9,7 @@
 #include "sfr_ext.h"
 
 #define VERSION 0x41
-#define BETA 0x03
+#define BETA 0x04
 
 //#define VTX_L
 //#define VTX_WL

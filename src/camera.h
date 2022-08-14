@@ -4,10 +4,10 @@
 #include <stdint.h>
 #include "common.h"
 
-#define RUNCAM_PROFILE_M_TYPE    4
+#define CAM_PROFILE_NUM          4
 
-#define RUNCAM_MICRO_V1          0x42
-#define RUNCAM_MICRO_V2          0x44
+#define RUNCAM_MICRO_V1             0x42
+#define RUNCAM_MICRO_V2             0x44
 
 #define CAM_BRIGHTNESS_INITIAL      0x80
 #define CAM_SHARPNESS_INITIAL       1
@@ -19,8 +19,6 @@
 #define CAM_WBBLUE_INITIAL          0xCA    // 0x328>>2
 #define CAM_WBMODE_INITIAL          0
 
-#define PROFILE_MAX_V1              0x01
-#define PROFILE_MAX_V2              0x05
 #define BRIGHTNESS_MIN              0x40
 #define BRIGHTNESS_MAX              0xC0
 #define SHARPNESS_MIN               0x00
@@ -50,12 +48,11 @@ typedef enum{
 }VdoFormatType_e;
 
 typedef enum{
-    Profile_MicroV2_Auto,
-    Profile_NanoV2_Auto,
-    Profile_NanoLite_Auto,
-    Profile_MicroV2_Manual,
-    Profile_NanoV2_Manual,
-    Profile_NanoLite_Manual,
+    //Profile_MicroV1,
+    Profile_MicroV2,
+    Profile_NanoV2,
+    Profile_NanoLite,
+    Profile_Max,
 }RuncamV2Profile_e;
 
 typedef struct{
@@ -87,8 +84,8 @@ typedef enum{
     CAM_STATUS_EXIT,
     CAM_STATUS_SAVE_EXIT,
     CAM_STATUS_SET_VDO_RATIO_4_3,
-    CAM_STATUS_SET_VDO_RATIO_16_9_0,
-    CAM_STATUS_SET_VDO_RATIO_16_9_1,
+    CAM_STATUS_SET_VDO_RATIO_16_9_CROP,
+    CAM_STATUS_SET_VDO_RATIO_16_9_FULL,
     CAM_STATUS_SET_VDO_RATIO_RETURN,
     CAM_STATUS_END,
     CAM_STATUS_REPOWER,

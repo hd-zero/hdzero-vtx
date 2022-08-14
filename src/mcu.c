@@ -100,6 +100,10 @@ void main(void)
     debugf("\r\n========================================================");
     debugf("\r\n     >>>             Divimath DM568X            <<<     ");
     debugf("\r\n========================================================");
+    debugf("\r\nversion:%02X",VERSION);
+    #ifdef BETA
+    debugf(".%02X",BETA);
+    #endif
     debugf("\r\n");
     #endif
 
