@@ -946,10 +946,10 @@ uint8_t parse_displayport(uint8_t len)
     uint8_t row = 0, col = 0;
     uint8_t state_osd = MSP_OSD_SUBCMD;
     uint8_t ptr = 0;
-    uint8_t ret = 0;
+    uint8_t i = 0;
     uint8_t page_extend = 0;
     
-    while(ptr != 64){
+    while(i != 64){
         switch(state_osd){
             case MSP_OSD_SUBCMD:
                 if(msp_rx_buf[0] == SUBCMD_HEARTBEAT)
@@ -1018,8 +1018,9 @@ uint8_t parse_displayport(uint8_t len)
                 return 0;
             default: break;
         }//switch
+        i++;
     }//while
-    return ret;
+    return 0;
 }
 
 void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throttle)
