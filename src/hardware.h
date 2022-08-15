@@ -60,19 +60,10 @@ typedef enum{
 #define EEP_ADDR_DCOC_QH        0xC3
 #define EEP_ADDR_DCOC_QL        0xC4
 
-#define VTX_B_ID    0x4C
-#define VTX_M_ID    0x50
-#define VTX_S_ID    0x54
-#define VTX_R_ID    0x58
-#define VTX_WL_ID   0x59
-#define VTX_L_ID    0x5C
-
 #define FREQ_MAX        7
 #define FREQ_MAX_EXT    9
 #if defined VTX_L
     #define POWER_MAX   3
-#elif defined VTX_M
-    #define POWER_MAX   2
 #else
     #define POWER_MAX   1
 #endif

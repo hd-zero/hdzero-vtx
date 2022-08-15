@@ -171,8 +171,6 @@ void SA_Response(uint8_t cmd)
 
 void SA_Update(uint8_t cmd)
 {
-    
-    
     #ifdef DBG_SMARTAUDIO
     if(SUART_ready()){
         _outchar('^');
