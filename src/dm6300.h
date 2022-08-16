@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#ifdef VTX_L
+#ifdef HDZERO_FREESTYLE
 	#define PIT_POWER 0x18  //2dbm
 #else
 	#define PIT_POWER 0x26

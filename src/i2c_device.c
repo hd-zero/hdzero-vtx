@@ -54,7 +54,7 @@ void Init_MAX7315(uint32_t val)
 
 /////////////////////////////////////////////////////////////////
 // TC3587
-#ifdef VTX_L
+#ifdef HDZERO_FREESTYLE
 void LED_TC3587_Init()
 {
     I2C_Write16(ADDR_TC3587, 0x0002, 0x0001);

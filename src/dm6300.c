@@ -21,7 +21,7 @@ uint32_t init6300_fnum[FREQ_MAX_EXT+1] = {0};
 uint32_t dcoc_ih = 0x075F0000;
 uint32_t dcoc_qh = 0x075F0000;
 
-#ifdef VTX_L
+#ifdef HDZERO_FREESTYLE
 uint8_t table_power[FREQ_MAX_EXT+1][POWER_MAX+1] = {
     {0x70, 0x68, 0x5c, 0x60},         
     {0x70, 0x68, 0x5c, 0x60},         
@@ -144,7 +144,7 @@ void DM6300_SetChannel(uint8_t ch)
 
 void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset)
 {
-	#ifdef VTX_L
+	#ifdef HDZERO_FREESTYLE
     uint16_t a_tab[4] = {0x204, 0x11F, 0x21F, 0x31F};  
     #else
     uint16_t a_tab[2] = {0x21F, 0x41F};
