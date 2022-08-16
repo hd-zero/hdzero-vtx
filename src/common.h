@@ -11,10 +11,39 @@
 #define VERSION 0x41
 #define BETA 0x04
 
-//#define VTX_L
+//#define VTX_W
 //#define VTX_WL
-//#define VTX_S
-//#define VTX_R
+//#define VTX_R_V1
+//#define VTX_R_V2
+//#define VTX_L
+
+#if defined VTX_W
+#define VTX_ID          0x54
+#elif defined VTX_WL
+#define VTX_ID          0x55
+#elif defined VTX_R_V1
+#define VTX_ID          0x56
+#elif defined VTX_R_V2
+#define VTX_ID          0x57
+#elif defined VTX_L
+#define VTX_ID          0x58
+#else
+#define VTX_ID          0x00
+#endif
+
+#if defined VTX_W
+#define VTX_NAME    "         WHOOP"
+#elif defined VTX_WL
+#define VTX_NAME    "    WHOOP LITE"
+#elif defined VTX_R_V1
+#define VTX_NAME    "       RACE V1"
+#elif defined VTX_R_V2
+#define VTX_NAME    "       RACE V2"
+#elif defined VTX_L
+#define VTX_NAME    "     FREESTYLE"
+#else
+#define VTX_NAME    "              "
+#endif
 
 // system
 #define assert(c)
@@ -47,7 +76,7 @@
 #define USE_MSP
 #endif
 
-#ifndef VTX_S
+#ifndef VTX_W
 #define USE_SMARTAUDIO
 #endif
 

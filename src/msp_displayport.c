@@ -423,19 +423,7 @@ uint8_t get_tx_data_5680() //prepare data to VRX
 
     tx_buf[12] = VERSION;
     
-    #if defined VTX_B
-    tx_buf[13] = VTX_B_ID; //reversed
-    #elif defined VTX_M
-    tx_buf[13] = VTX_M_ID;
-    #elif defined VTX_S
-    tx_buf[13] = VTX_S_ID;
-    #elif defined VTX_R
-    tx_buf[13] = VTX_R_ID;
-    #elif defined VTX_WL
-    tx_buf[13] = VTX_WL_ID;
-    #elif defined VTX_L
-    tx_buf[13] = VTX_L_ID;
-    #endif
+    tx_buf[13] = VTX_ID;
     
     tx_buf[14] = fc_lock & 0x03;
     
@@ -1443,19 +1431,8 @@ void vtx_menu_init()
     }
 
     //draw variant
-    #if defined VTX_B
-        strcpy(osd_buf[10]+osd_menu_offset+10,"            BF");
-    #elif defined VTX_M
-        strcpy(osd_buf[10]+osd_menu_offset+10,"FREESTYLE LITE");
-    #elif defined VTX_S
-        strcpy(osd_buf[10]+osd_menu_offset+10,"         WHOOP");
-    #elif defined VTX_R
-        strcpy(osd_buf[10]+osd_menu_offset+10,"          RACE");
-    #elif defined VTX_WL
-        strcpy(osd_buf[10]+osd_menu_offset+10,"    WHOOP LITE");
-    #elif defined VTX_L
-        strcpy(osd_buf[10]+osd_menu_offset+10,"     FREESTYLE");
-    #endif
+    strcpy(osd_buf[10]+osd_menu_offset+10, VTX_NAME);
+
     //draw version
     osd_buf[11][osd_menu_offset+22] = (uint8_t)((VERSION >> 4) & 0x0f) + '0';
     osd_buf[11][osd_menu_offset+23] = (uint8_t)(VERSION & 0x0f) + '0';
@@ -1518,11 +1495,7 @@ void update_vtx_menu_param(uint8_t vtx_state)
             strcpy(osd_buf[3]+osd_menu_offset+20,"  200");
             break;
         case 2:
-            #ifdef VTX_B
-            strcpy(osd_buf[3]+osd_menu_offset+20,"  450");
-            #else
             strcpy(osd_buf[3]+osd_menu_offset+20,"  500");
-            #endif
             break;
         case 3:
             strcpy(osd_buf[3]+osd_menu_offset+20,"  MAX");
@@ -1754,9 +1727,6 @@ void InitVtxTable() {
         power_table[2] = bf_vtx_power_table[2];
         power_table[3] = bf_vtx_power_table[3];
     }
-#elif defined VTX_M
-    power_table[2] = bf_vtx_power_500mW;
-    power_table[3] = bf_vtx_power_table[3];
 #else
     power_table[2] = bf_vtx_power_table[2];
     power_table[3] = bf_vtx_power_table[3];
