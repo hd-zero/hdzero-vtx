@@ -459,6 +459,9 @@ void TempDetect()
     static uint8_t init = 1;
     int16_t temp_new;
     
+    if(!dm6300_init_done)
+        return;
+
     if(temp_tflg){
         temp_tflg = 0;
         

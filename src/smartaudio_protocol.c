@@ -206,6 +206,7 @@ void SA_Update(uint8_t cmd)
                     debugf("\n\rEnter 0mW");
                     #endif
                     WriteReg(0, 0x8F, 0x10); // reset RF_chip
+                    dm6300_init_done = 0;
                     temp_err = 1;
                 }
             }else if(SA_dbm_last == 0) { // Exit 0mW
@@ -351,6 +352,7 @@ void SA_Update(uint8_t cmd)
                     debugf("\n\rSA:Enter 0mW");
                     #endif
                     WriteReg(0, 0x8F, 0x10); // reset RF_chip
+                    dm6300_init_done = 0;
                     temp_err = 1;
                 }else{
                     DM6300_SetPower(POWER_MAX+1, RF_FREQ, 0);
@@ -367,6 +369,7 @@ void SA_Update(uint8_t cmd)
                     debugf("\n\rSA:Enter 0mW");
                     #endif
                     WriteReg(0, 0x8F, 0x10); // reset RF_chip
+                    dm6300_init_done = 0;
                     temp_err = 1;
                 }else{
             		#ifndef VIDEO_PAT
