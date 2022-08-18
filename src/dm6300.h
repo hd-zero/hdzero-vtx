@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#ifdef VTX_L
+#ifdef HDZERO_FREESTYLE
 	#define PIT_POWER 0x18  //2dbm
 #else
 	#define PIT_POWER 0x26
@@ -33,4 +33,5 @@ extern uint8_t table_power[FREQ_MAX_EXT+1][POWER_MAX+1];
 
 extern uint32_t dcoc_ih,dcoc_qh;
 
+extern uint8_t dm6300_init_done;
 #endif /* __DM6300_H_ */

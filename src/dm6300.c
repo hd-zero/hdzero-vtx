@@ -21,7 +21,8 @@ uint32_t init6300_fnum[FREQ_MAX_EXT+1] = {0};
 uint32_t dcoc_ih = 0x075F0000;
 uint32_t dcoc_qh = 0x075F0000;
 
-#ifdef VTX_L
+uint8_t dm6300_init_done = 0;
+#ifdef HDZERO_FREESTYLE
 uint8_t table_power[FREQ_MAX_EXT+1][POWER_MAX+1] = {
     {0x70, 0x68, 0x5c, 0x60},         
     {0x70, 0x68, 0x5c, 0x60},         
@@ -144,7 +145,7 @@ void DM6300_SetChannel(uint8_t ch)
 
 void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset)
 {
-	#ifdef VTX_L
+	#ifdef HDZERO_FREESTYLE
     uint16_t a_tab[4] = {0x204, 0x11F, 0x21F, 0x31F};  
     #else
     uint16_t a_tab[2] = {0x21F, 0x41F};
@@ -233,18 +234,21 @@ void DM6300_InitAUXADC()
     SPI_Write(0x6, 0xFF0, 0x00000018);
     SPI_Write(0x3, 0x2A0, 0xC05B55FE);
     SPI_Write(0x6, 0xFF0, 0x00000019);
+    WAIT(1);
     SPI_Read (0x3, 0x17C, &dat);
     dat1 = ((int32_t)dat) >> 20;
     
     SPI_Write(0x6, 0xFF0, 0x00000018);
     SPI_Write(0x3, 0x2A0, 0x305B55FE);
     SPI_Write(0x6, 0xFF0, 0x00000019);
+    WAIT(1);
     SPI_Read (0x3, 0x17C, &dat);
     dat2 = ((int32_t)dat) >> 20;
     
     SPI_Write(0x6, 0xFF0, 0x00000018);
     SPI_Write(0x3, 0x2A0, 0xA05B51FE);
     SPI_Write(0x6, 0xFF0, 0x00000019);
+    WAIT(1);
     SPI_Read (0x3, 0x17C, &dat);
     dat3 = ((int32_t)dat) >> 20;
     
@@ -259,6 +263,7 @@ void DM6300_AUXADC_Calib()
     WriteReg(0, 0x8F, 0x01);
     DM6300_InitAUXADC();
     WriteReg(0, 0x8F, 0x11);
+    dm6300_init_done = 1;
 }
 /*void DM6300_CalibRF()
 {

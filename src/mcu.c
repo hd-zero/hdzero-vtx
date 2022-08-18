@@ -16,7 +16,6 @@
 #include "lifetime.h"
 
 uint8_t UNUSED = 0;
-uint8_t rf_init_done = 0;
 
 void timer_task();
 void RF_Delay_Init();
@@ -193,7 +192,7 @@ void RF_Delay_Init()
     }
     
     //init_rf
-    if(rf_init_done == 0) {
+    if(!dm6300_init_done) {
 
         if(seconds < WAIT_SA_CONFIG)
             return;
@@ -246,6 +245,5 @@ void RF_Delay_Init()
             
             DM6300_AUXADC_Calib();
         }
-        rf_init_done = 1;
     }
 }

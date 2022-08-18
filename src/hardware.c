@@ -18,23 +18,22 @@
 uint8_t KEYBOARD_ON = 0; //avoid conflict between keyboard and cam_control
 uint8_t EE_VALID = 0;
 
-#ifdef VTX_L
+#ifdef HDZERO_FREESTYLE
 uint8_t powerLock = 1;
 #endif
 /**********************************
 //
 //  POWER MODE
 //
-//    VTX_L
+//    HDZERO_FREESTYLE
 //    0------------25mW   (14dBm)
 //    1------------200mW  (23dBm)
 //    2------------500mW  (27dBm)
 //    3------------1000mW (30dBm)
 
-//    VTX_R, VTX_W
+//    HDZERO_RACE, HDZERO_WHOOP
 //    0------------25mW (14dBm)
 //    1------------200mW(23dBm)
-//    2------------500mW(27dBm)
 **********************************/
 uint8_t RF_POWER = 0;
 uint8_t RF_FREQ = 0;
@@ -296,7 +295,7 @@ void GetVtxParameter() {
         #endif
         #endif
 
-        #ifdef VTX_L
+        #ifdef HDZERO_FREESTYLE
         //powerLock
         powerLock = 0x01 & I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_POWER_LOCK);
         #endif
@@ -358,7 +357,7 @@ void Init_6300RF(uint8_t freq, uint8_t pwr)
     DM6300_Init(freq, RF_BW);
     DM6300_SetChannel(freq);
 #ifndef VIDEO_PAT
-#ifdef VTX_L
+#ifdef HDZERO_FREESTYLE
     if((pwr == 3) && (!g_IS_ARMED))
         pwr_lmt_done = 0;
     else 
@@ -396,7 +395,7 @@ void Init_HW()
     Init_6300RF(RF_FREQ, RF_POWER);
     DM6300_AUXADC_Calib();
 #else
-    #ifdef VTX_L
+    #ifdef HDZERO_FREESTYLE
         LED_TC3587_Init();
     #endif
 //--------- eeprom --------------------
@@ -460,6 +459,9 @@ void TempDetect()
     static uint8_t init = 1;
     int16_t temp_new;
     
+    if(!dm6300_init_done)
+        return;
+
     if(temp_tflg){
         temp_tflg = 0;
         
@@ -518,7 +520,7 @@ void PowerAutoSwitch()
     else if(temp < 80) pwr_offset = 20;
     else               pwr_offset = 20;
 
-    #ifdef VTX_WL
+    #ifdef HDZERO_WHOOP_LITE
     pwr_offset >>= 1;
     #endif
 
@@ -659,7 +661,7 @@ void HeatProtect()
                             debugf("\r\nHeat Protect.");
                             #endif
                             heat_protect = 1;
-                            #ifdef VTX_L
+                            #ifdef HDZERO_FREESTYLE
                             WriteReg(0, 0x8F, 0x00);
                             msp_set_vtx_config(POWER_MAX+1, 0);
                             #else
@@ -712,7 +714,7 @@ void PwrLMT()
                     pwr_tflg = 0;
                     pwr_lmt_sec++;
                     
-                    #ifdef VTX_L
+                    #ifdef HDZERO_FREESTYLE
                     //test: power plus every sec 
                     if(pwr_lmt_sec >= 3){
                         if(RF_POWER == 3){
@@ -788,7 +790,7 @@ void PwrLMT()
                         pwr_tflg = 0;
                         pwr_lmt_sec++;
                         
-                        #ifdef VTX_L
+                        #ifdef HDZERO_FREESTYLE
                         //test: power plus every sec 
                         if(pwr_lmt_sec >= 3){
                             if(RF_POWER == 3){
@@ -808,7 +810,7 @@ void PwrLMT()
                                 SPI_Write(0x3, 0x330, 0x31F); // analog offset 1W
                             }
                         }
-                        #endif//VTX_L
+                        #endif//HDZERO_FREESTYLE
                             
                         #ifdef _DEBUG_MODE
                         debugf("\r\npwr_lmt_sec %x", (uint16_t)pwr_lmt_sec);
@@ -961,7 +963,7 @@ void Imp_RF_Param()
     if(LP_MODE && !g_IS_ARMED)
         return;
 #ifndef VIDEO_PAT
-#ifdef VTX_L
+#ifdef HDZERO_FREESTYLE
     if(RF_POWER == 3 && !g_IS_ARMED)
         pwr_lmt_done = 0;
     else
@@ -1042,7 +1044,7 @@ void Button1_SP()
             
             if(RF_POWER >= POWER_MAX) RF_POWER = 0;
             else RF_POWER++;
-            #ifdef VTX_L
+            #ifdef HDZERO_FREESTYLE
             if(powerLock)
                 RF_POWER &= 0x01;
             #endif
@@ -1055,7 +1057,7 @@ void Button1_SP()
                 cur_pwr = 0;
             }else{
             #ifndef VIDEO_PAT
-            #ifdef VTX_L
+            #ifdef HDZERO_FREESTYLE
                 if(RF_POWER == 3 && !g_IS_ARMED)
                     pwr_lmt_done = 0;
                 else

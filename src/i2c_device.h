@@ -14,7 +14,7 @@
 
 
 void Init_MAX7315(uint32_t val);
-#ifdef VTX_L
+#ifdef HDZERO_FREESTYLE
 void LED_TC3587_Init();
 #endif
 void Init_TC3587();

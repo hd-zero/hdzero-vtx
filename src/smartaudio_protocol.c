@@ -99,7 +99,7 @@ void SA_Response(uint8_t cmd)
         tbuf[7] = freq_new_h;           // cur_freq_h
         tbuf[8] = freq_new_l;           // cur_freq_l
         tbuf[9] = SA_dbm;               // power dbm
-        #ifdef VTX_L
+        #ifdef HDZERO_FREESTYLE
         if(powerLock){
             tbuf[10] = 1 + 1;       // amount of power level
             for(i=0;i<=1;i++)
@@ -206,6 +206,7 @@ void SA_Update(uint8_t cmd)
                     debugf("\n\rEnter 0mW");
                     #endif
                     WriteReg(0, 0x8F, 0x10); // reset RF_chip
+                    dm6300_init_done = 0;
                     temp_err = 1;
                 }
             }else if(SA_dbm_last == 0) { // Exit 0mW
@@ -227,7 +228,7 @@ void SA_Update(uint8_t cmd)
                 }
             }else{
                 cur_pwr = dbm_to_pwr(SA_dbm);
-                #ifdef VTX_L
+                #ifdef HDZERO_FREESTYLE
                 if(powerLock)
                     cur_pwr &= 0x01;
                 #endif
@@ -236,7 +237,7 @@ void SA_Update(uint8_t cmd)
                     pwr_init = cur_pwr;
                 else{
             		#ifndef VIDEO_PAT
-            		#ifdef VTX_L
+            		#ifdef HDZERO_FREESTYLE
                     if((RF_POWER == 3) && (!g_IS_ARMED))
                         pwr_lmt_done = 0;
                     else
@@ -351,6 +352,7 @@ void SA_Update(uint8_t cmd)
                     debugf("\n\rSA:Enter 0mW");
                     #endif
                     WriteReg(0, 0x8F, 0x10); // reset RF_chip
+                    dm6300_init_done = 0;
                     temp_err = 1;
                 }else{
                     DM6300_SetPower(POWER_MAX+1, RF_FREQ, 0);
@@ -367,10 +369,11 @@ void SA_Update(uint8_t cmd)
                     debugf("\n\rSA:Enter 0mW");
                     #endif
                     WriteReg(0, 0x8F, 0x10); // reset RF_chip
+                    dm6300_init_done = 0;
                     temp_err = 1;
                 }else{
             		#ifndef VIDEO_PAT
-            		#ifdef VTX_L
+            		#ifdef HDZERO_FREESTYLE
                     if((RF_POWER == 3) && (!g_IS_ARMED)){
                         pwr_lmt_done = 0;
                         cur_pwr = 3;

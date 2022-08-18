@@ -11,36 +11,36 @@
 #define VERSION 0x41
 #define BETA 0x04
 
-//#define VTX_W
-//#define VTX_WL
-//#define VTX_R_V1
-//#define VTX_R_V2
-//#define VTX_L
+//#define HDZERO_WHOOP
+//#define HDZERO_WHOOP_LITE
+//#define HDZERO_RACE_V1
+//#define HDZERO_RACE_V2
+//#define HDZERO_FREESTYLE
 
-#if defined VTX_W
+#if defined HDZERO_WHOOP
 #define VTX_ID          0x54
-#elif defined VTX_WL
+#elif defined HDZERO_WHOOP_LITE
 #define VTX_ID          0x55
-#elif defined VTX_R_V1
+#elif defined HDZERO_RACE_V1
 #define VTX_ID          0x56
-#elif defined VTX_R_V2
+#elif defined HDZERO_RACE_V2
 #define VTX_ID          0x57
-#elif defined VTX_L
+#elif defined HDZERO_FREESTYLE
 #define VTX_ID          0x58
 #else
 #define VTX_ID          0x00
 #endif
 
-#if defined VTX_W
-#define VTX_NAME    "         WHOOP"
-#elif defined VTX_WL
-#define VTX_NAME    "    WHOOP LITE"
-#elif defined VTX_R_V1
-#define VTX_NAME    "       RACE V1"
-#elif defined VTX_R_V2
-#define VTX_NAME    "       RACE V2"
-#elif defined VTX_L
-#define VTX_NAME    "     FREESTYLE"
+#if defined HDZERO_WHOOP
+#define VTX_NAME    "     HDZ WHOOP"
+#elif defined HDZERO_WHOOP_LITE
+#define VTX_NAME    "HDZ WHOOP LITE"
+#elif defined HDZERO_RACE_V1
+#define VTX_NAME    "   HDZ RACE V1"
+#elif defined HDZERO_RACE_V2
+#define VTX_NAME    "   HDZ RACE V2"
+#elif defined HDZERO_FREESTYLE
+#define VTX_NAME    " HDZ FREESTYLE"
 #else
 #define VTX_NAME    "              "
 #endif
@@ -76,11 +76,11 @@
 #define USE_MSP
 #endif
 
-#ifndef VTX_W
+#ifndef HDZERO_WHOOP
 #define USE_SMARTAUDIO
 #endif
 
-#if defined(VTX_L) || defined(VTX_WL)
+#if defined(HDZERO_FREESTYLE) || defined(HDZERO_WHOOP_LITE)
 #define USE_TEMPERATURE_SENSOR
 #endif
 
@@ -108,7 +108,7 @@
 #define SDA             P0_1
 #define CAM_SCL         P0_0
 #define CAM_SDA         P0_1
-#ifdef VTX_L
+#ifdef HDZERO_FREESTYLE
 #define PA_EN           P0_2
 #else
 #define LED_1           P0_2

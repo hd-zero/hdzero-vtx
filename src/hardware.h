@@ -62,13 +62,13 @@ typedef enum{
 
 #define FREQ_MAX        7
 #define FREQ_MAX_EXT    9
-#if defined VTX_L
+#if defined HDZERO_FREESTYLE
     #define POWER_MAX   3
 #else
     #define POWER_MAX   1
 #endif
 
-#ifdef VTX_L
+#ifdef HDZERO_FREESTYLE
     #define LED_BLUE_ON     I2C_Write16(ADDR_TC3587, 0x0014, 0x0000)
     #define LED_BLUE_OFF    I2C_Write16(ADDR_TC3587, 0x0014, 0x8000)
 #else
@@ -94,7 +94,7 @@ void Set_720P60(uint8_t page);
 void Set_720P30(uint8_t page, uint8_t is_43);
 
 void Flicker_LED(uint8_t n);
-#ifdef VTX_L
+#ifdef HDZERO_FREESTYLE
 extern uint8_t powerLock;
 #endif
 extern uint8_t RF_FREQ;
