@@ -6,3 +6,4 @@ NamespaceIndentation: All
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 BreakConstructorInitializers: BeforeComma
 IndentPPDirectives: None
+AlignConsecutiveMacros: AcrossComments
