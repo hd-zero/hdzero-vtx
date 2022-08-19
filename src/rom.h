@@ -1,6 +1,6 @@
-#ifndef __ROM_H__
-#define __ROM_H__
+#ifndef __ROM_H_
+#define __ROM_H_
 
 void CalibProc();
 
-#endif
+#endif /* __ROM_H_ */

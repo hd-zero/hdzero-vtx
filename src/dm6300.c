@@ -1,11 +1,12 @@
+#include "dm6300.h"
+
 #include "common.h"
-#include "hardware.h"
-#include "print.h"
 #include "global.h"
-#include "monitor.h"
+#include "hardware.h"
 #include "i2c.h"
 #include "i2c_device.h"
-#include "dm6300.h"
+#include "monitor.h"
+#include "print.h"
 #include "spi.h"
 
 typedef struct {
@@ -16,62 +17,60 @@ typedef struct {
 
 int16_t auxadc_offset = 0;
 uint32_t init6300_fcnt = 0;
-uint32_t init6300_fnum[FREQ_MAX_EXT+1] = {0};
+uint32_t init6300_fnum[FREQ_MAX_EXT + 1] = {0};
 
 uint32_t dcoc_ih = 0x075F0000;
 uint32_t dcoc_qh = 0x075F0000;
 
 uint8_t dm6300_init_done = 0;
 #ifdef HDZERO_FREESTYLE
-uint8_t table_power[FREQ_MAX_EXT+1][POWER_MAX+1] = {
-    {0x70, 0x68, 0x5c, 0x60},         
-    {0x70, 0x68, 0x5c, 0x60},         
+uint8_t table_power[FREQ_MAX_EXT + 1][POWER_MAX + 1] = {
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
     {0x70, 0x68, 0x60, 0x60},
-    {0x72, 0x6d, 0x60, 0x60},         
-    {0x74, 0x70, 0x62, 0x5c},         
-    {0x78, 0x74, 0x64, 0x5b},         
+    {0x72, 0x6d, 0x60, 0x60},
+    {0x74, 0x70, 0x62, 0x5c},
+    {0x78, 0x74, 0x64, 0x5b},
     {0x7a, 0x77, 0x64, 0x5b},
     {0x7a, 0x77, 0x64, 0x5b},
-    {0x72, 0x6d, 0x60, 0x60},  //ch9-5760        
-    {0x74, 0x70, 0x62, 0x5c}}; //ch10-5800
+    {0x72, 0x6d, 0x60, 0x60},  // ch9-5760
+    {0x74, 0x70, 0x62, 0x5c}}; // ch10-5800
 #else
-uint8_t table_power[FREQ_MAX_EXT+1][POWER_MAX+1] = {
-    {0x79, 0x83},         
-    {0x77, 0x81},         
+uint8_t table_power[FREQ_MAX_EXT + 1][POWER_MAX + 1] = {
+    {0x79, 0x83},
+    {0x77, 0x81},
     {0x75, 0x80},
-    {0x73, 0x7E},         
-    {0x72, 0x7C},         
-    {0x70, 0x7B},         
+    {0x73, 0x7E},
+    {0x72, 0x7C},
+    {0x70, 0x7B},
     {0x72, 0x7E},
     {0x71, 0x7C},
-    {0x73, 0x7E},  //ch9-5760        
-    {0x72, 0x7C}}; //ch10-5800
+    {0x73, 0x7E},  // ch9-5760
+    {0x72, 0x7C}}; // ch10-5800
 #endif
 
 #ifndef Raceband
-//ch1-8,5660M/5695M/5735M/5770M/5805M/5839M/5878M/5914M 
-const uint32_t tab[3][FREQ_MAX+1] = {
-    {  0x3746,   0x379D,   0x3801,   0x3859,   0x38B0,   0x3905,   0x3967,   0x39C1},
-    {    0x93,     0x94,     0x95,     0x96,     0x97,     0x98,     0x99,     0x9A},
-    {0xCAAAAB, 0x9D5555, 0xB2AAAB, 0x855555, 0x580000, 0x1D5555, 0x255555,  0x55555}
-};
+// ch1-8,5660M/5695M/5735M/5770M/5805M/5839M/5878M/5914M
+const uint32_t tab[3][FREQ_MAX + 1] = {
+    {0x3746, 0x379D, 0x3801, 0x3859, 0x38B0, 0x3905, 0x3967, 0x39C1},
+    {0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9A},
+    {0xCAAAAB, 0x9D5555, 0xB2AAAB, 0x855555, 0x580000, 0x1D5555, 0x255555, 0x55555}};
 
 //                   5658,  5695,  5732,  5769,  5806,  5843,  5880,  5917
-//uint32_t freq[FREQ_MAX+1] = {113160,113900,114640,115380,116120,116860,117600,118340};
+// uint32_t freq[FREQ_MAX+1] = {113160,113900,114640,115380,116120,116860,117600,118340};
 //                   5658,  5695,  5732,  5769,  5806,  5843,  5880,  5917,  5760,  5800
-const uint32_t freq_tab[FREQ_MAX_EXT+1] = {113160,113900,114640,115380,116120,116860,117600,118340,115200,116000};
+const uint32_t freq_tab[FREQ_MAX_EXT + 1] = {113160, 113900, 114640, 115380, 116120, 116860, 117600, 118340, 115200, 116000};
 #else
-//Raceband1-8,5658M/5695M/5732M/5769M/5806M/5843M/5880M/5917M/5760M/5800M    
-const uint32_t tab[3][FREQ_MAX_EXT+1] = {
-    {  0x3867,   0x379D,   0x3924,   0x3982,   0x39E1,   0x3A3F,   0x3A9E,   0x3AFC,   0x3840,   0x38A4},
-    {    0x93,     0x94,     0x95,     0x96,     0x97,     0x98,     0x99,     0x9a,     0x96,     0x97},
-    {0xB00000, 0x9D5555, 0x8AAAAB, 0x780000, 0x655555, 0x52AAAB, 0x400000, 0x2D5555, 0x000000, 0x155555}
-};
+// Raceband1-8,5658M/5695M/5732M/5769M/5806M/5843M/5880M/5917M/5760M/5800M
+const uint32_t tab[3][FREQ_MAX_EXT + 1] = {
+    {0x3867, 0x379D, 0x3924, 0x3982, 0x39E1, 0x3A3F, 0x3A9E, 0x3AFC, 0x3840, 0x38A4},
+    {0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x96, 0x97},
+    {0xB00000, 0x9D5555, 0x8AAAAB, 0x780000, 0x655555, 0x52AAAB, 0x400000, 0x2D5555, 0x000000, 0x155555}};
 
 //                            5660,  5695,  5735,  5770,  5805,  5839,  5878,  5914,  5760,  5800
-const uint32_t freq_tab[FREQ_MAX_EXT+1] = {113200,113900,114700,115400,116100,116780,117560,118280,115200,116000};
-#endif        
-    
+const uint32_t freq_tab[FREQ_MAX_EXT + 1] = {113200, 113900, 114700, 115400, 116100, 116780, 117560, 118280, 115200, 116000};
+#endif
+
 void DM6300_write_reg_map(const dm6300_reg_value_t *reg_map, uint8_t size) {
     uint8_t i = 0;
     for (i = 0; i < size; i++) {
@@ -99,167 +98,162 @@ dm6300_reg_value_t dm6300_set_channel_regs[] = {
     {0x3, 0x028, 0x00008000}, // [12] // 0x00008000 + (init6300_fcnt & 0xFF)
     {0x3, 0x020, 0x00000000}, // [13] // init6300_fnum[ch]
     {0x3, 0x01C, 0x00000002},
-    {0x3, 0x018, 0x00000001}, //WAIT(1},
-    {0x3, 0x018, 0x00000000}, //WAIT(1},
+    {0x3, 0x018, 0x00000001}, // WAIT(1},
+    {0x3, 0x018, 0x00000000}, // WAIT(1},
     {0x3, 0x028, 0x00000000}, // [17] // 0x00008000 + (init6300_fcnt & 0xFF)
     {0x3, 0x020, 0x00000000}, // [18] // init6300_fnum[ch]},
     {0x3, 0x01C, 0x00000003},
-    {0x3, 0x018, 0x00000001}, //WAIT(1},
-    {0x3, 0x018, 0x00000000}, //WAIT(1},
+    {0x3, 0x018, 0x00000001}, // WAIT(1},
+    {0x3, 0x018, 0x00000000}, // WAIT(1},
     {0x3, 0x050, 0x00FFCFB3},
     {0x3, 0x004, 0x00000000}, // [23] // tab[1][ch]
     {0x3, 0x008, 0x00000000}, // [24] // tab[2][ch]
-    {0x3, 0x000, 0x00000000}, //WAIT(1},
+    {0x3, 0x000, 0x00000000}, // WAIT(1},
     {0x3, 0x000, 0x00000003},
     {0x3, 0x050, 0x000333B3},
     {0x3, 0x040, 0x07070002},
     {0x3, 0x030, 0x00000010},
 };
 
-void DM6300_SetChannel(uint8_t ch)
-{
-    #ifdef _DEBUG_MODE
+void DM6300_SetChannel(uint8_t ch) {
+#ifdef _DEBUG_MODE
     debugf("\r\nset ch:%x", (uint16_t)ch);
+#endif
+
+    if (ch > 9)
+        ch = 0;
+    /*#ifndef _RF_CALIB
+    #ifndef _DEBUG_MODE
+        else if(ch == 5) ch = 7;
+        else if(ch == 6) ch = 5;
+        else if(ch == 7) ch = 6;
     #endif
-    
-    if(ch > 9) ch = 0;
-/*#ifndef _RF_CALIB
-#ifndef _DEBUG_MODE
-    else if(ch == 5) ch = 7;
-    else if(ch == 6) ch = 5;
-    else if(ch == 7) ch = 6;
-#endif
-#endif
-*/   
+    #endif
+    */
     dm6300_set_channel_regs[12].dat = 0x00008000 + (init6300_fcnt & 0xFF);
     dm6300_set_channel_regs[13].dat = init6300_fnum[ch];
 
     dm6300_set_channel_regs[17].dat = 0x00008000 + (init6300_fcnt & 0xFF);
     dm6300_set_channel_regs[18].dat = init6300_fnum[ch];
-    
+
     dm6300_set_channel_regs[23].dat = tab[1][ch];
     dm6300_set_channel_regs[24].dat = tab[2][ch];
-    
+
     WRITE_REG_MAP(dm6300_set_channel_regs);
 }
 
-void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset)
-{
-	#ifdef HDZERO_FREESTYLE
-    uint16_t a_tab[4] = {0x204, 0x11F, 0x21F, 0x31F};  
-    #else
+void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset) {
+#ifdef HDZERO_FREESTYLE
+    uint16_t a_tab[4] = {0x204, 0x11F, 0x21F, 0x31F};
+#else
     uint16_t a_tab[2] = {0x21F, 0x41F};
-    #endif
+#endif
     int16_t p;
-    #ifdef _DEBUG_MODE
+#ifdef _DEBUG_MODE
     debugf("\r\nDM6300 set power:%x", (uint16_t)pwr);
-    #endif
-    if(freq > 9) freq = 0;
+#endif
+    if (freq > 9)
+        freq = 0;
     SPI_Write(0x6, 0xFF0, 0x00000018);
-    
-    if(pwr == POWER_MAX+1){
+
+    if (pwr == POWER_MAX + 1) {
         SPI_Write(0x3, 0x330, 0x21F);
         SPI_Write(0x3, 0xD1C, PIT_POWER);
-    }
-    else {
+    } else {
         SPI_Write(0x3, 0x330, a_tab[pwr]);
-        
+
 #ifndef _RF_CALIB
-        if(RF_POWER == 0 && pwr == 0){
+        if (RF_POWER == 0 && pwr == 0) {
             p = table_power[freq][pwr] + offset - 2;
-            
-            if(OFFSET_25MW<=10)
+
+            if (OFFSET_25MW <= 10)
                 p += OFFSET_25MW;
             else if (p < (OFFSET_25MW - 10))
                 p = 0;
             else
                 p = p + 10 - OFFSET_25MW;
-        }
-        else
+        } else
 #endif
             p = table_power[freq][pwr] + offset - 2;
-        
-        if(p > 255) p = 255;
-        else if(p < 0) p = 0;
+
+        if (p > 255)
+            p = 255;
+        else if (p < 0)
+            p = 0;
         SPI_Write(0x3, 0xD1C, (uint8_t)p);
     }
- 
-    #ifdef _DEBUG_MODE
+
+#ifdef _DEBUG_MODE
     debugf("\r\nDM6300 SetPower done.  %x, %x", (uint16_t)table_power[freq][pwr], offset);
-    #endif
+#endif
 }
 
-void DM6300_SetSingleTone(uint8_t enable)
-{
+void DM6300_SetSingleTone(uint8_t enable) {
     SPI_Write(0x6, 0xFF0, 0x00000019);
-    
-    if(enable){
+
+    if (enable) {
         SPI_Write(0x3, 0x08C, 0x18040000);
-        SPI_Write(0x3, 0x0C0,          2);
+        SPI_Write(0x3, 0x0C0, 2);
         SPI_Write(0x3, 0x0BC, 0x5ED097B4);
-    }
-    else{
-        SPI_Write(0x3, 0x08C,          0);
-        SPI_Write(0x3, 0x0C0,          0);
-        SPI_Write(0x3, 0x0BC,          0);
+    } else {
+        SPI_Write(0x3, 0x08C, 0);
+        SPI_Write(0x3, 0x0C0, 0);
+        SPI_Write(0x3, 0x0BC, 0);
     }
 }
 
-void DM6300_RFTest()
-{
+void DM6300_RFTest() {
     uint16_t i;
-    for(i = 0; i<100; i++)
+    for (i = 0; i < 100; i++)
         SPI_Write(0x6, 0xFF0, 0x00000018);
 }
 
-void DM6300_InitAUXADC()
-{
+void DM6300_InitAUXADC() {
     uint32_t dat;
-    int16_t dat1,dat2,dat3;
-    
+    int16_t dat1, dat2, dat3;
+
     SPI_Write(0x6, 0xFF0, 0x00000018);
-    SPI_Read (0x3, 0x254, &dat);
-    #ifdef _DEBUG_MODE
-    debugf("\r\nDM6300 0x254 = %x%x.\r\n",(uint16_t)((dat>>16)&0xFFFF), (uint16_t)(dat&0xFFFF));
-    #endif
+    SPI_Read(0x3, 0x254, &dat);
+#ifdef _DEBUG_MODE
+    debugf("\r\nDM6300 0x254 = %x%x.\r\n", (uint16_t)((dat >> 16) & 0xFFFF), (uint16_t)(dat & 0xFFFF));
+#endif
     dat |= 0x200;
-    #ifdef _DEBUG_MODE
-    debugf("\r\nDM6300 0x254 = %x%x.\r\n",(uint16_t)((dat>>16)&0xFFFF), (uint16_t)(dat&0xFFFF));
-    #endif
+#ifdef _DEBUG_MODE
+    debugf("\r\nDM6300 0x254 = %x%x.\r\n", (uint16_t)((dat >> 16) & 0xFFFF), (uint16_t)(dat & 0xFFFF));
+#endif
     SPI_Write(0x3, 0x254, dat);
-    
+
     SPI_Write(0x6, 0xFF0, 0x00000019);
     SPI_Write(0x3, 0x17C, 0x19);
-    
+
     SPI_Write(0x6, 0xFF0, 0x00000018);
     SPI_Write(0x3, 0x2A0, 0xC05B55FE);
     SPI_Write(0x6, 0xFF0, 0x00000019);
     WAIT(1);
-    SPI_Read (0x3, 0x17C, &dat);
+    SPI_Read(0x3, 0x17C, &dat);
     dat1 = ((int32_t)dat) >> 20;
-    
+
     SPI_Write(0x6, 0xFF0, 0x00000018);
     SPI_Write(0x3, 0x2A0, 0x305B55FE);
     SPI_Write(0x6, 0xFF0, 0x00000019);
     WAIT(1);
-    SPI_Read (0x3, 0x17C, &dat);
+    SPI_Read(0x3, 0x17C, &dat);
     dat2 = ((int32_t)dat) >> 20;
-    
+
     SPI_Write(0x6, 0xFF0, 0x00000018);
     SPI_Write(0x3, 0x2A0, 0xA05B51FE);
     SPI_Write(0x6, 0xFF0, 0x00000019);
     WAIT(1);
-    SPI_Read (0x3, 0x17C, &dat);
+    SPI_Read(0x3, 0x17C, &dat);
     dat3 = ((int32_t)dat) >> 20;
-    
-    auxadc_offset = dat3 - ((dat1+dat2) >> 1);
-    #ifdef _DEBUG_MODE
+
+    auxadc_offset = dat3 - ((dat1 + dat2) >> 1);
+#ifdef _DEBUG_MODE
     debugf("\r\nDM6300 AUXADC Calib done. data1=%x, data2=%x, data3=%x, offset=%x", dat1, dat2, dat3, auxadc_offset);
-    #endif
+#endif
 }
 
-void DM6300_AUXADC_Calib()
-{
+void DM6300_AUXADC_Calib() {
     WriteReg(0, 0x8F, 0x01);
     DM6300_InitAUXADC();
     WriteReg(0, 0x8F, 0x11);
@@ -270,12 +264,12 @@ void DM6300_AUXADC_Calib()
     uint8_t i, j;
     uint32_t dh, dl;
     int16_t vol;
-    
+
     DM6300_SetSingleTone(1);
-    
+
     SPI_Write(0x6, 0xFF0, 0x00000018);
     SPI_Write(0x3, 0x2A0, 0xA05B45FE);
-    
+
     for (i=0;i<8;i++){
         DM6300_SetChannel(i);
         DM6300_SetPower(0, i, 0);
@@ -288,30 +282,28 @@ void DM6300_AUXADC_Calib()
         }
         //WAIT(1000);
     }
-    
+
     DM6300_SetSingleTone(0);
 }*/
 
-int16_t DM6300_GetTemp()
-{
+int16_t DM6300_GetTemp() {
     static uint8_t init = 1;
     uint32_t dat;
     int16_t temp;
-    
-    if(init){
+
+    if (init) {
         init = 0;
         SPI_Write(0x6, 0xFF0, 0x00000018);
         SPI_Write(0x3, 0x2C0, 0x00000100);
         SPI_Write(0x3, 0x2A0, 0xA04005FE);
     }
-    
+
     SPI_Write(0x6, 0xFF0, 0x00000019);
-    SPI_Read (0x3, 0x17C, &dat);
+    SPI_Read(0x3, 0x17C, &dat);
     temp = (((int32_t)dat) >> 20) + auxadc_offset;
-    
+
     return temp;
 }
-
 
 const dm6300_reg_value_t dm6300_init1_regs[] = {
     {0x6, 0xFFC, 0x00000000},
@@ -447,8 +439,7 @@ dm6300_reg_value_t dm6300_init3_regs[] = {
     {0x3, 0x000, 0x00000003},
     {0x3, 0x050, 0x000333B3},
     {0x3, 0x040, 0x07070002},
-    {0x3, 0x030, 0x00000010}
-};
+    {0x3, 0x030, 0x00000010}};
 
 void DM6300_init3(uint8_t ch) {
     dm6300_init3_regs[12].dat = 0x00008000 + (init6300_fcnt & 0xFF);
@@ -456,7 +447,7 @@ void DM6300_init3(uint8_t ch) {
 
     dm6300_init3_regs[17].dat = 0x00008000 + (init6300_fcnt & 0xFF);
     dm6300_init3_regs[18].dat = init6300_fnum[ch]; // tab[0][ch]
-    
+
     dm6300_init3_regs[23].dat = tab[1][ch];
     dm6300_init3_regs[24].dat = tab[2][ch];
 
@@ -532,8 +523,7 @@ dm6300_reg_value_t dm6300_init6_regs[] = {
 
     {0x6, 0xFF0, 0x00000019},
 
-
-    {0x3, 0x080, 0x00000000},  // [10] 
+    {0x3, 0x080, 0x00000000}, // [10]
 
     // if (sel)
     //     SPI_Write(0x3, 0x080, 0x16318C0C);
@@ -714,346 +704,331 @@ const dm6300_reg_value_t dm6300_init_regs[] = {
     {0x3, 0x028, 0x00008008},
     {0x3, 0x01C, 0x0000FFF6},
     {0x3, 0x018, 0x00000001},
-    {0x3, 0x018, 0x00000000}
-};
+    {0x3, 0x018, 0x00000000}};
 
-void DM6300_Init(uint8_t ch, BWType_e bw)
-{
+void DM6300_Init(uint8_t ch, BWType_e bw) {
     int i;
     uint32_t dat;
-    
+
     // 01_INIT
     DM6300_init1();
 
-#ifdef USE_EFUSE    
+#ifdef USE_EFUSE
     DM6300_EFUSE1();
 #endif
-    
+
     WRITE_REG_MAP(dm6300_init_regs);
-    
+
     SPI_Read(0x3, 0x02C, &dat);
     init6300_fcnt = dat & 0x3FFF;
-    init6300_fcnt = 0x20000/init6300_fcnt-3;
-    for(i=0; i<FREQ_MAX_EXT+1; i++)
-        init6300_fnum[i] = freq_tab[i]*init6300_fcnt/384;
-   
+    init6300_fcnt = 0x20000 / init6300_fcnt - 3;
+    for (i = 0; i < FREQ_MAX_EXT + 1; i++)
+        init6300_fnum[i] = freq_tab[i] * init6300_fcnt / 384;
+
     // 02_BBPLL_3456
     DM6300_init2(bw);
-    
+
     // 03_RFPLL_CA1_TX_10G
     DM6300_init3(ch);
-    
+
     // 04_TX_CA1_RF
     DM6300_init4();
-    
+
     // 05_tx_cal_DAC_BBF
     DM6300_init5();
-    
+
     // 06_TX_CA1_RBDP_CMOS
     DM6300_init6(bw);
-    
+
     // 07_fir_128stap
     DM6300_init7(bw);
-    
-#ifdef USE_EFUSE    
+
+#ifdef USE_EFUSE
     DM6300_EFUSE2();
 #endif
     SPI_Write(0x6, 0xFF0, 0x00000018);
-    #ifdef _DEBUG_MODE
+#ifdef _DEBUG_MODE
     debugf("\r\nDM6300 init done.");
-    #endif
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // efuse rd amd imp
-#define  EFUSE_NUM       12   // 12 macro
-#define  EFUSE_SIZE      128  // 128*8=1024bit
+#define EFUSE_NUM  12  // 12 macro
+#define EFUSE_SIZE 128 // 128*8=1024bit
 
-typedef struct _MACRO0
-{
-    unsigned char  chip_name[8];
-    unsigned char  chip_ver[4];
-    unsigned char  chip_id[8];
-    unsigned char  chip_grade[4];
-    unsigned char  crc[4];
-    unsigned char  efuse_ver[4];
-    unsigned char  rsvd1[32];
+typedef struct _MACRO0 {
+    unsigned char chip_name[8];
+    unsigned char chip_ver[4];
+    unsigned char chip_id[8];
+    unsigned char chip_grade[4];
+    unsigned char crc[4];
+    unsigned char efuse_ver[4];
+    unsigned char rsvd1[32];
     unsigned short mode;
     unsigned short band_num;
-    unsigned char  rsvd2[60];
-}MACRO0_T;
+    unsigned char rsvd2[60];
+} MACRO0_T;
 
-typedef struct _MACRO1
-{
+typedef struct _MACRO1 {
     unsigned short ical;
     unsigned short rcal;
-    unsigned long   bandgap;
-	unsigned long   tempsensor;
-    unsigned char  rsvd[116];
-}MACRO1_T;
+    unsigned long bandgap;
+    unsigned long tempsensor;
+    unsigned char rsvd[116];
+} MACRO1_T;
 
-typedef struct _RX_CAL
-{
+typedef struct _RX_CAL {
     unsigned short freq_start;
     unsigned short freq_stop;
-    unsigned long   iqmismatch[3];
-    unsigned long   im2;
-    unsigned char  rsvd[12];
-}RX_CAL_T;
+    unsigned long iqmismatch[3];
+    unsigned long im2;
+    unsigned char rsvd[12];
+} RX_CAL_T;
 
-typedef struct _TX_CAL
-{
+typedef struct _TX_CAL {
     unsigned short freq_start;
     unsigned short freq_stop;
-    unsigned long   dcoc_i;
-    unsigned long   dcoc_q;
-    
-    unsigned long   iqmismatch;
-    
-    unsigned long   dcoc_i_dvm;
-    unsigned long   dcoc_q_dvm;
-    
-    unsigned char  rsvd[8];
-}TX_CAL_T;
+    unsigned long dcoc_i;
+    unsigned long dcoc_q;
 
-typedef struct _MACRO2
-{
+    unsigned long iqmismatch;
+
+    unsigned long dcoc_i_dvm;
+    unsigned long dcoc_q_dvm;
+
+    unsigned char rsvd[8];
+} TX_CAL_T;
+
+typedef struct _MACRO2 {
     RX_CAL_T rx1;
     TX_CAL_T tx1;
     RX_CAL_T rx2;
     TX_CAL_T tx2;
-}MACRO2_T;
+} MACRO2_T;
 
-typedef union _EFUSE
-{
+typedef union _EFUSE {
     unsigned char dat[EFUSE_NUM][EFUSE_SIZE];
     struct
     {
         MACRO0_T m0;
         MACRO1_T m1;
-        MACRO2_T m2[EFUSE_NUM-2];
+        MACRO2_T m2[EFUSE_NUM - 2];
         unsigned short band;
         unsigned short err;
-    }macro;
-}EFUSE_T;
+    } macro;
+} EFUSE_T;
 
 EFUSE_T efuse;
 
-void DM6300_EFUSE1()
-{
+void DM6300_EFUSE1() {
     int i, j;
     int efuse_rdy = 1;
-    
+
     uint32_t dat;
 
-    memset((char*)&efuse, 0, sizeof(EFUSE_T));
-    
+    memset((char *)&efuse, 0, sizeof(EFUSE_T));
+
     // EFUSE_RST = 1;
     SPI_Write(0x6, 0xFF0, 0x00000019);
     SPI_Write(0x3, 0x0E0, 0x00000001);
 
     SPI_Write(0x6, 0xFF0, 0x00000018);
-    
-    for(j=28; j<32/*EFUSE_SIZE*/; j++) // read macro 0
+
+    for (j = 28; j < 32 /*EFUSE_SIZE*/; j++) // read macro 0
     {
         // EFUSE_CFG = (0<<11) | (j<<4) | 0x1;
-        SPI_Write(0x3, 0x7D0, (j<<4) | 0x1);
-        
+        SPI_Write(0x3, 0x7D0, (j << 4) | 0x1);
+
         // while(EFUSE_RDY&1);
-        while(efuse_rdy){
+        while (efuse_rdy) {
             SPI_Read(0x3, 0x7D4, &dat);
             efuse_rdy = dat & 1;
         }
         efuse_rdy = 1;
-        
-        // efuse.data[0][j] = EFUSE_DAT;
-        SPI_Read(0x3, 0x7D8, &dat);
-        efuse.dat[0][j] = dat & 0xFF;
-    }
-    
-    for(j=66; j<68/*EFUSE_SIZE*/; j++) // read macro 0
-    {
-        // EFUSE_CFG = (0<<11) | (j<<4) | 0x1;
-        SPI_Write(0x3, 0x7D0, (j<<4) | 0x1);
-        
-        // while(EFUSE_RDY&1);
-        while(efuse_rdy){
-            SPI_Read(0x3, 0x7D4, &dat);
-            efuse_rdy = dat & 1;
-        }
-        efuse_rdy = 1;
-        
+
         // efuse.data[0][j] = EFUSE_DAT;
         SPI_Read(0x3, 0x7D8, &dat);
         efuse.dat[0][j] = dat & 0xFF;
     }
 
-    for(j=0; j<12/*EFUSE_SIZE*/; j++) // read macro 1
+    for (j = 66; j < 68 /*EFUSE_SIZE*/; j++) // read macro 0
     {
-        // EFUSE_CFG = (1<<11) | (j<<4) | 0x1;
-        SPI_Write(0x3, 0x7D0, (1<<11) | (j<<4) | 0x1);
-        
+        // EFUSE_CFG = (0<<11) | (j<<4) | 0x1;
+        SPI_Write(0x3, 0x7D0, (j << 4) | 0x1);
+
         // while(EFUSE_RDY&1);
-        while(efuse_rdy){
+        while (efuse_rdy) {
             SPI_Read(0x3, 0x7D4, &dat);
             efuse_rdy = dat & 1;
         }
         efuse_rdy = 1;
-        
+
+        // efuse.data[0][j] = EFUSE_DAT;
+        SPI_Read(0x3, 0x7D8, &dat);
+        efuse.dat[0][j] = dat & 0xFF;
+    }
+
+    for (j = 0; j < 12 /*EFUSE_SIZE*/; j++) // read macro 1
+    {
+        // EFUSE_CFG = (1<<11) | (j<<4) | 0x1;
+        SPI_Write(0x3, 0x7D0, (1 << 11) | (j << 4) | 0x1);
+
+        // while(EFUSE_RDY&1);
+        while (efuse_rdy) {
+            SPI_Read(0x3, 0x7D4, &dat);
+            efuse_rdy = dat & 1;
+        }
+        efuse_rdy = 1;
+
         // efuse.data[1][j] = EFUSE_DAT;
         SPI_Read(0x3, 0x7D8, &dat);
         efuse.dat[1][j] = dat & 0xFF;
     }
 
-    //for(i=2; i<efuse.macro.m0.band_num+2; i++) // read macro 2~11
-    #ifdef KEIL_C51
+// for(i=2; i<efuse.macro.m0.band_num+2; i++) // read macro 2~11
+#ifdef KEIL_C51
     efuse.macro.m0.band_num = (efuse.macro.m0.band_num >> 8) | (efuse.macro.m0.band_num << 8);
-    #endif
+#endif
 
-    for(i=2; i<efuse.macro.m0.band_num+2; i++) // read macro 2~11
+    for (i = 2; i < efuse.macro.m0.band_num + 2; i++) // read macro 2~11
     {
-        for(j=32; j<56/*EFUSE_SIZE*/; j++)
-        {
+        for (j = 32; j < 56 /*EFUSE_SIZE*/; j++) {
             // EFUSE_CFG = (i<<11) | (j<<4) | 0x1;
-            SPI_Write(0x3, 0x7D0, (i<<11) | (j<<4) | 0x1);
-        
+            SPI_Write(0x3, 0x7D0, (i << 11) | (j << 4) | 0x1);
+
             // while(EFUSE_RDY&1);
-            while(efuse_rdy){
+            while (efuse_rdy) {
                 SPI_Read(0x3, 0x7D4, &dat);
                 efuse_rdy = dat & 1;
             }
             efuse_rdy = 1;
-            
+
             // efuse.data[i][j] = EFUSE_DAT;
             SPI_Read(0x3, 0x7D8, &dat);
             efuse.dat[i][j] = dat & 0xFF;
-						
-						if(j == 35){
-                            #ifdef KEIL_C51
-							efuse.macro.m2[i-2].tx1.freq_start = (efuse.macro.m2[i-2].tx1.freq_start >> 8) | (efuse.macro.m2[i-2].tx1.freq_start << 8);
-							efuse.macro.m2[i-2].tx1.freq_stop = (efuse.macro.m2[i-2].tx1.freq_stop >> 8) | (efuse.macro.m2[i-2].tx1.freq_stop << 8);
-                            #endif
-							if(efuse.macro.m2[i-2].tx1.freq_start<5000 || efuse.macro.m2[i-2].tx1.freq_stop>6000)
-								break;
-						}
+
+            if (j == 35) {
+#ifdef KEIL_C51
+                efuse.macro.m2[i - 2].tx1.freq_start = (efuse.macro.m2[i - 2].tx1.freq_start >> 8) | (efuse.macro.m2[i - 2].tx1.freq_start << 8);
+                efuse.macro.m2[i - 2].tx1.freq_stop = (efuse.macro.m2[i - 2].tx1.freq_stop >> 8) | (efuse.macro.m2[i - 2].tx1.freq_stop << 8);
+#endif
+                if (efuse.macro.m2[i - 2].tx1.freq_start < 5000 || efuse.macro.m2[i - 2].tx1.freq_stop > 6000)
+                    break;
             }
         }
+    }
 
     // EFUSE_CFG = 0;
     SPI_Write(0x3, 0x7D0, 0x00000000);
     // EFUSE_RST = 0;
     SPI_Write(0x6, 0xFF0, 0x00000019);
     SPI_Write(0x3, 0x0E0, 0x00000000);
-	
-    // application
-    #ifdef KEIL_C51
+
+// application
+#ifdef KEIL_C51
     efuse.macro.m1.bandgap = ((efuse.macro.m1.bandgap >> 24) & 0xFF) |
-                             ((efuse.macro.m1.bandgap >> 8)  & 0xFF00) |
-                             ((efuse.macro.m1.bandgap << 8)  & 0xFF0000) |
-                              ((efuse.macro.m1.bandgap << 24) & 0xFF000000);
+                             ((efuse.macro.m1.bandgap >> 8) & 0xFF00) |
+                             ((efuse.macro.m1.bandgap << 8) & 0xFF0000) |
+                             ((efuse.macro.m1.bandgap << 24) & 0xFF000000);
     efuse.macro.m1.ical = (efuse.macro.m1.ical >> 8) | (efuse.macro.m1.ical << 8);
     efuse.macro.m1.rcal = (efuse.macro.m1.rcal >> 8) | (efuse.macro.m1.rcal << 8);
-    #endif
-    //debugf("\r\nband_num=%x", efuse.macro.m0.band_num);
-    //debugf("\r\nbandgap=%lx", efuse.macro.m1.bandgap);
-    //debugf("\r\nical=%x", efuse.macro.m1.ical);
-    //debugf("\r\nrcal=%x", efuse.macro.m1.rcal);
-        
+#endif
+    // debugf("\r\nband_num=%x", efuse.macro.m0.band_num);
+    // debugf("\r\nbandgap=%lx", efuse.macro.m1.bandgap);
+    // debugf("\r\nical=%x", efuse.macro.m1.ical);
+    // debugf("\r\nrcal=%x", efuse.macro.m1.rcal);
+
     dat = ((efuse.macro.m1.ical & 0x1F) << 3) | (efuse.macro.m1.rcal & 0x7);
-    //debugf("\r\nrh=%lx", rh);
-    	
+    // debugf("\r\nrh=%lx", rh);
+
     SPI_Write(0x6, 0xF14, efuse.macro.m1.bandgap);
     SPI_Write(0x6, 0xF18, dat);
-    
+
     SPI_Write(0x6, 0xFF0, 0x00000018);
 }
 
 const dm6300_reg_value_t dm6300_regs_dm6300_efuse2_1[] = {
     {0x6, 0xFF0, 0x00000018},
-    {0x3, 0x3AC, 0x00000012}
-};
+    {0x3, 0x3AC, 0x00000012}};
 
-void DM6300_EFUSE2()
-{   
+void DM6300_EFUSE2() {
     int i;
-    //uint32_t d0,d1,d2,d3,d4,d5,d6,d7;
-    //uint32_t wdat;
+    // uint32_t d0,d1,d2,d3,d4,d5,d6,d7;
+    // uint32_t wdat;
     uint32_t ef_data;
     uint8_t version[5];
     uint32_t rdat;
-    
-    
+
     version[4] = 0;
-    for(i=0; i<4; i++){
-        version[i] = efuse.macro.m0.efuse_ver[i];        
+    for (i = 0; i < 4; i++) {
+        version[i] = efuse.macro.m0.efuse_ver[i];
     }
-    #ifdef _DEBUG_MODE
-    debugf("\r\n version = %s",version);
-    #endif
-    //version[1];  //version[1] M.N---M
-    //version[3];  //version[3] M.N---N
+#ifdef _DEBUG_MODE
+    debugf("\r\n version = %s", version);
+#endif
+    // version[1];  //version[1] M.N---M
+    // version[3];  //version[3] M.N---N
 
     WRITE_REG_MAP(dm6300_regs_dm6300_efuse2_1);
 
-	for(i=0; i<efuse.macro.m0.band_num; i++) // find match macro 5.8G
-    //for(i=0; i<FREQ_MAX_EXT+1; i++) // find match macro 5.8G
-	{
-        //efuse.macro.m2[i].tx1.freq_start = (efuse.macro.m2[i].tx1.freq_start >> 8) | (efuse.macro.m2[i].tx1.freq_start << 8);
-        //efuse.macro.m2[i].tx1.freq_stop = (efuse.macro.m2[i].tx1.freq_stop >> 8) | (efuse.macro.m2[i].tx1.freq_stop << 8);
-        #ifdef _DEBUG_MODE
+    for (i = 0; i < efuse.macro.m0.band_num; i++) // find match macro 5.8G
+                                                  // for(i=0; i<FREQ_MAX_EXT+1; i++) // find match macro 5.8G
+    {
+// efuse.macro.m2[i].tx1.freq_start = (efuse.macro.m2[i].tx1.freq_start >> 8) | (efuse.macro.m2[i].tx1.freq_start << 8);
+// efuse.macro.m2[i].tx1.freq_stop = (efuse.macro.m2[i].tx1.freq_stop >> 8) | (efuse.macro.m2[i].tx1.freq_stop << 8);
+#ifdef _DEBUG_MODE
         debugf("\r\n start=%x, stop=%x", efuse.macro.m2[i].tx1.freq_start, efuse.macro.m2[i].tx1.freq_stop);
-        #endif
-        
-		if(efuse.macro.m2[i].tx1.freq_start>=5000 && efuse.macro.m2[i].tx1.freq_stop<=6000)
-        {
+#endif
+
+        if (efuse.macro.m2[i].tx1.freq_start >= 5000 && efuse.macro.m2[i].tx1.freq_stop <= 6000) {
             //*((volatile unsigned int *)0x200D08) = efuse.macro.m2[i].tx1.iqmismatch;
             //*((volatile unsigned int *)0x200380) = efuse.macro.m2[i].tx1.dcoc_i;
             //*((volatile unsigned int *)0x200388) = efuse.macro.m2[i].tx1.dcoc_q;
-            
-            if((version[1]=='2') && (version[3]=='3')){ //version = 2.3
+
+            if ((version[1] == '2') && (version[3] == '3')) { // version = 2.3
                 efuse.macro.m2[i].tx1.dcoc_i = efuse.macro.m2[i].tx1.dcoc_i_dvm;
                 efuse.macro.m2[i].tx1.dcoc_q = efuse.macro.m2[i].tx1.dcoc_q_dvm;
-            }
-            else{
+            } else {
                 efuse.macro.m2[i].tx1.dcoc_i = efuse.macro.m2[i].tx1.dcoc_i;
                 efuse.macro.m2[i].tx1.dcoc_q = efuse.macro.m2[i].tx1.dcoc_q;
             }
-            #ifdef KEIL_C51
+#ifdef KEIL_C51
             efuse.macro.m2[i].tx1.iqmismatch = ((efuse.macro.m2[i].tx1.iqmismatch >> 24) & 0xFF) |
-                                              ((efuse.macro.m2[i].tx1.iqmismatch >> 8)  & 0xFF00) |
-                                              ((efuse.macro.m2[i].tx1.iqmismatch << 8)  & 0xFF0000) |
-                                              ((efuse.macro.m2[i].tx1.iqmismatch << 24) & 0xFF000000);
-            
+                                               ((efuse.macro.m2[i].tx1.iqmismatch >> 8) & 0xFF00) |
+                                               ((efuse.macro.m2[i].tx1.iqmismatch << 8) & 0xFF0000) |
+                                               ((efuse.macro.m2[i].tx1.iqmismatch << 24) & 0xFF000000);
+
             efuse.macro.m2[i].tx1.dcoc_i = ((efuse.macro.m2[i].tx1.dcoc_i >> 24) & 0xFF) |
-                                              ((efuse.macro.m2[i].tx1.dcoc_i >> 8)  & 0xFF00) |
-                                              ((efuse.macro.m2[i].tx1.dcoc_i << 8)  & 0xFF0000) |
-                                              ((efuse.macro.m2[i].tx1.dcoc_i << 24) & 0xFF000000);
-            
+                                           ((efuse.macro.m2[i].tx1.dcoc_i >> 8) & 0xFF00) |
+                                           ((efuse.macro.m2[i].tx1.dcoc_i << 8) & 0xFF0000) |
+                                           ((efuse.macro.m2[i].tx1.dcoc_i << 24) & 0xFF000000);
+
             efuse.macro.m2[i].tx1.dcoc_q = ((efuse.macro.m2[i].tx1.dcoc_q >> 24) & 0xFF) |
-                                              ((efuse.macro.m2[i].tx1.dcoc_q >> 8)  & 0xFF00) |
-                                              ((efuse.macro.m2[i].tx1.dcoc_q << 8)  & 0xFF0000) |
-                                              ((efuse.macro.m2[i].tx1.dcoc_q << 24) & 0xFF000000);
-            #endif
-            
+                                           ((efuse.macro.m2[i].tx1.dcoc_q >> 8) & 0xFF00) |
+                                           ((efuse.macro.m2[i].tx1.dcoc_q << 8) & 0xFF0000) |
+                                           ((efuse.macro.m2[i].tx1.dcoc_q << 24) & 0xFF000000);
+#endif
+
             debugf("\r\niqmismatch_old=%lx", efuse.macro.m2[i].tx1.iqmismatch);
             debugf("\r\ndcoc_i_old=%lx", efuse.macro.m2[i].tx1.dcoc_i);
             debugf("\r\ndcoc_q_old=%lx", efuse.macro.m2[i].tx1.dcoc_q);
-            
-            //change dc_i/dc_q
-            debugf("\r\n version[1] = %c",(uint16_t)version[1]);
-            debugf("\r\n version[3] = %c",(uint16_t)version[3]);
 
-            //if((version[1]>'2') | ((version[1]>='2') && (version[3]>'1'))){ //version > 2.1
-            if((version[1]=='2') && (version[3]=='2')){ //version = 2.2            
+            // change dc_i/dc_q
+            debugf("\r\n version[1] = %c", (uint16_t)version[1]);
+            debugf("\r\n version[3] = %c", (uint16_t)version[3]);
+
+            // if((version[1]>'2') | ((version[1]>='2') && (version[3]>'1'))){ //version > 2.1
+            if ((version[1] == '2') && (version[3] == '2')) { // version = 2.2
                 ef_data = efuse.macro.m2[i].tx1.dcoc_i;
-                ef_data = (ef_data & 0xFFFF8000) | ((((((ef_data & 0x00007f7f)+0x00000202)>>2)&0x00001f1f)) | 0x00000080);
+                ef_data = (ef_data & 0xFFFF8000) | ((((((ef_data & 0x00007f7f) + 0x00000202) >> 2) & 0x00001f1f)) | 0x00000080);
                 efuse.macro.m2[i].tx1.dcoc_i = ef_data;
-                
+
                 ef_data = efuse.macro.m2[i].tx1.dcoc_q;
-                ef_data = (ef_data & 0xFFFF8000) | ((((((ef_data & 0x00007f7f)+0x00000202)>>2)&0x00001f1f)) | 0x00000080);
+                ef_data = (ef_data & 0xFFFF8000) | ((((((ef_data & 0x00007f7f) + 0x00000202) >> 2) & 0x00001f1f)) | 0x00000080);
                 efuse.macro.m2[i].tx1.dcoc_q = ef_data;
             }
-            
+
             SPI_Write(0x3, 0xD08, efuse.macro.m2[i].tx1.iqmismatch);
             SPI_Write(0x3, 0x380, efuse.macro.m2[i].tx1.dcoc_i);
             SPI_Write(0x3, 0x388, efuse.macro.m2[i].tx1.dcoc_q);
@@ -1061,23 +1036,23 @@ void DM6300_EFUSE2()
             debugf("\r\niqmismatch=%lx", efuse.macro.m2[i].tx1.iqmismatch);
             debugf("\r\ndcoc_i=%lx", efuse.macro.m2[i].tx1.dcoc_i);
             debugf("\r\ndcoc_q=%lx", efuse.macro.m2[i].tx1.dcoc_q);
-            
+
             dcoc_ih = efuse.macro.m2[i].tx1.dcoc_i & 0xFFFF0000;
             dcoc_qh = efuse.macro.m2[i].tx1.dcoc_q & 0xFFFF0000;
-            
-            if(EE_VALID){
+
+            if (EE_VALID) {
                 rdat = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_EN);
-                if((rdat & 0xFF) == 0){
+                if ((rdat & 0xFF) == 0) {
                     debugf("\r\nDCOC read from EEPROM:");
                     SPI_Write(0x6, 0xFF0, 0x00000018);
-                    
+
                     rdat = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_IH);
                     rdat <<= 8;
                     rdat |= I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_IL);
                     rdat |= dcoc_ih;
                     SPI_Write(0x3, 0x380, rdat);
                     debugf("\r\ndcoc_i=%lx", rdat);
-                    
+
                     rdat = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_QH);
                     rdat <<= 8;
                     rdat |= I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_QL);
@@ -1086,7 +1061,7 @@ void DM6300_EFUSE2()
                     debugf("\r\ndcoc_q=%lx", rdat);
                 }
             }
-            
+
             /*if(EE_VALID){
                 d0 = I2C_Read8_Wait(10, ADDR_EEPROM, 0xa8);
                 d1 = I2C_Read8_Wait(10, ADDR_EEPROM, 0xa9);
@@ -1096,10 +1071,10 @@ void DM6300_EFUSE2()
                 d5 = I2C_Read8_Wait(10, ADDR_EEPROM, 0xad);
                 d6 = I2C_Read8_Wait(10, ADDR_EEPROM, 0xae);
                 d7 = I2C_Read8_Wait(10, ADDR_EEPROM, 0xaf);
-                
+
                 debugf("\r\nd0=%lx,d1=%lx,d2=%lx,d3=%lx", d0,d1,d2,d3);
                 debugf("\r\nd4=%lx,d5=%lx,d6=%lx,d7=%lx", d4,d5,d6,d7);
-            
+
                 wdat = 0x075F0000;
                 wdat = wdat | (d0<<8) | d1;
                 SPI_Write(0x3, 0x380, wdat);
@@ -1112,8 +1087,8 @@ void DM6300_EFUSE2()
                 SPI_Write(0x3, 0xD08, wdat);
                 debugf("\r\nregD08=%lx", wdat);
             }*/
-            
+
             break;
         }
-	}
+    }
 }

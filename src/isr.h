@@ -17,7 +17,6 @@ extern BIT_TYPE timer_8hz;
 extern BIT_TYPE timer_16hz;
 extern BIT_TYPE RS0_ERR;
 
-
 void CPU_init(void);
 
 #endif /* __ISR_H_ */

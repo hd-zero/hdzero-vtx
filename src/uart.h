@@ -4,19 +4,32 @@
 #include "common.h"
 
 #ifdef EXTEND_BUF
-#define  BUF_MAX        2048 //30
+#define BUF_MAX 2048 // 30
 #else
-#define  BUF_MAX        255
+#define BUF_MAX 255
 #endif
 #ifdef EXTEND_BUF1
-#define  BUF1_MAX       2047    //30
+#define BUF1_MAX 2047 // 30
 #else
-#define  BUF1_MAX	    255     //30
+#define BUF1_MAX 255 // 30
 #endif
 
-
-#define RS_tx(c)  while(1) { if( !RS_Xbusy  ) { SBUF0 = c; RS_Xbusy = 1;  break; } }
-#define RS_tx1(c) while(1) { if( !RS_Xbusy1 ) { SBUF1 = c; RS_Xbusy1 = 1; break; } }
+#define RS_tx(c)          \
+    while (1) {           \
+        if (!RS_Xbusy) {  \
+            SBUF0 = c;    \
+            RS_Xbusy = 1; \
+            break;        \
+        }                 \
+    }
+#define RS_tx1(c)          \
+    while (1) {            \
+        if (!RS_Xbusy1) {  \
+            SBUF1 = c;     \
+            RS_Xbusy1 = 1; \
+            break;         \
+        }                  \
+    }
 
 uint8_t RS_ready(void);
 
@@ -62,7 +75,7 @@ extern XDATA_SEG volatile uint8_t RS_out1;
 
 #ifdef USE_SMARTAUDIO
 
-#define SUART_BUF_MAX 32  //has to be power of 2
+#define SUART_BUF_MAX 32 // has to be power of 2
 
 extern uint8_t suart_tx_en;
 void suart_txint();
@@ -71,9 +84,9 @@ void suart_rxint();
 uint8_t SUART_ready();
 uint8_t SUART_rx();
 
-void SUART_tx(uint8_t* tbuf,uint8_t len);
+void SUART_tx(uint8_t *tbuf, uint8_t len);
 extern uint8_t SA_is_0;
 extern uint8_t SA_config;
-#endif //USE_SMARTAUDIO
+#endif // USE_SMARTAUDIO
 
 #endif /* __UART_H_ */
