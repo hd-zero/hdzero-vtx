@@ -1,6 +1,7 @@
 #ifndef __SFR_EXT_H_
 #define __SFR_EXT_H_
 
+#include "stdint.h"
 #include "toolchain.h"
 
 SFR_DEF(SFR_CMD, 0xB9);

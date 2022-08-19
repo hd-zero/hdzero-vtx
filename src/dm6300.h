@@ -2,6 +2,7 @@
 #define __DM6300_H_
 
 #include "common.h"
+#include "hardware.h"
 
 #ifdef HDZERO_FREESTYLE
 #define PIT_POWER 0x18 // 2dbm

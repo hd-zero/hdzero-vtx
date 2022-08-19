@@ -1,6 +1,8 @@
 #ifndef __GLOBAL_H_
 #define __GLOBAL_H_
 
+#include "stdint.h"
+
 #define HI_BYTE(a) ((a >> 8) & 0xFF)
 #define LO_BYTE(a) (a & 0xFF)
 
