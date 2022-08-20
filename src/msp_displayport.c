@@ -787,6 +787,8 @@ void parseMspVtx_V2(uint16_t cmd_u16)
     fc_pit_rx       = msp_rx_buf[4];
     fc_lp_rx        = msp_rx_buf[8];
     
+    pwr_lmt_done = 1;
+
     #ifdef _DEBUG_MODE
     debugf("\r\nparseMspVtx_V2");
     debugf("\r\n    fc_vtx_dev:    %x", (uint16_t)msp_rx_buf[0]);
@@ -817,7 +819,7 @@ void parseMspVtx_V2(uint16_t cmd_u16)
     //update channel
     if(fc_band_rx == 5)//race band
         nxt_ch =  fc_channel_rx - 1;
-    else if(fc_band_rx == 4){ //fashark band
+    else if(fc_band_rx == 4){ //fatshark band
         if(fc_channel_rx == 2)
             nxt_ch = 8;
         else if(fc_channel_rx == 4)
@@ -826,12 +828,19 @@ void parseMspVtx_V2(uint16_t cmd_u16)
     if(RF_FREQ != nxt_ch){
         vtx_channel = nxt_ch;
         RF_FREQ = nxt_ch;
-        DM6300_SetChannel(RF_FREQ);
+        if(dm6300_init_done)
+            DM6300_SetChannel(RF_FREQ);
         needSaveEEP = 1;
     }
 
     //update pit
     nxt_pwr = fc_pwr_rx - 1;
+
+    if((nxt_pwr != POWER_MAX+1) && (!dm6300_init_done))
+    {
+        Init_6300RF(RF_FREQ, RF_POWER);
+        DM6300_AUXADC_Calib();
+    }
 
     if(fc_pit_rx != last_pit)
     {

@@ -368,6 +368,9 @@ void Init_6300RF(uint8_t freq, uint8_t pwr)
 	    cur_pwr = pwr;
 	}
 	WriteReg(0, 0x8F, 0x11);
+    #ifdef _DEBUG_MODE
+    debugf("\r\nInit_6300RF(%x, %x)", (uint16_t)freq, (uint16_t)pwr);
+    #endif
 }
 
 void Init_HW()
