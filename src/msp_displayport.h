@@ -5,37 +5,37 @@
 
 #define IS_HI(x)  ((x) > 1750)
 #define IS_LO(x)  ((x) < 1250)
-#define IS_MID(x) ((!IS_HI(x))  && (!IS_LO(x)))
+#define IS_MID(x) ((!IS_HI(x)) && (!IS_LO(x)))
 
-#define SD_HMAX     				30
-#define SD_VMAX                     16
-#define HD_HMAX                     50
-#define HD_VMAX                     18
+#define SD_HMAX 30
+#define SD_VMAX 16
+#define HD_HMAX 50
+#define HD_VMAX 18
 
-#define TXBUF_SIZE  				69
+#define TXBUF_SIZE 69
 
-#define MSP_HEADER_START_BYTE       0x24
-#define MSP_HEADER_M_BYTE           0x4D
-#define MSP_HEADER_M2_BYTE          0x58
-#define MSP_PACKAGE_REPLAY_BYTE     0x3E
+#define MSP_HEADER_START_BYTE   0x24
+#define MSP_HEADER_M_BYTE       0x4D
+#define MSP_HEADER_M2_BYTE      0x58
+#define MSP_PACKAGE_REPLAY_BYTE 0x3E
 
-#define MSP_CMD_FC_VARIANT          0x02
-#define MSP_CMD_VTX_CONFIG          0x58
-#define MSP_CMD_STATUS_BYTE         0x65
-#define MSP_CMD_RC_BYTE             0x69
-#define MSP_CMD_DISPLAYPORT_BYTE    0xB6
+#define MSP_CMD_FC_VARIANT       0x02
+#define MSP_CMD_VTX_CONFIG       0x58
+#define MSP_CMD_STATUS_BYTE      0x65
+#define MSP_CMD_RC_BYTE          0x69
+#define MSP_CMD_DISPLAYPORT_BYTE 0xB6
 
-#define DP_HEADER0                  0x56
-#define DP_HEADER1                  0x80
+#define DP_HEADER0 0x56
+#define DP_HEADER1 0x80
 
-#define FC_OSD_LOCK             0x01
-#define FC_VARIANT_LOCK         0x02
-#define FC_RC_LOCK              0x04
-#define FC_VTX_CONFIG_LOCK      0x08
-#define FC_STATUS_LOCK          0x10
-#define FC_INIT_VTX_TABLE_LOCK  0x80
+#define FC_OSD_LOCK            0x01
+#define FC_VARIANT_LOCK        0x02
+#define FC_RC_LOCK             0x04
+#define FC_VTX_CONFIG_LOCK     0x08
+#define FC_STATUS_LOCK         0x10
+#define FC_INIT_VTX_TABLE_LOCK 0x80
 
-typedef enum{
+typedef enum {
     BTN_UP,
     BTN_DOWN,
     BTN_LEFT,
@@ -44,21 +44,21 @@ typedef enum{
     BTN_ENTER,
     BTN_EXIT,
     BTN_INVALID
-}ButtonEvent_e;
+} ButtonEvent_e;
 
-typedef enum{
+typedef enum {
     BTFL,
     INAV,
     ARDU
 } fc_variant_e;
 
-typedef enum{
+typedef enum {
     PIT_OFF,
     PIT_P1MW,
     PIT_0MW
-}vtxPtiType_e;
+} vtxPtiType_e;
 
-typedef enum{
+typedef enum {
     MSP_HEADER_START,
     MSP_HEADER_M,
     MSP_PACKAGE_REPLAY1,
@@ -78,16 +78,16 @@ typedef enum{
 
 } msp_rx_status_e;
 
-typedef enum{
-    //msp_displayport
+typedef enum {
+    // msp_displayport
     MSP_OSD_SUBCMD,
     MSP_OSD_LOC,
     MSP_OSD_ATTR,
     MSP_OSD_WRITE,
     MSP_OSD_CONFIG,
-}msp_osd_status_e;
+} msp_osd_status_e;
 
-typedef enum{
+typedef enum {
     CUR_DISPLAYPORT,
     CUR_RC,
     CUR_STATUS,
@@ -96,7 +96,7 @@ typedef enum{
     CUR_OTHERS
 } cur_cmd_e;
 
-typedef enum{
+typedef enum {
     SUBCMD_HEARTBEAT,
     SUBCMD_RELEASE,
     SUBCMD_CLEAR,
@@ -105,13 +105,13 @@ typedef enum{
     SUBCMD_CONFIG,
 } displayport_subcmd_e;
 
-typedef enum{
+typedef enum {
     SD_3016,
     HD_5018,
     HD_3016,
 } resolutionType_e;
 
-typedef enum{
+typedef enum {
     CMS_OSD,
     CMS_ENTER_0MW,
     CMS_EXIT_0MW,
@@ -122,10 +122,10 @@ typedef enum{
     CMS_CAM
 } cms_state_e;
 
-typedef enum{
+typedef enum {
     DISPLAY_OSD,
     DISPLAY_CMS,
-}disp_mode_e;
+} disp_mode_e;
 
 void msp_task();
 uint8_t msp_read_one_frame();

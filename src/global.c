@@ -1,5 +1,6 @@
-#include "common.h"
 #include "global.h"
+
+#include "common.h"
 #include "print.h"
 
 #ifdef _DEBUG_MODE
@@ -22,7 +23,7 @@ uint8_t stricmp(uint8_t *ptr1, uint8_t *ptr2) {
         if ((lhs == 0) || (rhs == 0))
             return 1;
     }
-	return 0;
+    return 0;
 }
 
 // trick the pre-compiler into doing some generic programing for us
@@ -85,11 +86,10 @@ void WAIT(uint16_t ms) {
     }
 }
 #else
-void WAIT(uint32_t ms)
-{
-    uint32_t i,j;
-    for(i=0;i<ms;i++) {
-        for(j=0;j<MS_DLY;j++) {
+void WAIT(uint32_t ms) {
+    uint32_t i, j;
+    for (i = 0; i < ms; i++) {
+        for (j = 0; j < MS_DLY; j++) {
         }
     }
 }

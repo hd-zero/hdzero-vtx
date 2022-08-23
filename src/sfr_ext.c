@@ -1,66 +1,62 @@
-#include "common.h"
 #include "sfr_ext.h"
+
+#include "common.h"
 
 /////////////////////////////////////////////////////////////////
 // reg w/r
-void WriteReg(uint8_t page, uint8_t addr, uint8_t dat)
-{
-    SFR_DATA  = dat;
+void WriteReg(uint8_t page, uint8_t addr, uint8_t dat) {
+    SFR_DATA = dat;
     SFR_ADDRL = addr;
-    SFR_CMD   = page ? 0x02 : 0x00;
+    SFR_CMD = page ? 0x02 : 0x00;
 }
 
-uint8_t ReadReg(uint8_t page, uint8_t addr)
-{
+uint8_t ReadReg(uint8_t page, uint8_t addr) {
     uint8_t busy = 1;
-    
+
     SFR_ADDRL = addr;
-    SFR_CMD   = page ? 0x03 : 0x01;
-    
-    while(busy != 0){
+    SFR_CMD = page ? 0x03 : 0x01;
+
+    while (busy != 0) {
         busy = SFR_BUSY & 0x02;
     }
-    
+
     return SFR_DATA;
 }
 
 /////////////////////////////////////////////////////////////////
 // AD936X w/r
-void Write936x(uint16_t addr, uint8_t dat)
-{
+void Write936x(uint16_t addr, uint8_t dat) {
     uint8_t busy = 1;
-    
-    SFR_DATA  = dat;
+
+    SFR_DATA = dat;
     SFR_ADDRL = addr & 0xFF;
-    SFR_ADDRH = (addr>>8) & 0xFF;
-    SFR_CMD   = 0x10;
-    
-    while(busy != 0){
+    SFR_ADDRH = (addr >> 8) & 0xFF;
+    SFR_CMD = 0x10;
+
+    while (busy != 0) {
         busy = SFR_BUSY & 0x01;
     }
 }
 
-uint8_t Read936x(uint16_t addr)
-{
+uint8_t Read936x(uint16_t addr) {
     uint8_t busy = 1;
 
     SFR_ADDRL = addr & 0xFF;
-    SFR_ADDRH = (addr>>8) & 0xFF;
-    SFR_CMD   = 0x11;
-    
-    while(busy != 0){
+    SFR_ADDRH = (addr >> 8) & 0xFF;
+    SFR_CMD = 0x11;
+
+    while (busy != 0) {
         busy = SFR_BUSY & 0x01;
     }
-    
+
     return SFR_DATA;
 }
 
 /////////////////////////////////////////////////////////////////
 // flight control
-void DP_tx(uint8_t dat)
-{
-    SFR_DATA  = dat;
-    SFR_CMD   = 0x20;
+void DP_tx(uint8_t dat) {
+    SFR_DATA = dat;
+    SFR_CMD = 0x20;
 }
 /*
 // OSD

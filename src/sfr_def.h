@@ -3,13 +3,13 @@
 
 #include "toolchain.h"
 
-#define REG_P0 0x80
-#define REG_P1 0x90
-#define REG_P2 0xA0
-#define REG_P3 0xB0
-#define REG_TCON 0x88
-#define REG_IE 0xA8
-#define REG_IP 0xB8
+#define REG_P0    0x80
+#define REG_P1    0x90
+#define REG_P2    0xA0
+#define REG_P3    0xB0
+#define REG_TCON  0x88
+#define REG_IE    0xA8
+#define REG_IP    0xB8
 #define REG_SCON0 0x98
 #define REG_SCON1 0xC0
 
@@ -175,4 +175,4 @@ SBIT_DEF(RI1, REG_SCON1 ^ 0);
 // SBIT_DEF(INT3F,    EIF^1);
 // SBIT_DEF(INT2F,    EIF^0);
 
-#endif
+#endif /* __SFR_DEF_H_ */

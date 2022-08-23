@@ -1,79 +1,81 @@
 #ifndef __HARDWARE_H_
 #define __HARDWARE_H_
 
-#include "stdint.h"
 #include "common.h"
 #include "i2c.h"
 #include "i2c_device.h"
+#include "stdint.h"
 
-typedef enum{
+typedef enum {
     ON,
     OFF,
-}ledType_e;
-typedef enum{
+} ledType_e;
+
+typedef enum {
     BW_27M,
     BW_20M
-}BWType_e;
-#define PWR_DEFAULT     2
-#define SPARKLE_T       20
+} BWType_e;
+
+#define PWR_DEFAULT 2
+#define SPARKLE_T   20
 
 // vtx parameter
-#define EEP_ADDR_RF_FREQ         0x80
-#define EEP_ADDR_RF_POWER        0x81
-#define EEP_ADDR_LPMODE          0x82
-#define EEP_ADDR_PITMODE         0x83
-#define EEP_ADDR_25MW            0x84
-#define EEP_ADDR_SA_LOCK         0x88
-#define EEP_ADDR_POWER_LOCK      0x89
-#define EEP_ADDR_VTX_CONFIG      0x8a
+#define EEP_ADDR_RF_FREQ    0x80
+#define EEP_ADDR_RF_POWER   0x81
+#define EEP_ADDR_LPMODE     0x82
+#define EEP_ADDR_PITMODE    0x83
+#define EEP_ADDR_25MW       0x84
+#define EEP_ADDR_SA_LOCK    0x88
+#define EEP_ADDR_POWER_LOCK 0x89
+#define EEP_ADDR_VTX_CONFIG 0x8a
 
-#define EEP_ADDR_LIFETIME_0      0xF0
-#define EEP_ADDR_LIFETIME_1      0xF1
-#define EEP_ADDR_LIFETIME_2      0xF2
-#define EEP_ADDR_LIFETIME_3      0xF3
+#define EEP_ADDR_LIFETIME_0  0xF0
+#define EEP_ADDR_LIFETIME_1  0xF1
+#define EEP_ADDR_LIFETIME_2  0xF2
+#define EEP_ADDR_LIFETIME_3  0xF3
 // camera parameter
-#define EEP_ADDR_CAM_PROFILE     0x3f  //
-                                       // [3:0] used for runcam v1
-                                       // [7:4] used for runcam v2
- 
+#define EEP_ADDR_CAM_PROFILE 0x3f //
+                                  // [3:0] used for runcam v1
+                                  // [7:4] used for runcam v2
+
 //                              Micro V1    Micro V2  Nano V2     Nano Lite
-#define EEP_ADDR_CAM_BRIGHTNESS  0x40//      0x50      0x60        0x70
-#define EEP_ADDR_CAM_SHARPNESS   0x41//      0x51      0x61        0x71
-#define EEP_ADDR_CAM_SATURATION  0x42//      0x52      0x62        0x72
-#define EEP_ADDR_CAM_CONTRAST    0x43//      0x53      0x63        0x73
-#define EEP_ADDR_CAM_HVFLIP      0x44//      0x54      0x64        0x74
-#define EEP_ADDR_CAM_NIGHTMODE   0x45//      0x55      0x65        0x75
+#define EEP_ADDR_CAM_BRIGHTNESS 0x40 //      0x50      0x60        0x70
+#define EEP_ADDR_CAM_SHARPNESS  0x41 //      0x51      0x61        0x71
+#define EEP_ADDR_CAM_SATURATION 0x42 //      0x52      0x62        0x72
+#define EEP_ADDR_CAM_CONTRAST   0x43 //      0x53      0x63        0x73
+#define EEP_ADDR_CAM_HVFLIP     0x44 //      0x54      0x64        0x74
+#define EEP_ADDR_CAM_NIGHTMODE  0x45 //      0x55      0x65        0x75
 //#define EEP_ADDR_CAM_RATIO       0x46//      0x56      0x66        0x76
-#define EEP_ADDR_CAM_WBMODE      0x47//      0x57      0x67        0x77
-#define EEP_ADDR_CAM_WBRED       0x48//      0x58      0x68        0x78
+#define EEP_ADDR_CAM_WBMODE     0x47 //      0x57      0x67        0x77
+#define EEP_ADDR_CAM_WBRED      0x48 //      0x58      0x68        0x78
 //#define EEP_ADDR_CAM_WBRED       0x49//      0x59      0x69        0x79
 //#define EEP_ADDR_CAM_WBRED       0x4a//      0x5a      0x6a        0x7a
 //#define EEP_ADDR_CAM_WBRED       0x4b//      0x5b      0x6b        0x7b
-#define EEP_ADDR_CAM_WBBLUE      0x4c//      0x5c      0x6c        0x7c
+#define EEP_ADDR_CAM_WBBLUE     0x4c //      0x5c      0x6c        0x7c
 //#define EEP_ADDR_CAM_WBBLUE      0x4d//      0x5d      0x6d        0x7d
 //#define EEP_ADDR_CAM_WBBLUE      0x4e//      0x5e      0x6e        0x7e
-//#define EEP_ADDR_CAM_WBBLUE      0x4f//      0x5f      0x6f        0x7f    
+//#define EEP_ADDR_CAM_WBBLUE      0x4f//      0x5f      0x6f        0x7f
 
-#define EEP_ADDR_DCOC_EN        0xC0
-#define EEP_ADDR_DCOC_IH        0xC1
-#define EEP_ADDR_DCOC_IL        0xC2
-#define EEP_ADDR_DCOC_QH        0xC3
-#define EEP_ADDR_DCOC_QL        0xC4
+#define EEP_ADDR_DCOC_EN 0xC0
+#define EEP_ADDR_DCOC_IH 0xC1
+#define EEP_ADDR_DCOC_IL 0xC2
+#define EEP_ADDR_DCOC_QH 0xC3
+#define EEP_ADDR_DCOC_QL 0xC4
 
-#define FREQ_MAX        7
-#define FREQ_MAX_EXT    9
+#define FREQ_MAX     7
+#define FREQ_MAX_EXT 9
 #if defined HDZERO_FREESTYLE
-    #define POWER_MAX   3
+#define POWER_MAX 3
 #else
-    #define POWER_MAX   1
+#define POWER_MAX 1
 #endif
 
 #ifdef HDZERO_FREESTYLE
-    #define LED_BLUE_ON     I2C_Write16(ADDR_TC3587, 0x0014, 0x0000)
-    #define LED_BLUE_OFF    I2C_Write16(ADDR_TC3587, 0x0014, 0x8000)
+#define LED_BLUE_ON  I2C_Write16(ADDR_TC3587, 0x0014, 0x0000)
+#define LED_BLUE_OFF I2C_Write16(ADDR_TC3587, 0x0014, 0x8000)
 #else
-    #define LED_BLUE_ON     LED_1 = ON
-    #define LED_BLUE_OFF    LED_1 = OFF
+#define LED_BLUE_ON  LED_1 = ON
+#define LED_BLUE_OFF LED_1 = OFF
 #endif
 
 void Init_HW();

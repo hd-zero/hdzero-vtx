@@ -1,8 +1,8 @@
 #include "i2c.h"
 
 #include "common.h"
-#include "print.h"
 #include "global.h"
+#include "print.h"
 
 #define SCL_SET(n) SCL = n
 #define SDA_SET(n) SDA = n
@@ -12,90 +12,86 @@
 
 #ifdef SDCC
 void delay_10us() {
-  __asm__(
-      "mov r7,#91\n"
-      "00000$:\n"
-      "djnz r7,00000$\n");
+    __asm__(
+        "mov r7,#91\n"
+        "00000$:\n"
+        "djnz r7,00000$\n");
 }
 #define DELAY_Q delay_10us()
 #else
-#define DELAY_Q                 \
-  {                             \
-    int i = (I2C_BIT_DLY >> 2); \
-    while (i--)                 \
-      ;                         \
-  }
+#define DELAY_Q                     \
+    {                               \
+        int i = (I2C_BIT_DLY >> 2); \
+        while (i--)                 \
+            ;                       \
+    }
 #endif
 
-void I2C_start()
-{
+void I2C_start() {
     SDA_SET(1);
     DELAY_Q;
-    
+
     SCL_SET(1);
     DELAY_Q;
-    
+
     SDA_SET(0);
     DELAY_Q;
     DELAY_Q;
-    
+
     SCL_SET(0);
     DELAY_Q;
 }
 
-void I2C_stop()
-{
+void I2C_stop() {
     SDA_SET(0);
     DELAY_Q;
-    
+
     SCL_SET(1);
     DELAY_Q;
-    
+
     SDA_SET(1);
     DELAY_Q;
     DELAY_Q;
 }
 
-uint8_t I2C_ack()
-{
+uint8_t I2C_ack() {
     uint8_t ret;
-    
+
     SDA_SET(1);
     DELAY_Q;
-    
+
     SCL_SET(1);
     ret = SDA_GET();
     DELAY_Q;
     DELAY_Q;
-    
+
     SCL_SET(0);
     DELAY_Q;
-    
+
     return ret;
 }
 
-uint8_t I2C_write_byte(uint8_t val)
-{
+uint8_t I2C_write_byte(uint8_t val) {
     uint8_t i;
-    for(i=0;i<8;i++){
-        if(val>>7)
+    for (i = 0; i < 8; i++) {
+        if (val >> 7)
             SDA_SET(1);
         else
             SDA_SET(0);
         DELAY_Q;
-        
+
         SCL_SET(1);
         DELAY_Q;
         DELAY_Q;
-        
+
         SCL_SET(0);
         DELAY_Q;
-        
+
         val <<= 1;
     }
-    
+
     i = I2C_ack();
-    
+
     return i;
 }
 
@@ -163,38 +159,37 @@ uint8_t I2C_Write16(uint8_t slave_addr, uint16_t reg_addr, uint16_t val) {
     return 0;
 }
 
-uint8_t I2C_read_byte(uint8_t no_ack)
-{
+uint8_t I2C_read_byte(uint8_t no_ack) {
     uint8_t i;
     uint8_t val = 0;
-    
-    for(i=0;i<8;i++){
+
+    for (i = 0; i < 8; i++) {
         DELAY_Q;
         SCL_SET(1);
-        
+
         val <<= 1;
         val |= SDA_GET();
-        
+
         DELAY_Q;
         DELAY_Q;
-        
+
         SCL_SET(0);
         DELAY_Q;
     }
-    
+
     // master ack
     SDA_SET(no_ack);
     DELAY_Q;
-    
+
     SCL_SET(1);
     DELAY_Q;
     DELAY_Q;
-    
+
     SCL_SET(0);
     DELAY_Q;
-    
+
     SDA_SET(1);
-    
+
     return val;
 }
 
@@ -259,86 +254,84 @@ uint16_t I2C_Read16(uint8_t slave_addr, uint16_t reg_addr) {
 
 /////////////////////////////////////////////////////////////////
 // runcam I2C
-uint8_t RUNCAM_Write(uint8_t cam_id, uint32_t addr, uint32_t val)
-{
+uint8_t RUNCAM_Write(uint8_t cam_id, uint32_t addr, uint32_t val) {
     uint8_t value;
 
-    I2C_start();                 // start
+    I2C_start(); // start
 
-    value = I2C_write_byte(cam_id);// slave
-    if(value){
+    value = I2C_write_byte(cam_id); // slave
+    if (value) {
         I2C_stop();
-        #ifdef _DEBUG_MODE
+#ifdef _DEBUG_MODE
         debugf("\r\nRUNCAM_Write error id: %x value: %d", cam_id, value);
-        #endif
+#endif
         return 1;
     }
-    
-    I2C_write_byte(0x12);        // write cmd
-    
+
+    I2C_write_byte(0x12); // write cmd
+
     value = (addr >> 16) & 0xFF; // ADDR[23:16]
     I2C_write_byte(value);
-    
-    value = (addr >> 8) & 0xFF;  // ADDR[15:8]
+
+    value = (addr >> 8) & 0xFF; // ADDR[15:8]
     I2C_write_byte(value);
-    
-    value = addr & 0xFF;         // ADDR[7:0]
+
+    value = addr & 0xFF; // ADDR[7:0]
     I2C_write_byte(value);
-    
-    value = (val >> 24) & 0xFF;  // DATA[31:24]
+
+    value = (val >> 24) & 0xFF; // DATA[31:24]
     I2C_write_byte(value);
-    
-    value = (val >> 16) & 0xFF;  // DATA[23:16]
+
+    value = (val >> 16) & 0xFF; // DATA[23:16]
     I2C_write_byte(value);
-    
-    value = (val >> 8) & 0xFF;   // DATA[15:8]
+
+    value = (val >> 8) & 0xFF; // DATA[15:8]
     I2C_write_byte(value);
-    
-    value = val & 0xFF;          // DATA[7:0]
+
+    value = val & 0xFF; // DATA[7:0]
     I2C_write_byte(value);
-    
-    I2C_stop();                  // stop
+
+    I2C_stop(); // stop
 
     return 0;
 }
 
-uint32_t RUNCAM_Read(uint8_t cam_id, uint32_t addr)
-{
+uint32_t RUNCAM_Read(uint8_t cam_id, uint32_t addr) {
     uint8_t value;
     uint32_t ret = 0;
-    
-    I2C_start();                 // start
-    
-    I2C_write_byte(cam_id);      // slave
-    
-    I2C_write_byte(0x13);        // read cmd
-    
+
+    I2C_start(); // start
+
+    I2C_write_byte(cam_id); // slave
+
+    I2C_write_byte(0x13); // read cmd
+
     value = (addr >> 16) & 0xFF; // ADDR[23:16]
     I2C_write_byte(value);
-    
-    value = (addr >> 8) & 0xFF;  // ADDR[15:8]
+
+    value = (addr >> 8) & 0xFF; // ADDR[15:8]
     I2C_write_byte(value);
-    
-    value = addr & 0xFF;         // ADDR[7:0]
+
+    value = addr & 0xFF; // ADDR[7:0]
     I2C_write_byte(value);
-    
-    I2C_start();                 // start
-    
-    I2C_write_byte(cam_id | 0x01);        // slave | 0x01
-    
-    value = I2C_read_byte(0);    // read DATA[31:24]
-    ret   = (ret << 8) | value;
-    
-    value = I2C_read_byte(0);    // read DATA[23:16]
-    ret   = (ret << 8) | value;
-    
-    value = I2C_read_byte(0);    // read DATA[15:8]
-    ret   = (ret << 8) | value;
-    
-    value = I2C_read_byte(1);    // read DATA[7:0]
-    ret   = (ret << 8) | value;
-    
-    I2C_stop();                  // stop
-    
+
+    I2C_start(); // start
+
+    I2C_write_byte(cam_id | 0x01); // slave | 0x01
+
+    value = I2C_read_byte(0); // read DATA[31:24]
+    ret = (ret << 8) | value;
+
+    value = I2C_read_byte(0); // read DATA[23:16]
+    ret = (ret << 8) | value;
+
+    value = I2C_read_byte(0); // read DATA[15:8]
+    ret = (ret << 8) | value;
+
+    value = I2C_read_byte(1); // read DATA[7:0]
+    ret = (ret << 8) | value;
+
+    I2C_stop(); // stop
+
     return ret;
 }

@@ -2,60 +2,61 @@
 #define __CAMERA_H_
 
 #include <stdint.h>
+
 #include "common.h"
 
-#define CAM_PROFILE_NUM          4
+#define CAM_PROFILE_NUM 4
 
-#define RUNCAM_MICRO_V1             0x42
-#define RUNCAM_MICRO_V2             0x44
+#define RUNCAM_MICRO_V1 0x42
+#define RUNCAM_MICRO_V2 0x44
 
-#define CAM_BRIGHTNESS_INITIAL      0x80
-#define CAM_SHARPNESS_INITIAL       1
-#define CAM_SATURATION_INITIAL      3
-#define CAM_CONTRAST_INITIAL        1
-#define CAM_HVFLIP_INITIAL          0
-#define CAM_NIGHTMODE_INITIAL       1
-#define CAM_WBRED_INITIAL           0xC7    // 0x314>>2
-#define CAM_WBBLUE_INITIAL          0xCA    // 0x328>>2
-#define CAM_WBMODE_INITIAL          0
+#define CAM_BRIGHTNESS_INITIAL 0x80
+#define CAM_SHARPNESS_INITIAL  1
+#define CAM_SATURATION_INITIAL 3
+#define CAM_CONTRAST_INITIAL   1
+#define CAM_HVFLIP_INITIAL     0
+#define CAM_NIGHTMODE_INITIAL  1
+#define CAM_WBRED_INITIAL      0xC7 // 0x314>>2
+#define CAM_WBBLUE_INITIAL     0xCA // 0x328>>2
+#define CAM_WBMODE_INITIAL     0
 
-#define BRIGHTNESS_MIN              0x40
-#define BRIGHTNESS_MAX              0xC0
-#define SHARPNESS_MIN               0x00
-#define SHARPNESS_MAX               0x02
-#define SATURATION_MIN              0x00
-#define SATURATION_MAX              0x06
-#define CONTRAST_MIN                0x00
-#define CONTRAST_MAX                0x02
-#define HVFLIP_MAX                  0x01
-#define NIGHTMODE_MAX               0x01
-#define WBMODE_MIN                  0x00
-#define WBMODE_MAX                  0x04
+#define BRIGHTNESS_MIN 0x40
+#define BRIGHTNESS_MAX 0xC0
+#define SHARPNESS_MIN  0x00
+#define SHARPNESS_MAX  0x02
+#define SATURATION_MIN 0x00
+#define SATURATION_MAX 0x06
+#define CONTRAST_MIN   0x00
+#define CONTRAST_MAX   0x02
+#define HVFLIP_MAX     0x01
+#define NIGHTMODE_MAX  0x01
+#define WBMODE_MIN     0x00
+#define WBMODE_MAX     0x04
 
-typedef enum{
+typedef enum {
     CAM_720P50,
     CAM_720P60,
     CAM_720P60_NEW,
     CAM_720P30,
-}camFPSType_e;
+} camFPSType_e;
 
-typedef enum{
+typedef enum {
     VDO_720P60_16_9,
     VDO_720P60_4_3,
     VDO_720P30_16_9,
     VDO_720P30_4_3,
     VDO_TYPE_MAX,
-}VdoFormatType_e;
+} VdoFormatType_e;
 
-typedef enum{
-    //Profile_MicroV1,
+typedef enum {
+    // Profile_MicroV1,
     Profile_MicroV2,
     Profile_NanoV2,
     Profile_NanoLite,
     Profile_Max,
-}RuncamV2Profile_e;
+} RuncamV2Profile_e;
 
-typedef struct{
+typedef struct {
     uint8_t brightness;
     uint8_t sharpness;
     uint8_t saturation;
@@ -65,9 +66,9 @@ typedef struct{
     uint8_t wbMode;
     uint8_t wbRed[WBMODE_MAX];
     uint8_t wbBlue[WBMODE_MAX];
-}cameraConfig_t;
+} cameraConfig_t;
 
-typedef enum{
+typedef enum {
     CAM_STATUS_IDLE = 0,
     CAM_STATUS_PROFILE,
     CAM_STATUS_BRIGHTNESS,
@@ -89,7 +90,7 @@ typedef enum{
     CAM_STATUS_SET_VDO_RATIO_RETURN,
     CAM_STATUS_END,
     CAM_STATUS_REPOWER,
-}camStatusType_e;
+} camStatusType_e;
 
 void CameraInit();
 uint8_t camStatusUpdate(uint8_t op);
