@@ -1746,6 +1746,6 @@ void InitVtxTable() {
 
 void fc_init() {}
 void msp_task() {}
-void msp_set_vtx_config(uint8_t power, uint8_t save) {}
+void msp_set_vtx_config(uint8_t power, uint8_t save) {(void)power; (void)save;}
 
 #endif

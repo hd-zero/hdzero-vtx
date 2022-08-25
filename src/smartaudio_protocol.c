@@ -174,11 +174,11 @@ void SA_Update(uint8_t cmd) {
     }
 #endif
     switch (cmd) {
-    case SA_GET_SETTINGS:
 #ifdef DBG_SMARTAUDIO
+    case SA_GET_SETTINGS:
         _outchar('G');
-#endif
         break;
+#endif
 
     case SA_SET_PWR:
         if (!(sa_rbuf[0] >> 7))
