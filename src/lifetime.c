@@ -29,19 +29,10 @@ void Get_EEP_LifeTime(void) {
 }
 
 void Update_EEP_LifeTime(void) {
+#if !defined(_DEBUG_MODE) && !defined(VIDEO_PAT) && !defined(_RF_CALIB)
     uint8_t u8;
     uint32_t diff;
     static uint16_t lstSeconds = 0;
-
-#ifdef _DEBUG_MODE
-    return;
-#endif
-#ifdef VIDEO_PAT
-    return;
-#endif
-#ifdef _RF_CALIB
-    return;
-#endif
 
     if (seconds - lstSeconds >= 10) {
         sysLifeTime++;
@@ -79,6 +70,7 @@ void Update_EEP_LifeTime(void) {
     }
 
     sysLifeTime_last = sysLifeTime;
+#endif
 }
 
 void ParseLifeTime(unsigned char *hourString, unsigned char *minuteString) {

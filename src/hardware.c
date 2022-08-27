@@ -205,7 +205,7 @@ void GetVtxParameter() {
 #ifdef FIX_EEP
         for (i = 0; i <= FREQ_MAX; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
-                I2C_Write8(ADDR_EEPROM, i * _Wait(10, POWER_MAX + 1) + j, table_power[i][j]);
+                I2C_Write8_Wait(10, ADDR_EEPROM, i*(POWER_MAX+1) + j, table_power[i][j]);
             }
         }
 #endif
@@ -249,7 +249,7 @@ void GetVtxParameter() {
 #ifdef _RF_CALIB
             for (i = 0; i <= FREQ_MAX; i++) {
                 for (j = 0; j <= POWER_MAX; j++) {
-                    I2C_Write8(ADDR_EEPROM, i * _Wait(10, POWER_MAX + 1) + j, table_power[i][j]);
+                    I2C_Write8_Wait(10, ADDR_EEPROM, i*(POWER_MAX+1) + j, table_power[i][j]);
                 }
             }
 #endif
@@ -1203,9 +1203,11 @@ void BlinkPhase() {
         I2C_Write8(ADDR_KEYBOARD, 0x03, 0x00);
     } else {
         switch (cfg_step) {
+#if 0 // Clear the compiler warning
         case 0:
             // Init_MAX7315(0xFF);
             break;
+#endif
 
         case 1:
             if (RF_FREQ <= 7)
