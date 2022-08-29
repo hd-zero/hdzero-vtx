@@ -209,7 +209,7 @@ void GetVtxParameter() {
 #ifdef FIX_EEP
         for (i = 0; i <= FREQ_MAX; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
-                I2C_Write8_Wait(10, ADDR_EEPROM, i*(POWER_MAX+1) + j, table_power[i][j]);
+                I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, table_power[i][j]);
             }
         }
 #endif
@@ -253,7 +253,7 @@ void GetVtxParameter() {
 #ifdef _RF_CALIB
             for (i = 0; i <= FREQ_MAX; i++) {
                 for (j = 0; j <= POWER_MAX; j++) {
-                    I2C_Write8_Wait(10, ADDR_EEPROM, i*(POWER_MAX+1) + j, table_power[i][j]);
+                    I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, table_power[i][j]);
                 }
             }
 #endif
@@ -887,7 +887,6 @@ void Flicker_LED(uint8_t n) {
 void Video_Detect() {
     static uint16_t last_sec = 0;
     static uint8_t sec = 0;
-    uint8_t vdet;
     uint16_t val = 0;
 
     if (last_sec != seconds) {
@@ -960,16 +959,11 @@ void Video_Detect() {
             return;
         }
 
-        vdet = ReadReg(0, 0x02) >> 4;
-
-        if (vdet)
-            cameraLost = 1;
-        else
-            cameraLost = 0;
+        cameraLost = (ReadReg(0, 0x02) >> 4) & 1;
 
         if (sec == 3) {
             sec = 0;
-            if (vdet) { // video loss
+            if (cameraLost) { // video loss
                 if (CAM_MODE == CAM_720P50) {
                     Set_720P60(IS_RX);
                     CAM_MODE = CAM_720P60;
