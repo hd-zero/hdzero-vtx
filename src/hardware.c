@@ -416,8 +416,8 @@ void TempDetect() {
     static uint8_t init = 1;
     int16_t temp_new, temp_new0;
 
-    if (temp_tflg) {
-        temp_tflg = 0;
+    if (timer_2hz) {
+        timer_2hz = 0;
 
         if (init) {
             init = 0;
@@ -457,8 +457,8 @@ void TempDetect() {
     if (!dm6300_init_done)
         return;
 
-    if (temp_tflg) {
-        temp_tflg = 0;
+    if (timer_2hz) {
+        timer_2hz = 0;
 
         if (init) {
             init = 0;
@@ -963,9 +963,9 @@ void Video_Detect() {
         vdet = ReadReg(0, 0x02) >> 4;
 
         if (vdet)
-            cameraLost = 0;
-        else
             cameraLost = 1;
+        else
+            cameraLost = 0;
 
         if (sec == 3) {
             sec = 0;
@@ -1328,18 +1328,18 @@ void LED_Flip() {
     }
 }
 void LED_Task() {
-    uint32_t lstMs10x = 0;
     if (cameraLost) {
         if (led_status == ON) {
             LED_BLUE_OFF;
             led_status = OFF;
         }
     } else if (heat_protect) {
-        if (timer_ms10x - lstMs10x > 5000) // 1Hz
+        if (timer_2hz)
             LED_Flip();
-    } else if (PIT_MODE != PIT_0MW) {
-        if (timer_ms10x - lstMs10x > 2500) // 1Hz
+    } else if (PIT_MODE != PIT_OFF) {
+        if (timer_4hz) {
             LED_Flip();
+        }
     } else if (led_status == OFF) {
         LED_BLUE_ON;
         led_status = ON;
