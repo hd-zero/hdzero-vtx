@@ -90,6 +90,10 @@ uint8_t BPLED[] = {
 
 uint8_t dispF_cnt = 0xff;
 
+uint8_t cameraLost = 0;
+
+void LED_Init();
+
 void Set_720P50(uint8_t page) {
     WriteReg(page, 0x21, 0x25);
 
@@ -372,8 +376,7 @@ void Init_HW() {
     //--------- gpio init -----------------
     SPI_Init();
 
-    LED_BLUE_ON;
-    led_status = ON;
+    LED_Init();
 
 #ifdef VIDEO_PAT
     Set_720P60(0);
@@ -413,8 +416,8 @@ void TempDetect() {
     static uint8_t init = 1;
     int16_t temp_new, temp_new0;
 
-    if (temp_tflg) {
-        temp_tflg = 0;
+    if (timer_2hz) {
+        timer_2hz = 0;
 
         if (init) {
             init = 0;
@@ -454,8 +457,8 @@ void TempDetect() {
     if (!dm6300_init_done)
         return;
 
-    if (temp_tflg) {
-        temp_tflg = 0;
+    if (timer_2hz) {
+        timer_2hz = 0;
 
         if (init) {
             init = 0;
@@ -700,10 +703,11 @@ void HeatProtect() {
 #endif
 
 #ifdef USE_TEMPERATURE_SENSOR
-                    if (temp >= temp_max) {
+                    if (temp >= temp_max)
 #else
-                    if ((temp_err == 0) && temp >= temp_max) {
+                    if ((temp_err == 0) && temp >= temp_max)
 #endif
+                    {
                         cnt++;
                         if (cnt == 3) {
 #ifdef _DEBUG_MODE
@@ -726,21 +730,8 @@ void HeatProtect() {
                         cnt = 0;
                 }
             }
-        } else {
-            if (cur_sec != seconds) {
-                cur_sec = seconds;
-                led_status = 1 - led_status;
-                if (led_status == ON)
-                    LED_BLUE_ON;
-                else
-                    LED_BLUE_OFF;
-            }
         }
     } else {
-        if (heat_protect) {
-            LED_BLUE_OFF;
-            led_status = OFF;
-        }
         heat_protect = cnt = cur_sec = sec = 0;
     }
 }
@@ -962,23 +953,19 @@ void Video_Detect() {
                 val |= I2C_Read16(ADDR_TC3587, 0x006A);
                 val |= I2C_Read16(ADDR_TC3587, 0x006E);
             }
-            if (val) {
-                LED_BLUE_ON;
-                led_status = ON;
-            } else {
-                LED_BLUE_OFF;
-                led_status = OFF;
-            }
+            if (val)
+                cameraLost = 0;
+            else
+                cameraLost = 1;
             return;
         }
 
         vdet = ReadReg(0, 0x02) >> 4;
 
-        led_status = vdet;
-        if (led_status == ON)
-            LED_BLUE_ON;
+        if (vdet)
+            cameraLost = 1;
         else
-            LED_BLUE_OFF;
+            cameraLost = 0;
 
         if (sec == 3) {
             sec = 0;
@@ -1327,4 +1314,36 @@ void OnButton1() {
 
     BlinkPhase();
     CFGTimeout();
+}
+
+void LED_Init() {
+    LED_BLUE_ON;
+    led_status = ON;
+}
+void LED_Flip() {
+    if (led_status == ON) {
+        LED_BLUE_OFF;
+        led_status = OFF;
+    } else {
+        LED_BLUE_ON;
+        led_status = ON;
+    }
+}
+void LED_Task() {
+    if (cameraLost) {
+        if (led_status == ON) {
+            LED_BLUE_OFF;
+            led_status = OFF;
+        }
+    } else if (heat_protect) {
+        if (timer_2hz)
+            LED_Flip();
+    } else if (PIT_MODE != PIT_OFF) {
+        if (timer_4hz) {
+            LED_Flip();
+        }
+    } else if (led_status == OFF) {
+        LED_BLUE_ON;
+        led_status = ON;
+    }
 }

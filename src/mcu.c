@@ -133,6 +133,7 @@ void main(void) {
             OnButton1();
 
         if ((last_SA_lock && (seconds > WAIT_SA_CONFIG)) || (last_SA_lock == 0)) {
+            LED_Task();
             TempDetect(); // temperature dectect
             PwrLMT();     // RF power ctrl
             msp_task();   // msp displayport process
@@ -160,7 +161,7 @@ void timer_task() {
         }
 
         if ((timer_cnt & 7) == 7) // every half second, 2Hz
-            temp_tflg = 1;
+            timer_2hz = 1;
 
         if ((timer_cnt & 3) == 3) // every quater second, 4Hz
             timer_4hz = 1;
