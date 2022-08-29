@@ -223,13 +223,12 @@ void RF_Delay_Init() {
 #endif
         if (PIT_MODE == PIT_0MW) {
             /*
-        pwr_lmt_done = 1;
-        // RF_POWER = POWER_MAX + 2;
-        cur_pwr = POWER_MAX + 2;
-        vtx_pit = PIT_0MW;
-    } else if (PIT_MODE == PIT_P1MW) {
-        */
             pwr_lmt_done = 1;
+            RF_POWER = POWER_MAX + 2;
+            cur_pwr = POWER_MAX + 2;
+            vtx_pit = PIT_0MW;
+        } else if (PIT_MODE == PIT_P1MW) {
+            */
             Init_6300RF(RF_FREQ, POWER_MAX + 1);
             vtx_pit = PIT_P1MW;
         } else {
