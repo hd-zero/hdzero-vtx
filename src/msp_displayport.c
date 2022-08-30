@@ -125,13 +125,9 @@ void msp_task() {
             t1 = 0;
     }
 
-    if (timer_4hz)
-        timer_4hz = 0;
-
     // send param to FC -- 8HZ
     // send param to VRX -- 8HZ
     if (timer_8hz) {
-        timer_8hz = 0;
         len = get_tx_data_5680();
         insert_tx_buf(len);
         if (dispF_cnt < DISPF_TIME)
@@ -1752,6 +1748,9 @@ void InitVtxTable() {
 
 void fc_init() {}
 void msp_task() {}
-void msp_set_vtx_config(uint8_t power, uint8_t save) {(void)power; (void)save;}
+void msp_set_vtx_config(uint8_t power, uint8_t save) {
+    (void)power;
+    (void)save;
+}
 
 #endif

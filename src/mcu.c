@@ -148,6 +148,7 @@ void timer_task() {
     static uint16_t cur_ms10x_1sd16 = 0, last_ms10x_1sd16 = 0;
     static uint8_t timer_cnt = 0;
     cur_ms10x_1sd16 = timer_ms10x;
+    timer_16hz = 1;
     if (((cur_ms10x_1sd16 - last_ms10x_1sd16) >= TIMER0_1SD16) || (cur_ms10x_1sd16 < last_ms10x_1sd16)) {
         last_ms10x_1sd16 = cur_ms10x_1sd16;
         timer_cnt++;
@@ -160,14 +161,9 @@ void timer_task() {
             pwr_sflg = 1;
         }
 
-        if ((timer_cnt & 7) == 7) // every half second, 2Hz
-            timer_2hz = 1;
-
-        if ((timer_cnt & 3) == 3) // every quater second, 4Hz
-            timer_4hz = 1;
-
-        if ((timer_cnt & 1) == 1) // every octual second, 8Hz
-            timer_8hz = 1;
+        timer_2hz = ((timer_cnt & 7) == 7);
+        timer_4hz = ((timer_cnt & 3) == 3);
+        timer_8hz = ((timer_cnt & 1) == 1);
         timer_16hz = 1;
     }
 }

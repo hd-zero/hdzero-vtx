@@ -417,8 +417,6 @@ void TempDetect() {
     int16_t temp_new, temp_new0;
 
     if (timer_2hz) {
-        timer_2hz = 0;
-
         if (init) {
             init = 0;
             temp0 = DM6300_GetTemp();
@@ -458,8 +456,6 @@ void TempDetect() {
         return;
 
     if (timer_2hz) {
-        timer_2hz = 0;
-
         if (init) {
             init = 0;
             temperature = DM6300_GetTemp();
