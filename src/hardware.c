@@ -1154,18 +1154,18 @@ void Button1_LP() {
     case 0:
         cfg_step = 2;
         CFG_Back();
-        Init_MAX7315(0xFF);
+        Set_MAX7315(0xFF);
         break;
     case 1:
         cfg_step = 2;
-        Init_MAX7315(0xFF);
+        Set_MAX7315(0xFF);
         break;
     case 2:
     case 3:
         cfg_step = 0;
-        Init_MAX7315(0x00);
+        Set_MAX7315(0x00);
         WAIT(100);
-        Init_MAX7315(0xFF);
+        Set_MAX7315(0xFF);
         break;
     }
     // debugf("\r\nShort Press: cfg_step=%d, FREQ_CFG=%d, POWER_CFG=%d", (uint16_t)cfg_step, (uint16_t)FREQ_CFG, (uint16_t)POWER_CFG);
@@ -1179,19 +1179,19 @@ void Button1_LLP() {
     if (cfg_step == 0) {
         cfg_step = 3;
         CFG_Back();
-        Init_MAX7315(0xFF);
+        Set_MAX7315(0xFF);
     }
 }
 
 void Flicker_MAX(uint8_t ch, uint8_t cnt) {
     uint8_t i;
     for (i = 0; i < cnt; i++) {
-        Init_MAX7315(0xFF);
+        Set_MAX7315(0xFF);
         WAIT(90);
-        Init_MAX7315(ch);
+        Set_MAX7315(ch);
         WAIT(120);
     }
-    Init_MAX7315(0xFF);
+    Set_MAX7315(0xFF);
 }
 
 void BlinkPhase() {
@@ -1199,13 +1199,12 @@ void BlinkPhase() {
 
     if (cfg_step == 1 && (dispF_cnt < DISPF_TIME)) { // display 'F' band
         bp = BPLED[14];
-        I2C_Write8(ADDR_KEYBOARD, 0x01, bp);
-        I2C_Write8(ADDR_KEYBOARD, 0x03, 0x00);
+        Set_MAX7315(bp);
     } else {
         switch (cfg_step) {
 #if 0 // Clear the compiler warning
         case 0:
-            // Init_MAX7315(0xFF);
+            // Set_MAX7315(0xFF);
             break;
 #endif
 
@@ -1216,20 +1215,17 @@ void BlinkPhase() {
                 bp = BPLED[2];
             else if (RF_FREQ == 9) // F4
                 bp = BPLED[4];
-            I2C_Write8(ADDR_KEYBOARD, 0x01, bp);
-            I2C_Write8(ADDR_KEYBOARD, 0x03, 0x00);
+            Set_MAX7315(bp);
             break;
 
         case 2:
             bp = BPLED[RF_POWER + 1] & 0x7F;
-            I2C_Write8(ADDR_KEYBOARD, 0x01, bp);
-            I2C_Write8(ADDR_KEYBOARD, 0x03, 0x00);
+            Set_MAX7315(bp);
             break;
 
         case 3:
             bp = BPLED[LP_MODE + 1];
-            I2C_Write8(ADDR_KEYBOARD, 0x01, bp);
-            I2C_Write8(ADDR_KEYBOARD, 0x03, 0x00);
+            Set_MAX7315(bp);
             break;
         }
     }
@@ -1244,7 +1240,7 @@ void CFGTimeout() {
                 CFG_Back();
                 cfg_step = 0;
 
-                Init_MAX7315(0xFF);
+                Set_MAX7315(0xFF);
 #ifdef _DEBUG_MODE
                 debugf("\r\nCFG Timeout.");
 #endif
@@ -1269,7 +1265,7 @@ void OnButton1() {
 
         KEYBOARD_ON = USE_MAX7315 | USE_PCA9554;
         if (KEYBOARD_ON && (last_keyon == 0))
-            Init_MAX7315(0xFF);
+            Set_MAX7315(0xFF);
         last_keyon = KEYBOARD_ON;
     }
 
