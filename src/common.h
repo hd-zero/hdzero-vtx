@@ -8,9 +8,6 @@
 #include "sfr_ext.h"
 #include "toolchain.h"
 
-#define VERSION 0x41
-#define BETA    0x04
-
 //#define HDZERO_WHOOP
 //#define HDZERO_WHOOP_LITE
 //#define HDZERO_RACE_V1
@@ -32,17 +29,17 @@
 #endif
 
 #if defined HDZERO_WHOOP
-#define VTX_NAME "     HDZ WHOOP"
+#define VTX_NAME "HDZ WHOOP"
 #elif defined HDZERO_WHOOP_LITE
 #define VTX_NAME "HDZ WHOOP LITE"
 #elif defined HDZERO_RACE_V1
-#define VTX_NAME "   HDZ RACE V1"
+#define VTX_NAME "HDZ RACE V1"
 #elif defined HDZERO_RACE_V2
-#define VTX_NAME "   HDZ RACE V2"
+#define VTX_NAME "HDZ RACE V2"
 #elif defined HDZERO_FREESTYLE
-#define VTX_NAME " HDZ FREESTYLE"
+#define VTX_NAME "HDZ FREESTYLE"
 #else
-#define VTX_NAME "              "
+#define VTX_NAME "  "
 #endif
 
 // system
@@ -60,7 +57,7 @@
 //#define FIX_EEP
 
 #ifndef _RF_CALIB
-//#define _DEBUG_MODE
+#define _DEBUG_MODE
 //#define _DEBUG_DM6300
 //#define _DEBUG_TC3587
 //#define _DEBUG_CAMERA

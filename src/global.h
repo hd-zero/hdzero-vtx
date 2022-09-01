@@ -22,5 +22,4 @@ void WAIT(uint16_t ms);
 #else
 void WAIT(uint32_t ms);
 #endif
-
 #endif /* __GLOBAL_H_ */
