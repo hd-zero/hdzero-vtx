@@ -393,7 +393,7 @@ uint8_t get_tx_data_5680() // prepare data to VRX
     tx_buf[1] = DP_HEADER1;
     tx_buf[2] = 0xff;
     // len
-    tx_buf[3] = 15;
+    tx_buf[3] = 14;
 
     // camType
     if (CAM_MODE == CAM_720P50)
@@ -434,9 +434,7 @@ uint8_t get_tx_data_5680() // prepare data to VRX
     tx_buf[17] = VTX_VERSION_MINOR;
     tx_buf[18] = VTX_VERSION_PATCH_LEVEL;
 
-    tx_buf[19] = 0x40; // crc
-
-    return 20;
+    return 19;
 }
 
 uint8_t get_tx_data_osd(uint8_t index) // prepare osd+data to VTX
