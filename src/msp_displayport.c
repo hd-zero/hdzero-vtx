@@ -125,13 +125,9 @@ void msp_task() {
             t1 = 0;
     }
 
-    if (timer_4hz)
-        timer_4hz = 0;
-
     // send param to FC -- 8HZ
     // send param to VRX -- 8HZ
     if (timer_8hz) {
-        timer_8hz = 0;
         len = get_tx_data_5680();
         insert_tx_buf(len);
         if (dispF_cnt < DISPF_TIME)
@@ -1575,6 +1571,8 @@ void set_vtx_param() {
     */
     if (SA_lock)
         return;
+    if (!rf_delay_init_done)
+        return;
 
     if (!g_IS_ARMED) {
         // configurate pitmode when power-up or setting_vtx
@@ -1592,7 +1590,11 @@ void set_vtx_param() {
                     temp_err = 1;
                 } else // if(vtx_pit_save == PIT_P1MW)
                 {
-                    DM6300_SetPower(POWER_MAX + 1, RF_FREQ, 0);
+                    if (!dm6300_init_done) {
+                        Init_6300RF(RF_FREQ, POWER_MAX + 1);
+                        DM6300_AUXADC_Calib();
+                    } else
+                        DM6300_SetPower(POWER_MAX + 1, RF_FREQ, 0);
 #ifdef _DEBUG_MODE
                     debugf("\r\nDM6300 P1mW");
 #endif
