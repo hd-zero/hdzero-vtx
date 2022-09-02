@@ -17,6 +17,7 @@
 #include "version.h"
 
 uint8_t UNUSED = 0;
+uint8_t rf_delay_init_done = 0;
 
 void timer_task();
 void RF_Delay_Init();
@@ -143,6 +144,7 @@ void timer_task() {
     static uint16_t cur_ms10x_1sd16 = 0, last_ms10x_1sd16 = 0;
     static uint8_t timer_cnt = 0;
     cur_ms10x_1sd16 = timer_ms10x;
+    timer_16hz = 1;
     if (((cur_ms10x_1sd16 - last_ms10x_1sd16) >= TIMER0_1SD16) || (cur_ms10x_1sd16 < last_ms10x_1sd16)) {
         last_ms10x_1sd16 = cur_ms10x_1sd16;
         timer_cnt++;
@@ -155,14 +157,9 @@ void timer_task() {
             pwr_sflg = 1;
         }
 
-        if ((timer_cnt & 7) == 7) // every half second, 2Hz
-            timer_2hz = 1;
-
-        if ((timer_cnt & 3) == 3) // every quater second, 4Hz
-            timer_4hz = 1;
-
-        if ((timer_cnt & 1) == 1) // every octual second, 8Hz
-            timer_8hz = 1;
+        timer_2hz = ((timer_cnt & 7) == 7);
+        timer_4hz = ((timer_cnt & 3) == 3);
+        timer_8hz = ((timer_cnt & 1) == 1);
         timer_16hz = 1;
     }
 }
@@ -181,57 +178,60 @@ void RF_Delay_Init() {
     }
 
     // init_rf
-    if (!dm6300_init_done) {
+    if (seconds < WAIT_SA_CONFIG)
+        return;
+    else if (rf_delay_init_done)
+        return;
+    else if (dm6300_init_done)
+        return;
+    else
+        rf_delay_init_done = 1;
 
-        if (seconds < WAIT_SA_CONFIG)
-            return;
-
-        if (last_SA_lock) {
+    if (last_SA_lock) {
 #ifdef _DEBUG_MODE
-            debugf("\r\nRF_Delay_Init: SA");
+        debugf("\r\nRF_Delay_Init: SA");
 #endif
-            pwr_lmt_sec = PWR_LMT_SEC;
-            if (SA_lock) {
-                if (pwr_init == POWER_MAX + 2) { // 0mW
-                    RF_POWER = POWER_MAX + 2;
-                    cur_pwr = POWER_MAX + 2;
-                } else if (PIT_MODE) {
-                    Init_6300RF(ch_init, POWER_MAX + 1);
+        pwr_lmt_sec = PWR_LMT_SEC;
+        if (SA_lock) {
+            if (pwr_init == POWER_MAX + 2) { // 0mW
+                RF_POWER = POWER_MAX + 2;
+                cur_pwr = POWER_MAX + 2;
+            } else if (PIT_MODE) {
+                Init_6300RF(ch_init, POWER_MAX + 1);
 #ifdef _DEBUG_MODE
-                    debugf("\r\n ch%x, pwr%x", (uint16_t)ch_init, (uint16_t)cur_pwr);
+                debugf("\r\n ch%x, pwr%x", (uint16_t)ch_init, (uint16_t)cur_pwr);
 #endif
-                } else {
-                    Init_6300RF(ch_init, pwr_init);
-#ifdef _DEBUG_MODE
-                    debugf("\r\n ch%x, pwr%x", (uint16_t)ch_init, (uint16_t)cur_pwr);
-#endif
-                }
-                DM6300_AUXADC_Calib();
-            }
-        } else if (!mspVtxLock) {
-#ifdef _DEBUG_MODE
-            debugf("\r\nRF_Delay_Init: None");
-#endif
-            if (PIT_MODE == PIT_0MW) {
-                /*
-                    pwr_lmt_done = 1;
-                    RF_POWER = POWER_MAX + 2;
-                    cur_pwr = POWER_MAX + 2;
-                    vtx_pit = PIT_0MW;
-                }else if(PIT_MODE == PIT_P1MW)
-                */
-                Init_6300RF(RF_FREQ, POWER_MAX + 1);
             } else {
-                WriteReg(0, 0x8F, 0x00);
-                WriteReg(0, 0x8F, 0x01);
-                DM6300_Init(RF_FREQ, RF_BW);
-                DM6300_SetChannel(RF_FREQ);
-                DM6300_SetPower(0, RF_FREQ, 0);
-                cur_pwr = RF_POWER;
-                WriteReg(0, 0x8F, 0x11);
+                Init_6300RF(ch_init, pwr_init);
+#ifdef _DEBUG_MODE
+                debugf("\r\n ch%x, pwr%x", (uint16_t)ch_init, (uint16_t)cur_pwr);
+#endif
             }
-
             DM6300_AUXADC_Calib();
         }
+    } else if (!mspVtxLock) {
+#ifdef _DEBUG_MODE
+        debugf("\r\nRF_Delay_Init: None");
+#endif
+        if (PIT_MODE == PIT_0MW) {
+            /*
+            pwr_lmt_done = 1;
+            RF_POWER = POWER_MAX + 2;
+            cur_pwr = POWER_MAX + 2;
+            vtx_pit = PIT_0MW;
+        } else if (PIT_MODE == PIT_P1MW) {
+            */
+            Init_6300RF(RF_FREQ, POWER_MAX + 1);
+            vtx_pit = PIT_P1MW;
+        } else {
+            WriteReg(0, 0x8F, 0x00);
+            WriteReg(0, 0x8F, 0x01);
+            DM6300_Init(RF_FREQ, RF_BW);
+            DM6300_SetChannel(RF_FREQ);
+            DM6300_SetPower(0, RF_FREQ, 0);
+            cur_pwr = RF_POWER;
+            WriteReg(0, 0x8F, 0x11);
+        }
+        DM6300_AUXADC_Calib();
     }
 }
