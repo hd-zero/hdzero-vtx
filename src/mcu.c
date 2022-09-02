@@ -92,9 +92,9 @@ void main(void) {
 
 #ifdef _DEBUG_MODE
     debugf("\r\n");
-    debugf("\r\nVtx:%s", VTX_NAME);
-    debugf("\r\nVersion: %s", VTX_VERSION_STRING);
-    debugf("\r\nBuild time: " __DATE__ " " __TIME__);
+    debugf("\r\nVtx        : %s", VTX_NAME);
+    debugf("\r\nVersion    : %s", VTX_VERSION_STRING);
+    debugf("\r\nBuild time : " __DATE__ " " __TIME__);
 #endif
 
     Init_HW(); // init
