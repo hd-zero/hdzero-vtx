@@ -14,6 +14,7 @@
 #include "sfr_ext.h"
 #include "smartaudio_protocol.h"
 #include "uart.h"
+#include "version.h"
 
 uint8_t UNUSED = 0;
 uint8_t rf_delay_init_done = 0;
@@ -91,14 +92,10 @@ void main(void) {
     // WAIT(100);
 
 #ifdef _DEBUG_MODE
-    debugf("\r\n========================================================");
-    debugf("\r\n     >>>             Divimath DM568X            <<<     ");
-    debugf("\r\n========================================================");
-    debugf("\r\nversion:%02X", VERSION);
-#ifdef BETA
-    debugf(".%02X", BETA);
-#endif
     debugf("\r\n");
+    debugf("\r\nVtx        : %s", VTX_NAME);
+    debugf("\r\nVersion    : %s", VTX_VERSION_STRING);
+    debugf("\r\nBuild time : " __DATE__ " " __TIME__);
 #endif
 
     Init_HW(); // init
@@ -114,7 +111,6 @@ void main(void) {
 
     // main loop
     while (1) {
-
         timer_task();
 
 #ifdef USE_SMARTAUDIO

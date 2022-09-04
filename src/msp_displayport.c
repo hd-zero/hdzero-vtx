@@ -11,6 +11,7 @@
 #include "smartaudio_protocol.h"
 #include "spi.h"
 #include "uart.h"
+#include "version.h"
 
 uint8_t osd_buf[HD_VMAX][HD_HMAX];
 uint8_t loc_buf[HD_VMAX][7];
@@ -388,7 +389,7 @@ uint8_t get_tx_data_5680() // prepare data to VRX
     tx_buf[1] = DP_HEADER1;
     tx_buf[2] = 0xff;
     // len
-    tx_buf[3] = 12;
+    tx_buf[3] = 14;
 
     // camType
     if (CAM_MODE == CAM_720P50)
@@ -417,7 +418,7 @@ uint8_t get_tx_data_5680() // prepare data to VRX
 
     tx_buf[11] = fontType; // fontType
 
-    tx_buf[12] = VERSION;
+    tx_buf[12] = 0x00; // deprecated
 
     tx_buf[13] = VTX_ID;
 
@@ -425,9 +426,11 @@ uint8_t get_tx_data_5680() // prepare data to VRX
 
     tx_buf[15] = cam_4_3 ? 0xaa : 0x55;
 
-    tx_buf[16] = 0x40; // crc
+    tx_buf[16] = VTX_VERSION_MAJOR;
+    tx_buf[17] = VTX_VERSION_MINOR;
+    tx_buf[18] = VTX_VERSION_PATCH_LEVEL;
 
-    return 17;
+    return 19;
 }
 
 uint8_t get_tx_data_osd(uint8_t index) // prepare osd+data to VTX
@@ -1428,26 +1431,20 @@ void vtx_menu_init() {
     }
 
     // draw variant
-    strcpy(osd_buf[10] + osd_menu_offset + 10, VTX_NAME);
+    strcpy(osd_buf[10] + osd_menu_offset + 13, VTX_NAME);
 
     // draw version
-    osd_buf[11][osd_menu_offset + 22] = (uint8_t)((VERSION >> 4) & 0x0f) + '0';
-    osd_buf[11][osd_menu_offset + 23] = (uint8_t)(VERSION & 0x0f) + '0';
-#ifdef BETA
-    osd_buf[11][osd_menu_offset + 25] = 'B';
-    osd_buf[11][osd_menu_offset + 26] = (uint8_t)((BETA >> 4) & 0x0f) + '0';
-    osd_buf[11][osd_menu_offset + 27] = (uint8_t)(BETA & 0x0f) + '0';
-#endif
+    strcpy(osd_buf[11] + osd_menu_offset + 13, VTX_VERSION_STRING);
 
     ParseLifeTime(hourString, minuteString);
-    osd_buf[12][osd_menu_offset + 16] = hourString[0];
-    osd_buf[12][osd_menu_offset + 17] = hourString[1];
-    osd_buf[12][osd_menu_offset + 18] = hourString[2];
-    osd_buf[12][osd_menu_offset + 19] = hourString[3];
-    osd_buf[12][osd_menu_offset + 20] = 'H';
-    osd_buf[12][osd_menu_offset + 21] = minuteString[0];
-    osd_buf[12][osd_menu_offset + 22] = minuteString[1];
-    osd_buf[12][osd_menu_offset + 23] = 'M';
+    osd_buf[12][osd_menu_offset + 13] = hourString[0];
+    osd_buf[12][osd_menu_offset + 14] = hourString[1];
+    osd_buf[12][osd_menu_offset + 15] = hourString[2];
+    osd_buf[12][osd_menu_offset + 16] = hourString[3];
+    osd_buf[12][osd_menu_offset + 17] = 'H';
+    osd_buf[12][osd_menu_offset + 18] = minuteString[0];
+    osd_buf[12][osd_menu_offset + 19] = minuteString[1];
+    osd_buf[12][osd_menu_offset + 20] = 'M';
 
     vtx_channel = RF_FREQ;
     vtx_power = RF_POWER;
