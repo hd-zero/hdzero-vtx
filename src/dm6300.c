@@ -248,6 +248,8 @@ void DM6300_InitAUXADC() {
     dat3 = ((int32_t)dat) >> 20;
 
     auxadc_offset = dat3 - ((dat1 + dat2) >> 1);
+    if (auxadc_offset < 0x420)
+        auxadc_offset = 0x420;
 #ifdef _DEBUG_MODE
     debugf("\r\nDM6300 AUXADC Calib done. data1=%x, data2=%x, data3=%x, offset=%x", dat1, dat2, dat3, auxadc_offset);
 #endif
@@ -299,6 +301,7 @@ int16_t DM6300_GetTemp() {
     }
 
     SPI_Write(0x6, 0xFF0, 0x00000019);
+    WAIT(1);
     SPI_Read(0x3, 0x17C, &dat);
     temp = (((int32_t)dat) >> 20) + auxadc_offset;
 
