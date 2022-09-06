@@ -301,6 +301,7 @@ int16_t DM6300_GetTemp() {
     }
 
     SPI_Write(0x6, 0xFF0, 0x00000019);
+    WAIT(1);
     SPI_Read(0x3, 0x17C, &dat);
     temp = (((int32_t)dat) >> 20) + auxadc_offset;
 
