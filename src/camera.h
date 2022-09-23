@@ -99,7 +99,7 @@ void CameraInit();
 uint8_t camStatusUpdate(uint8_t op);
 void camMenuInit();
 
-extern uint8_t cam_4_3;
+extern uint8_t camRatio;
 extern uint8_t CAM_MODE;
 extern uint8_t cameraID;
 

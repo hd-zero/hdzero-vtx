@@ -428,7 +428,7 @@ uint8_t get_tx_data_5680() // prepare data to VRX
 
     tx_buf[14] = fc_lock & 0x03;
 
-    tx_buf[15] = cam_4_3 ? 0xaa : 0x55;
+    tx_buf[15] = (camRatio == 0) ? 0xaa : 0x55;
 
     tx_buf[16] = VTX_VERSION_MAJOR;
     tx_buf[17] = VTX_VERSION_MINOR;

@@ -93,7 +93,6 @@ uint8_t dispF_cnt = 0xff;
 uint8_t cameraLost = 0;
 
 void LED_Init();
-void LED_Task();
 
 void Set_720P50(uint8_t page) {
     WriteReg(page, 0x21, 0x25);

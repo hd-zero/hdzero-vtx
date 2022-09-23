@@ -44,7 +44,12 @@ const uint8_t camParameterInit[CAM_PROFILE_NUM][15] = {
 };
 
 uint8_t CAM_MODE = CAM_720P60;
-uint8_t cam_4_3 = 0;
+/*
+0: 4:3
+1: 16_9 crop
+2: 16_9 full
+*/
+uint8_t camRatio = 0;
 uint8_t camMenuStatus = CAM_STATUS_IDLE;
 uint8_t bw_changed = 0;
 
@@ -74,29 +79,19 @@ uint8_t CamDetect() {
 #ifdef _DEBUG_MODE
             debugf("\r\ncameraTarget = %lx", val);
 #endif
-#if (0)
-            val = RUNCAM_Read(cameraID, 0x000008);
-            if (val == 0x8008811d) {
-                val = CAM_720X540_90;
-            } else if (val == 0x8108811e)
-                val = CAM_720X540_60;
-            else if (val == 0x8208811f)
-                val = CAM_960x720_60;
-#else
+#if 0
             if (val == 0x00000000) {
                 Init_TC3587(1);
                 Set_720P90(0);
                 fps = CAM_720X540_90;
                 cameraTarget = 1;
                 debugf("\r\nCamDetect: Set 90fps.");
-            } else if (val == 0x00000064)
-                Init_TC3587(0);
-            else {
-                while (1) {
-                    Flicker_LED(10);
-                }
-            }
+            } else
 #endif
+            {
+                Set_720P60(IS_RX);
+                Init_TC3587(0);
+            }
         } else {
             Set_720P60(IS_RX);
         }
@@ -294,38 +289,33 @@ uint8_t Runcam_GetVdoFormat(uint8_t cameraID) {
         1: 720p30 4:3
     */
     uint32_t val;
-    uint8_t ret = 2;
+    uint8_t ret = 0;
 
     if (cameraID != RUNCAM_MICRO_V2)
         return ret;
+    if (cameraTarget == 1)
+        return ret;
 
-    while (ret == 2) {
-        val = RUNCAM_Read(cameraID, 0x000008);
-        if (val == 0x00089102) { // 720p60  16:9
-            ret = 0;
-            cam_4_3 = 0;
-        } else if (val == 0x0008910B) { // 720p60  4:3
-            ret = 0;
-            cam_4_3 = 1;
-        } else if (val == 0x00089104) { // 720p30 16:9
-            ret = 1;
-            cam_4_3 = 0;
-        } else if (val == 0x00089109) { // 720p60 4:3
-            ret = 1;
-            cam_4_3 = 1;
-        } else {
-            ret = 2;
-            cam_4_3 = 0;
-        }
-        WAIT(100);
-        LED_BLUE_OFF;
-        WAIT(100);
-        LED_BLUE_ON;
-        led_status = ON;
+    val = RUNCAM_Read(cameraID, 0x000008);
+    if (val == 0x00089102) { // 720p60  16:9
+        ret = 0;
+        camRatio = 0;
+    } else if (val == 0x0008910B) { // 720p60  4:3
+        ret = 0;
+        camRatio = 1;
+    } else if (val == 0x00089104) { // 720p30 16:9
+        ret = 1;
+        camRatio = 0;
+    } else if (val == 0x00089109) { // 720p60 4:3
+        ret = 1;
+        camRatio = 1;
+    } else {
+        ret = 2;
+        camRatio = 0;
     }
 
 #ifdef _DEBUG_CAMERA
-    debugf("\r\nVdoFormat:%02x, 4_3:%02x", (uint16_t)ret, (uint16_t)cam_4_3);
+    debugf("\r\nVdoFormat:%02x, 4_3:%02x", (uint16_t)ret, (uint16_t)camRatio);
 #endif
     return ret;
 }
@@ -467,6 +457,9 @@ void camera_check_and_save_parameters() {
             camera_write_eep_parameter((i << 4) + j + EEP_ADDR_CAM_WBBLUE, camCfg_EEP[i].wbBlue[j]);
         }
     }
+
+    if (camRatio > 2)
+        camRatio = 0;
 }
 
 void GetCamCfg_EEP(void) {
@@ -491,7 +484,7 @@ void GetCamCfg_EEP(void) {
             }
         }
     }
-
+    camRatio = camera_read_eep_parameter(EEP_ADDR_CAM_RATIO);
     camera_check_and_save_parameters();
 }
 void GetCamCfg(uint8_t USE_EEP_PROFILE) {
@@ -623,6 +616,7 @@ void SetCamCfg(cameraConfig_t *cfg, uint8_t INIT) {
         Runcam_SetHVFlip(cfg->hvFlip);
         Runcam_SetNightMode(cfg->nightMode);
         Runcam_SetWB(cfg->wbRed, cfg->wbBlue, cfg->wbMode);
+        Runcam_SetVdoRatio(camRatio);
     } else {
         if (camCfg_Cur.brightness != cfg->brightness)
             Runcam_SetBrightness(cfg->brightness);
@@ -1041,7 +1035,9 @@ uint8_t camStatusUpdate(uint8_t op) {
         else if (op == BTN_DOWN)
             camMenuStatus = CAM_STATUS_SET_VDO_RATIO_16_9_CROP;
         else if (op == BTN_RIGHT) {
-            Runcam_SetVdoRatio(0);
+            camRatio = 0;
+            Runcam_SetVdoRatio(camRatio);
+            camera_write_eep_parameter(EEP_ADDR_CAM_RATIO, camRatio);
             memset(osd_buf, 0x20, sizeof(osd_buf));
             strcpy(osd_buf[1] + osd_menu_offset + 2, " NEED TO REPOWER VTX");
             camMenuStatus = CAM_STATUS_REPOWER;
@@ -1057,7 +1053,9 @@ uint8_t camStatusUpdate(uint8_t op) {
         else if (op == BTN_DOWN)
             camMenuStatus = CAM_STATUS_SET_VDO_RATIO_16_9_FULL;
         else if (op == BTN_RIGHT) {
-            Runcam_SetVdoRatio(1);
+            camRatio = 1;
+            Runcam_SetVdoRatio(camRatio);
+            camera_write_eep_parameter(EEP_ADDR_CAM_RATIO, camRatio);
             memset(osd_buf, 0x20, sizeof(osd_buf));
             strcpy(osd_buf[1] + osd_menu_offset + 2, " NEED TO REPOWER VTX");
             camMenuStatus = CAM_STATUS_REPOWER;
@@ -1073,7 +1071,9 @@ uint8_t camStatusUpdate(uint8_t op) {
         else if (op == BTN_DOWN)
             camMenuStatus = CAM_STATUS_SET_VDO_RATIO_RETURN;
         else if (op == BTN_RIGHT) {
-            Runcam_SetVdoRatio(2);
+            camRatio = 2;
+            Runcam_SetVdoRatio(camRatio);
+            camera_write_eep_parameter(EEP_ADDR_CAM_RATIO, camRatio);
             memset(osd_buf, 0x20, sizeof(osd_buf));
             strcpy(osd_buf[1] + osd_menu_offset + 2, " NEED TO REPOWER VTX");
             camMenuStatus = CAM_STATUS_REPOWER;
