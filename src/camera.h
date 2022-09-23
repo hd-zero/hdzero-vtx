@@ -38,6 +38,9 @@ typedef enum {
     CAM_720P60,
     CAM_720P60_NEW,
     CAM_720P30,
+    CAM_720X540_90,
+    CAM_720X540_60,
+    CAM_960x720_60
 } camFPSType_e;
 
 typedef enum {

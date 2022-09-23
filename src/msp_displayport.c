@@ -400,6 +400,10 @@ uint8_t get_tx_data_5680() // prepare data to VRX
         tx_buf[4] = 0xAA;
     else if (CAM_MODE == CAM_720P30)
         tx_buf[4] = 0xCC;
+    else if (CAM_MODE == CAM_720X540_90)
+        tx_buf[4] = 0xEE;
+    else
+        tx_buf[4] = 0x99;
 
     // fcType
     tx_buf[5] = fc_variant[0];

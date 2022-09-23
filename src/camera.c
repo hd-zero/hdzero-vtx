@@ -9,6 +9,7 @@
 #include "print.h"
 
 uint8_t cameraID = 0;
+uint8_t cameraTarget = 0;
 RuncamV2Profile_e camProfile_EEP;
 RuncamV2Profile_e camProfile;
 RuncamV2Profile_e camProfile_Menu;
@@ -56,55 +57,86 @@ uint8_t CamDetect() {
     uint8_t loss = 0;
     uint8_t detect_tries = 0;
     uint8_t status_reg = 0;
+    uint32_t val;
+
+    if (!RUNCAM_Write(RUNCAM_MICRO_V1, 0x50, 0x0452484E))
+        cameraID = RUNCAM_MICRO_V1;
+    else if (!RUNCAM_Write(RUNCAM_MICRO_V2, 0x50, 0x0452484E))
+        cameraID = RUNCAM_MICRO_V2;
+    else
+        cameraID = 0;
 
     WriteReg(0, 0x8F, 0x91);
 
-    while (cycles) {
-        if (fps == CAM_720P50) {
-            Init_TC3587();
-            Set_720P50(IS_RX);
-            debugf("\r\nCamDetect: Set 50fps.");
-        } else if (fps == CAM_720P60) {
-            Init_TC3587();
-            Set_720P60(IS_RX);
-            debugf("\r\nCamDetect: Set 60fps.");
-        }
-        WAIT(100);
-
-        for (detect_tries = 0; detect_tries < 5; detect_tries++) {
-            status_reg = ReadReg(0, 0x02);
-            debugf("\r\nCamDetect status_reg: %x", status_reg);
-
-            if ((status_reg >> 4) != 0) {
-                loss = 1;
+    if (cameraID) {
+        if (cameraID == RUNCAM_MICRO_V2) {
+            val = RUNCAM_Read(RUNCAM_MICRO_V2, 0x000a98);
+#ifdef _DEBUG_MODE
+            debugf("\r\ncameraTarget = %lx", val);
+#endif
+#if (0)
+            val = RUNCAM_Read(cameraID, 0x000008);
+            if (val == 0x8008811d) {
+                val = CAM_720X540_90;
+            } else if (val == 0x8108811e)
+                val = CAM_720X540_60;
+            else if (val == 0x8208811f)
+                val = CAM_960x720_60;
+#else
+            if (val == 0x00000000) {
+                Init_TC3587(1);
+                Set_720P90(0);
+                fps = CAM_720X540_90;
+                cameraTarget = 1;
+                debugf("\r\nCamDetect: Set 90fps.");
+            } else if (val == 0x00000064)
+                Init_TC3587(0);
+            else {
+                while (1) {
+                    Flicker_LED(10);
+                }
             }
-            WAIT(5);
+#endif
+        } else {
+            Set_720P60(IS_RX);
         }
-
-        if (loss == 0)
-            break;
-
-        fps = (fps == CAM_720P60) ? CAM_720P50 : CAM_720P60;
-
-        loss = 0;
-        cycles--;
-    }
-
-    if (cycles == 0) {
-        fps = CAM_720P60_NEW;
-        Set_720P60(IS_RX);
         I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
-        if (!RUNCAM_Write(RUNCAM_MICRO_V1, 0x50, 0x0452484E))
-            cameraID = RUNCAM_MICRO_V1;
-        else if (!RUNCAM_Write(RUNCAM_MICRO_V2, 0x50, 0x0452484E))
-            cameraID = RUNCAM_MICRO_V2;
-        else
-            cameraID = 0;
+    } else {
+        while (cycles) {
+            if (fps == CAM_720P50) {
+                Init_TC3587(0);
+                Set_720P50(IS_RX);
+                debugf("\r\nCamDetect: Set 50fps.");
+            } else if (fps == CAM_720P60) {
+                Init_TC3587(0);
+                Set_720P60(IS_RX);
+                debugf("\r\nCamDetect: Set 60fps.");
+            }
+            WAIT(100);
+
+            for (detect_tries = 0; detect_tries < 5; detect_tries++) {
+                status_reg = ReadReg(0, 0x02);
+                debugf("\r\nCamDetect status_reg: %x", status_reg);
+
+                if ((status_reg >> 4) != 0) {
+                    loss = 1;
+                }
+                WAIT(5);
+            }
+
+            if (loss == 0)
+                break;
+
+            fps = (fps == CAM_720P60) ? CAM_720P50 : CAM_720P60;
+
+            loss = 0;
+            cycles--;
+        }
+    }
 
 #ifdef _DEBUG_MODE
-        debugf("\r\ncameraID: %x", (uint16_t)cameraID);
+    debugf("\r\ncameraID: %x", (uint16_t)cameraID);
 #endif
-    }
 
     return fps;
 }

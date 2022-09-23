@@ -74,7 +74,7 @@ void LED_TC3587_Init() {
 }
 #endif
 
-void Init_TC3587() {
+void Init_TC3587(uint8_t fmt) {
     uint16_t val = 0;
 
 #ifdef TC3587_RSTB
@@ -120,13 +120,16 @@ void Init_TC3587() {
 
     I2C_Write16(ADDR_TC3587, 0x0060, 0x800a); // mipi phy timing delay ; 0x800a
 
-    I2C_Write16(ADDR_TC3587, 0x0018, 0x0111); // pll
-    I2C_Write16(ADDR_TC3587, 0x0018, 0x0113); // pll
-    I2C_Write16(ADDR_TC3587, 0x0016, 0x3057); // pll
-    I2C_Write16(ADDR_TC3587, 0x0020, 0x0000); // clk config
-    I2C_Write16(ADDR_TC3587, 0x000c, 0x0101); // mclk
-    I2C_Write16(ADDR_TC3587, 0x0018, 0x0111); // pll //0111
-    I2C_Write16(ADDR_TC3587, 0x0018, 0x0113); // pll //0113
+    I2C_Write16(ADDR_TC3587, 0x0018, 0x0111);     // pll
+    I2C_Write16(ADDR_TC3587, 0x0018, 0x0113);     // pll
+    if (fmt == 0)                                 // 720p
+        I2C_Write16(ADDR_TC3587, 0x0016, 0x3057); // pll
+    else if (fmt == 1)                            // 720x540_90fps
+        I2C_Write16(ADDR_TC3587, 0x0016, 0x808b); // pll
+    I2C_Write16(ADDR_TC3587, 0x0020, 0x0000);     // clk config
+    I2C_Write16(ADDR_TC3587, 0x000c, 0x0101);     // mclk
+    I2C_Write16(ADDR_TC3587, 0x0018, 0x0111);     // pll //0111
+    I2C_Write16(ADDR_TC3587, 0x0018, 0x0113);     // pll //0113
     I2C_Write16(ADDR_TC3587, 0x0002, 0x0001);
     I2C_Write16(ADDR_TC3587, 0x0002, 0x0000);
     // WAIT(100);

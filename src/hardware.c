@@ -93,6 +93,7 @@ uint8_t dispF_cnt = 0xff;
 uint8_t cameraLost = 0;
 
 void LED_Init();
+void LED_Task();
 
 void Set_720P50(uint8_t page) {
     WriteReg(page, 0x21, 0x25);
@@ -149,6 +150,30 @@ void Set_720P30(uint8_t page, uint8_t is_43) {
     WriteReg(page, 0x4f, 0x00);
     WriteReg(page, 0x52, 0x04);
     WriteReg(page, 0x53, 0x00);
+    WriteReg(page, 0x54, 0x3C);
+
+    WriteReg(page, 0x06, 0x01);
+}
+
+void Set_720P90(uint8_t page) {
+    WriteReg(page, 0x21, 0x24);
+
+    WriteReg(page, 0x40, 0xD0);
+    WriteReg(page, 0x41, 0x22);
+    WriteReg(page, 0x42, 0x18);
+
+    // WriteReg(page, 0x43, 0xD4); //pat
+    // WriteReg(page, 0x44, 0x45);
+
+    WriteReg(page, 0x43, 0x1F); // cam
+    WriteReg(page, 0x44, 0x44);
+
+    WriteReg(page, 0x45, 0x29);
+    WriteReg(page, 0x49, 0x04);
+    WriteReg(page, 0x4c, 0x08);
+    WriteReg(page, 0x4f, 0x00);
+    WriteReg(page, 0x52, 0x04);
+    WriteReg(page, 0x53, 0x02);
     WriteReg(page, 0x54, 0x3C);
 
     WriteReg(page, 0x06, 0x01);
