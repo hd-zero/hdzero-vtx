@@ -128,9 +128,10 @@ void msp_task() {
 
     // send param to FC -- 8HZ
     // send param to VRX -- 8HZ
-    if (timer_8hz) {
+    if (1) {
         len = get_tx_data_5680();
         insert_tx_buf(len);
+        //_outchar('0');
         if (dispF_cnt < DISPF_TIME)
             dispF_cnt++;
 
@@ -138,6 +139,7 @@ void msp_task() {
             msp_tx_cnt++;
         else
             msp_cmd_tx();
+        //_outchar('3');
     }
 
     // set_vtx
@@ -606,12 +608,16 @@ void insert_tx_buf(uint8_t len) {
 }
 
 void msp_send_header(uint8_t dl) {
-    if (dl)
+    if (dl) {
         WAIT(20);
-
+    }
+    //_outchar('F');
     CMS_tx(0x24);
+    //_outchar('G');
     CMS_tx(0x4d);
+    //_outchar('H');
     CMS_tx(0x3c);
+    //_outchar('I');
 }
 
 void msp_cmd_tx() // send 3 commands to FC
@@ -629,12 +635,19 @@ void msp_cmd_tx() // send 3 commands to FC
     else
         j = 4;
 
+    //_outchar('1');
     for (i = 0; i < j; i++) {
+        //_outchar('A');
         msp_send_header(0);
+        //_outchar('B');
         CMS_tx(0x00);
+        //_outchar('C');
         CMS_tx(msp_cmd[i]);
+        //_outchar('D');
         CMS_tx(msp_cmd[i]);
+        //_outchar('E');
     }
+    //_outchar('2');
 }
 
 void msp_eeprom_write() {

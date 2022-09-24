@@ -111,6 +111,10 @@ void main(void) {
 
     // main loop
     while (1) {
+#if (1)
+        CMS_tx(0xaa);
+        _outchar('_');
+#else
         timer_task();
 
 #ifdef USE_SMARTAUDIO
@@ -137,6 +141,7 @@ void main(void) {
         }
 
         RF_Delay_Init();
+#endif
     }
 }
 

@@ -4,6 +4,7 @@
         "hardware.h": "c",
         "common.h": "c",
         "camera.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "cstdio": "c"
     },
 }
