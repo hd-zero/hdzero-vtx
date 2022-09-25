@@ -128,7 +128,7 @@ void msp_task() {
 
     // send param to FC -- 8HZ
     // send param to VRX -- 8HZ
-    if (1) {
+    if (timer_8hz) {
         len = get_tx_data_5680();
         insert_tx_buf(len);
         //_outchar('0');

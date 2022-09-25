@@ -111,7 +111,7 @@ void main(void) {
 
     // main loop
     while (1) {
-#if (1)
+#if (0)
         CMS_tx(0xaa);
         _outchar('_');
 #else
