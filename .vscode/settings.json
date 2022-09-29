@@ -5,6 +5,7 @@
         "common.h": "c",
         "camera.h": "c",
         "stdint.h": "c",
-        "cstdio": "c"
+        "cstdio": "c",
+        "toolchain.h": "c"
     },
 }
