@@ -70,7 +70,7 @@ uint8_t p;
 
 uint8_t i = 0;
 
-uint8_t BPLED[] = {
+CODE_SEG const uint8_t BPLED[] = {
     0xC0, // 0
     0xF9, // 1
     0xA4, // 2
