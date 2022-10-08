@@ -385,7 +385,9 @@ void fc_init() {
 
 uint8_t get_tx_data_5680() // prepare data to VRX
 {
+#ifdef USE_TEMPERATURE_SENSOR
     uint8_t temp;
+#endif
 
     tx_buf[0] = DP_HEADER0;
     tx_buf[1] = DP_HEADER1;
@@ -416,11 +418,15 @@ uint8_t get_tx_data_5680() // prepare data to VRX
     // counter for link quality
     tx_buf[9] = lq_cnt++;
 
-    // VTX temp and overhot
+// VTX temp and overhot
+#ifdef USE_TEMPERATURE_SENSOR
     temp = pwr_offset >> 1;
     if (temp > 8)
         temp = 8;
-    tx_buf[10] = (heat_protect << 7) | temp;
+    tx_buf[10] = 0x80 | (heat_protect << 6) | temp;
+#else
+    tx_buf[10] = 0;
+#endif
 
     tx_buf[11] = fontType; // fontType
 
@@ -1687,15 +1693,15 @@ CODE_SEG const uint8_t bf_vtx_band_table[6][31] = {
     /*IMD6*/
     {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x06, 0x08, 'I', 'M', 'D', '6', ' ', ' ', ' ', ' ', 'I', 0x01, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
 };
-CODE_SEG const  uint8_t bf_vtx_power_table[5][9] = {
+CODE_SEG const uint8_t bf_vtx_power_table[5][9] = {
     {/*0x24,0x4d,0x3c,*/ 0x07, 0xe4, 0x01, 0x0e, 0x00, 0x03, '2', '5', ' '}, // 25mW
     {/*0x24,0x4d,0x3c,*/ 0x07, 0xe4, 0x02, 0x17, 0x00, 0x03, '2', '0', '0'}, // 200mW
     {/*0x24,0x4d,0x3c,*/ 0x07, 0xe4, 0x03, 0x00, 0x00, 0x03, '0', ' ', ' '}, // 0mW
     {/*0x24,0x4d,0x3c,*/ 0x07, 0xe4, 0x04, 0x00, 0x00, 0x03, '0', ' ', ' '}, // 0mW
     {/*0x24,0x4d,0x3c,*/ 0x07, 0xe4, 0x05, 0x00, 0x00, 0x03, '0', ' ', ' '}, // 0mW
 };
-CODE_SEG const  uint8_t bf_vtx_power_500mW[9] = {0x07, 0xe4, 0x03, 0x1b, 0x00, 0x03, '5', '0', '0'}; // 500mW
-CODE_SEG const  uint8_t bf_vtx_power_1W[9] = {0x07, 0xe4, 0x04, 0x1e, 0x00, 0x03, 'M', 'A', 'X'};    // MAX
+CODE_SEG const uint8_t bf_vtx_power_500mW[9] = {0x07, 0xe4, 0x03, 0x1b, 0x00, 0x03, '5', '0', '0'}; // 500mW
+CODE_SEG const uint8_t bf_vtx_power_1W[9] = {0x07, 0xe4, 0x04, 0x1e, 0x00, 0x03, 'M', 'A', 'X'};    // MAX
 
 void InitVtxTable() {
     uint8_t i, j;
