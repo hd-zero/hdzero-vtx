@@ -150,7 +150,7 @@ void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset) {
 #endif
     int16_t p;
 #ifdef _DEBUG_MODE
-    debugf("\r\nDM6300 set power:%x", (uint16_t)pwr);
+    debugf("\r\nDM6300 set power:%x, offset:%x", (uint16_t)pwr, (uint16_t)offset);
 #endif
     if (freq > 9)
         freq = 0;

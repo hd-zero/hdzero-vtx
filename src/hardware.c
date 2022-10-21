@@ -668,15 +668,22 @@ void PowerAutoSwitch() {
     if (temp_err)
         pwr_offset = 10;
 
+    if (OFFSET_25MW <= 10) {
+        if (temp_err)
+            pwr_offset = 10 - OFFSET_25MW;
+        else if (pwr_offset + OFFSET_25MW > 20)
+            pwr_offset = 20 - OFFSET_25MW;
+    }
+
     if (last_ofs != pwr_offset) {
 #ifdef _DEBUG_MODE
-        verbosef("\r\nPowerAutoSwitch:Yes %x %x", temp, (uint16_t)pwr_offset);
+        verbosef("\r\nPowerAutoSwitch:Yes 0x%x 0x%x", temp, (uint16_t)pwr_offset);
 #endif
         DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
         cur_pwr = RF_POWER;
     } else {
 #ifdef _DEBUG_MODE
-        verbosef("\r\nPowerAutoSwitch: No %x %x", temp, (uint16_t)pwr_offset);
+        verbosef("\r\nPowerAutoSwitch: No 0x%x 0x%x", temp, (uint16_t)pwr_offset);
 #endif
     }
 
@@ -709,7 +716,7 @@ void HeatProtect() {
 #ifdef USE_TEMPERATURE_SENSOR
                     verbosef("\r\nHeat detect: temp = %d, pwr_offset=%d", (uint16_t)temp, (uint16_t)pwr_offset);
 #else
-                    verbosef("\r\nHeat Protect detect: %x", temp);
+                    verbosef("\r\nHeat Protect detect: 0x%x", temp);
 #endif
 #endif
 
