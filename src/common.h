@@ -11,7 +11,7 @@
 //#define HDZERO_WHOOP
 //#define HDZERO_WHOOP_LITE
 //#define HDZERO_RACE_V1
-//#define HDZERO_RACE_V2
+#define HDZERO_RACE_V2
 //#define HDZERO_FREESTYLE
 
 #if defined HDZERO_WHOOP
@@ -94,8 +94,8 @@
 #define MS_DLY_SDCC    (2746)
 #define PRESS_L        3
 #define PRESS_LL       8
-#define PWR_LMT_SEC    5
-#define WAIT_SA_CONFIG 4
+#define PWR_LMT_SEC    10
+#define WAIT_SA_CONFIG 9
 #define CFG_TO_SEC     10
 #define CAM_DET_DLY    1000
 #define DISPF_TIME     3 // 3/8s
