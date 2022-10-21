@@ -11,7 +11,7 @@
 //#define HDZERO_WHOOP
 //#define HDZERO_WHOOP_LITE
 //#define HDZERO_RACE_V1
-#define HDZERO_RACE_V2
+//#define HDZERO_RACE_V2
 //#define HDZERO_FREESTYLE
 
 #if defined HDZERO_WHOOP
