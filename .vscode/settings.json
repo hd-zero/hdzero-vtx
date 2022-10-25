@@ -1,11 +1,3 @@
 {
     "editor.formatOnSave": true,
-    "files.associations": {
-        "hardware.h": "c",
-        "common.h": "c",
-        "camera.h": "c",
-        "stdint.h": "c",
-        "cstdio": "c",
-        "toolchain.h": "c"
-    },
 }
