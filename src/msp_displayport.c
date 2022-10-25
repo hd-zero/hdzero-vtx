@@ -1659,6 +1659,19 @@ void set_vtx_param() {
                 DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
                 cur_pwr = RF_POWER;
             }
+        } else if (heat_protect) {
+#ifdef HDZERO_FREESTYLE
+            WriteReg(0, 0x8F, 0x00);
+            WriteReg(0, 0x8F, 0x01);
+            DM6300_Init(RF_FREQ, RF_BW);
+            DM6300_SetChannel(RF_FREQ);
+            DM6300_SetPower(0, RF_FREQ, 0);
+            WriteReg(0, 0x8F, 0x11);
+#else
+            DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+            cur_pwr = RF_POWER;
+            heat_protect = 0;
+#endif
         }
 
         first_arm = 1;
