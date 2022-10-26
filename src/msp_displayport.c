@@ -926,7 +926,7 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
             if (PIT_MODE)
                 RF_POWER = POWER_MAX + 1;
 
-            if (!dm6300_init_done) {
+            if (dm6300_init_done) {
                 if (cur_pwr != RF_POWER) {
 #ifndef VIDEO_PAT
 #ifdef HDZERO_FREESTYLE
