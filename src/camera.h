@@ -9,6 +9,7 @@
 
 #define RUNCAM_MICRO_V1 0x42
 #define RUNCAM_MICRO_V2 0x44
+#define RUNCAM_MICRO_V3 0x46
 
 #define CAM_BRIGHTNESS_INITIAL 0x80
 #define CAM_SHARPNESS_INITIAL  1
@@ -38,6 +39,9 @@ typedef enum {
     CAM_720P60,
     CAM_720P60_NEW,
     CAM_720P30,
+    CAM_720X540_90,
+    CAM_720X540_60,
+    CAM_960x720_60
 } camFPSType_e;
 
 typedef enum {
@@ -96,7 +100,7 @@ void CameraInit();
 uint8_t camStatusUpdate(uint8_t op);
 void camMenuInit();
 
-extern uint8_t cam_4_3;
+extern uint8_t camRatio;
 extern uint8_t CAM_MODE;
 extern uint8_t cameraID;
 

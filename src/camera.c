@@ -43,7 +43,12 @@ const uint8_t camParameterInit[CAM_PROFILE_NUM][15] = {
 };
 
 uint8_t CAM_MODE = CAM_720P60;
-uint8_t cam_4_3 = 0;
+/*
+0: 4:3
+1: 16_9 crop
+2: 16_9 full
+*/
+uint8_t camRatio = 0;
 uint8_t camMenuStatus = CAM_STATUS_IDLE;
 uint8_t bw_changed = 0;
 
@@ -57,54 +62,63 @@ uint8_t CamDetect() {
     uint8_t detect_tries = 0;
     uint8_t status_reg = 0;
 
+    if (!RUNCAM_Write(RUNCAM_MICRO_V1, 0x50, 0x0452484E))
+        cameraID = RUNCAM_MICRO_V1;
+    else if (!RUNCAM_Write(RUNCAM_MICRO_V2, 0x50, 0x0452484E))
+        cameraID = RUNCAM_MICRO_V2;
+    else if (!RUNCAM_Write(RUNCAM_MICRO_V3, 0x50, 0x04484848))
+        cameraID = RUNCAM_MICRO_V3;
+    else
+        cameraID = 0;
+
     WriteReg(0, 0x8F, 0x91);
 
-    while (cycles) {
-        if (fps == CAM_720P50) {
-            Init_TC3587();
-            Set_720P50(IS_RX);
-            debugf("\r\nCamDetect: Set 50fps.");
-        } else if (fps == CAM_720P60) {
-            Init_TC3587();
+    if (cameraID) {
+        if (cameraID == RUNCAM_MICRO_V3) {
+            Init_TC3587(1);
+            Set_720P90(0);
+            fps = CAM_720X540_90;
+        } else {
             Set_720P60(IS_RX);
-            debugf("\r\nCamDetect: Set 60fps.");
+            Init_TC3587(0);
         }
-        WAIT(100);
-
-        for (detect_tries = 0; detect_tries < 5; detect_tries++) {
-            status_reg = ReadReg(0, 0x02);
-            debugf("\r\nCamDetect status_reg: %x", status_reg);
-
-            if ((status_reg >> 4) != 0) {
-                loss = 1;
-            }
-            WAIT(5);
-        }
-
-        if (loss == 0)
-            break;
-
-        fps = (fps == CAM_720P60) ? CAM_720P50 : CAM_720P60;
-
-        loss = 0;
-        cycles--;
-    }
-
-    if (cycles == 0) {
-        fps = CAM_720P60_NEW;
-        Set_720P60(IS_RX);
         I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
-        if (!RUNCAM_Write(RUNCAM_MICRO_V1, 0x50, 0x0452484E))
-            cameraID = RUNCAM_MICRO_V1;
-        else if (!RUNCAM_Write(RUNCAM_MICRO_V2, 0x50, 0x0452484E))
-            cameraID = RUNCAM_MICRO_V2;
-        else
-            cameraID = 0;
+    } else {
+        while (cycles) {
+            if (fps == CAM_720P50) {
+                Init_TC3587(0);
+                Set_720P50(IS_RX);
+                debugf("\r\nCamDetect: Set 50fps.");
+            } else if (fps == CAM_720P60) {
+                Init_TC3587(0);
+                Set_720P60(IS_RX);
+                debugf("\r\nCamDetect: Set 60fps.");
+            }
+            WAIT(100);
+
+            for (detect_tries = 0; detect_tries < 5; detect_tries++) {
+                status_reg = ReadReg(0, 0x02);
+                debugf("\r\nCamDetect status_reg: %x", status_reg);
+
+                if ((status_reg >> 4) != 0) {
+                    loss = 1;
+                }
+                WAIT(5);
+            }
+
+            if (loss == 0)
+                break;
+
+            fps = (fps == CAM_720P60) ? CAM_720P50 : CAM_720P60;
+
+            loss = 0;
+            cycles--;
+        }
+    }
 
 #ifdef _DEBUG_MODE
-        debugf("\r\ncameraID: %x", (uint16_t)cameraID);
+    debugf("\r\ncameraID: %x", (uint16_t)cameraID);
 #endif
-    }
 
     return fps;
 }
@@ -126,7 +140,7 @@ void Runcam_SetBrightness(uint8_t val) {
 
     if (cameraID == RUNCAM_MICRO_V1)
         d = 0x0452484e;
-    else if (cameraID == RUNCAM_MICRO_V2)
+    else if (cameraID == RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3)
         d = 0x04504850;
 
     val_32 = (uint32_t)val;
@@ -152,7 +166,7 @@ void Runcam_SetSharpness(uint8_t val) {
 
     if (cameraID == RUNCAM_MICRO_V1)
         d = 0x03FF0100;
-    else if (cameraID == RUNCAM_MICRO_V2)
+    else if (cameraID == RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3)
         d = 0x03FF0000;
 
     if (val == 2) {
@@ -182,7 +196,7 @@ uint8_t Runcam_SetSaturation(uint8_t val) {
     // initial
     if (cameraID == RUNCAM_MICRO_V1)
         d = 0x20242626;
-    else if (cameraID == RUNCAM_MICRO_V2)
+    else if (cameraID == RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3)
         d = 0x24282c30;
 
     if (val == 0)
@@ -214,7 +228,7 @@ void Runcam_SetContrast(uint8_t val) {
 
     if (cameraID == RUNCAM_MICRO_V1)
         d = 0x46484A4C;
-    else if (cameraID == RUNCAM_MICRO_V2)
+    else if (cameraID == RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3)
         d = 0x36383a3c;
 
     if (val == 0) // low
@@ -238,13 +252,13 @@ void Runcam_SetVdoRatio(uint8_t ratio) {
     */
     if (cameraID != RUNCAM_MICRO_V2)
         return;
+
     if (ratio == 0)
         RUNCAM_Write(cameraID, 0x000008, 0x0008910B);
     else if (ratio == 1)
         RUNCAM_Write(cameraID, 0x000008, 0x00089102);
     else if (ratio == 2)
         RUNCAM_Write(cameraID, 0x000008, 0x00089110);
-
     // save
     RUNCAM_Write(cameraID, 0x000694, 0x00000310);
     RUNCAM_Write(cameraID, 0x000694, 0x00000311);
@@ -262,45 +276,40 @@ uint8_t Runcam_GetVdoFormat(uint8_t cameraID) {
         1: 720p30 4:3
     */
     uint32_t val;
-    uint8_t ret = 2;
+    uint8_t ret = 0;
 
     if (cameraID != RUNCAM_MICRO_V2)
         return ret;
+    if (cameraTarget == 1)
+        return ret;
 
-    while (ret == 2) {
-        val = RUNCAM_Read(cameraID, 0x000008);
-        if (val == 0x00089102) { // 720p60  16:9
-            ret = 0;
-            cam_4_3 = 0;
-        } else if (val == 0x0008910B) { // 720p60  4:3
-            ret = 0;
-            cam_4_3 = 1;
-        } else if (val == 0x00089104) { // 720p30 16:9
-            ret = 1;
-            cam_4_3 = 0;
-        } else if (val == 0x00089109) { // 720p60 4:3
-            ret = 1;
-            cam_4_3 = 1;
-        } else {
-            ret = 2;
-            cam_4_3 = 0;
-        }
-        WAIT(100);
-        LED_BLUE_OFF;
-        WAIT(100);
-        LED_BLUE_ON;
-        led_status = ON;
+    val = RUNCAM_Read(cameraID, 0x000008);
+    if (val == 0x00089102) { // 720p60  16:9
+        ret = 0;
+        camRatio = 0;
+    } else if (val == 0x0008910B) { // 720p60  4:3
+        ret = 0;
+        camRatio = 1;
+    } else if (val == 0x00089104) { // 720p30 16:9
+        ret = 1;
+        camRatio = 0;
+    } else if (val == 0x00089109) { // 720p60 4:3
+        ret = 1;
+        camRatio = 1;
+    } else {
+        ret = 2;
+        camRatio = 0;
     }
 
 #ifdef _DEBUG_CAMERA
-    debugf("\r\nVdoFormat:%02x, 4_3:%02x", (uint16_t)ret, (uint16_t)cam_4_3);
+    debugf("\r\nVdoFormat:%02x, 4_3:%02x", (uint16_t)ret, (uint16_t)camRatio);
 #endif
     return ret;
 }
 #endif
 
 void Runcam_SetHVFlip(uint8_t val) {
-    if (cameraID != RUNCAM_MICRO_V2)
+    if (cameraID != RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3)
         return;
 
     camCfg_Cur.hvFlip = val;
@@ -316,7 +325,7 @@ void Runcam_SetNightMode(uint8_t val) {
         0: night mode off
         1: night mode on
     */
-    if (cameraID != RUNCAM_MICRO_V2)
+    if (cameraID != RUNCAM_MICRO_V2 || cameraID != RUNCAM_MICRO_V3)
         return;
 
     camCfg_Cur.nightMode = val;
@@ -435,6 +444,9 @@ void camera_check_and_save_parameters() {
             camera_write_eep_parameter((i << 4) + j + EEP_ADDR_CAM_WBBLUE, camCfg_EEP[i].wbBlue[j]);
         }
     }
+
+    if (camRatio > 2)
+        camRatio = 0;
 }
 
 void GetCamCfg_EEP(void) {
@@ -443,7 +455,7 @@ void GetCamCfg_EEP(void) {
     if (cameraID == 0)
         return;
 
-    if (cameraID == RUNCAM_MICRO_V1 || cameraID == RUNCAM_MICRO_V2) {
+    if (cameraID == RUNCAM_MICRO_V1 || cameraID == RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3) {
         camProfile_EEP = camera_read_eep_parameter(EEP_ADDR_CAM_PROFILE);
         for (i = 0; i < CAM_PROFILE_NUM; i++) {
             camCfg_EEP[i].brightness = camera_read_eep_parameter((i << 4) + EEP_ADDR_CAM_BRIGHTNESS);
@@ -459,7 +471,7 @@ void GetCamCfg_EEP(void) {
             }
         }
     }
-
+    camRatio = camera_read_eep_parameter(EEP_ADDR_CAM_RATIO);
     camera_check_and_save_parameters();
 }
 void GetCamCfg(uint8_t USE_EEP_PROFILE) {
@@ -474,7 +486,7 @@ void GetCamCfg(uint8_t USE_EEP_PROFILE) {
 
     if (cameraID == RUNCAM_MICRO_V1)
         index = 0;
-    else if (cameraID == RUNCAM_MICRO_V2)
+    else if (cameraID == RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3)
         index = camProfile + 1;
 
     camCfg.brightness = camCfg_EEP[index].brightness;
@@ -531,7 +543,7 @@ void SaveCamCfg_Menu(void) {
     if (cameraID == 0)
         return;
 
-    if (cameraID == RUNCAM_MICRO_V2) {
+    if (cameraID == RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3) {
         camProfile = camProfile_Menu;
         index = 1 + camProfile;
     }
@@ -591,6 +603,7 @@ void SetCamCfg(cameraConfig_t *cfg, uint8_t INIT) {
         Runcam_SetHVFlip(cfg->hvFlip);
         Runcam_SetNightMode(cfg->nightMode);
         Runcam_SetWB(cfg->wbRed, cfg->wbBlue, cfg->wbMode);
+        Runcam_SetVdoRatio(camRatio);
     } else {
         if (camCfg_Cur.brightness != cfg->brightness)
             Runcam_SetBrightness(cfg->brightness);
@@ -843,7 +856,7 @@ uint8_t camStatusUpdate(uint8_t op) {
         else if (op == BTN_DOWN) {
             if (camCfg_Menu.wbMode)
                 camMenuStatus = CAM_STATUS_WBRED;
-            else if (cameraID == RUNCAM_MICRO_V2)
+            else if (cameraID == RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3)
                 camMenuStatus = CAM_STATUS_HVFLIP;
             else
                 camMenuStatus = CAM_STATUS_RESET;
@@ -902,7 +915,7 @@ uint8_t camStatusUpdate(uint8_t op) {
         if (op == BTN_UP)
             camMenuStatus = CAM_STATUS_WBRED;
         else if (op == BTN_DOWN) {
-            if (cameraID == RUNCAM_MICRO_V2)
+            if (cameraID == RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3)
                 camMenuStatus = CAM_STATUS_HVFLIP;
             else
                 camMenuStatus = CAM_STATUS_RESET;
@@ -949,7 +962,7 @@ uint8_t camStatusUpdate(uint8_t op) {
             else
                 camMenuStatus = CAM_STATUS_WBMODE;
         } else if (op == BTN_DOWN) {
-            if (cameraID == RUNCAM_MICRO_V2)
+            if (cameraID == RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3)
                 camMenuStatus = CAM_STATUS_NIGHTMODE;
             else
                 camMenuStatus = CAM_STATUS_RESET;
@@ -964,14 +977,14 @@ uint8_t camStatusUpdate(uint8_t op) {
             break;
 
         if (op == BTN_UP) {
-            if (cameraID == RUNCAM_MICRO_V2)
+            if (cameraID == RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3)
                 camMenuStatus = CAM_STATUS_HVFLIP;
             else if (camCfg_Menu.wbMode)
                 camMenuStatus = CAM_STATUS_WBBLUE;
             else
                 camMenuStatus = CAM_STATUS_WBMODE;
         } else if (op == BTN_DOWN) {
-            if (cameraID == RUNCAM_MICRO_V2)
+            if (cameraID == RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3)
                 camMenuStatus = CAM_STATUS_VDO_RATIO;
             else
                 camMenuStatus = CAM_STATUS_RESET;
@@ -986,7 +999,7 @@ uint8_t camStatusUpdate(uint8_t op) {
             break;
 
         if (op == BTN_UP) {
-            if (cameraID == RUNCAM_MICRO_V2)
+            if (cameraID == RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3)
                 camMenuStatus = CAM_STATUS_NIGHTMODE;
             else if (camCfg_Menu.wbMode)
                 camMenuStatus = CAM_STATUS_WBBLUE;
@@ -1010,6 +1023,7 @@ uint8_t camStatusUpdate(uint8_t op) {
             camMenuStatus = CAM_STATUS_SET_VDO_RATIO_16_9_CROP;
         else if (op == BTN_RIGHT) {
             Runcam_SetVdoRatio(0);
+            camera_write_eep_parameter(EEP_ADDR_CAM_RATIO, 0);
             memset(osd_buf, 0x20, sizeof(osd_buf));
             strcpy(osd_buf[1] + osd_menu_offset + 2, " NEED TO REPOWER VTX");
             camMenuStatus = CAM_STATUS_REPOWER;
@@ -1026,6 +1040,7 @@ uint8_t camStatusUpdate(uint8_t op) {
             camMenuStatus = CAM_STATUS_SET_VDO_RATIO_16_9_FULL;
         else if (op == BTN_RIGHT) {
             Runcam_SetVdoRatio(1);
+            camera_write_eep_parameter(EEP_ADDR_CAM_RATIO, 1);
             memset(osd_buf, 0x20, sizeof(osd_buf));
             strcpy(osd_buf[1] + osd_menu_offset + 2, " NEED TO REPOWER VTX");
             camMenuStatus = CAM_STATUS_REPOWER;
@@ -1042,6 +1057,7 @@ uint8_t camStatusUpdate(uint8_t op) {
             camMenuStatus = CAM_STATUS_SET_VDO_RATIO_RETURN;
         else if (op == BTN_RIGHT) {
             Runcam_SetVdoRatio(2);
+            camera_write_eep_parameter(EEP_ADDR_CAM_RATIO, 2);
             memset(osd_buf, 0x20, sizeof(osd_buf));
             strcpy(osd_buf[1] + osd_menu_offset + 2, " NEED TO REPOWER VTX");
             camMenuStatus = CAM_STATUS_REPOWER;
@@ -1067,7 +1083,7 @@ uint8_t camStatusUpdate(uint8_t op) {
             break;
 
         if (op == BTN_UP) {
-            if (cameraID == RUNCAM_MICRO_V2)
+            if (cameraID == RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3)
                 camMenuStatus = CAM_STATUS_VDO_RATIO;
             else if (camCfg_Menu.wbMode)
                 camMenuStatus = CAM_STATUS_WBBLUE;
@@ -1088,7 +1104,7 @@ uint8_t camStatusUpdate(uint8_t op) {
                     camCfg_Menu.wbRed[i] = camParameterInit[0][7 + i];
                     camCfg_Menu.wbBlue[i] = camParameterInit[0][11 + i];
                 }
-            } else if (cameraID == RUNCAM_MICRO_V2) {
+            } else if (cameraID == RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3) {
                 camCfg_Menu.brightness = camParameterInit[camProfile_Menu + 1][0];
                 camCfg_Menu.sharpness = camParameterInit[camProfile_Menu + 1][1];
                 camCfg_Menu.saturation = camParameterInit[camProfile_Menu + 1][2];
@@ -1183,7 +1199,7 @@ void camMenuDrawBracket(void) {
         osd_buf[CAM_STATUS_WBBLUE][osd_menu_offset + 19] = '<';
         osd_buf[CAM_STATUS_WBBLUE][osd_menu_offset + 29] = '>';
     }
-    if (cameraID == RUNCAM_MICRO_V2) {
+    if (cameraID == RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3) {
         osd_buf[CAM_STATUS_HVFLIP][osd_menu_offset + 19] = '<';
         osd_buf[CAM_STATUS_HVFLIP][osd_menu_offset + 29] = '>';
         osd_buf[CAM_STATUS_NIGHTMODE][osd_menu_offset + 19] = '<';
@@ -1298,14 +1314,14 @@ void camMenuStringUpdate(uint8_t status) {
     // hvFlip
     if (cameraID == RUNCAM_MICRO_V1) {
         strcpy(osd_buf[CAM_STATUS_HVFLIP] + osd_menu_offset + 19, "NOT SUPPORT");
-    } else { // if(cameraID == RUNCAM_MICRO_V2)
+    } else { // if(cameraID == RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3)
         strcpy(osd_buf[CAM_STATUS_HVFLIP] + osd_menu_offset + 21, off_on_strs[(uint8_t)(camCfg_Menu.hvFlip != 0)]);
     }
 
     // nightMode
     if (cameraID == RUNCAM_MICRO_V1) {
         strcpy(osd_buf[CAM_STATUS_NIGHTMODE] + osd_menu_offset + 19, "NOT SUPPORT");
-    } else { // cameraID == RUNCAM_MICRO_V2
+    } else { // cameraID == RUNCAM_MICRO_V2 || cameraID == RUNCAM_MICRO_V3
         strcpy(osd_buf[CAM_STATUS_NIGHTMODE] + osd_menu_offset + 21, off_on_strs[(uint8_t)(camCfg_Menu.nightMode != 0)]);
     }
 

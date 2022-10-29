@@ -150,7 +150,7 @@ void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset) {
 #endif
     int16_t p;
 #ifdef _DEBUG_MODE
-    debugf("\r\nDM6300 set power:%x", (uint16_t)pwr);
+    debugf("\r\nDM6300 set power:%x, offset:%x", (uint16_t)pwr, (uint16_t)offset);
 #endif
     if (freq > 9)
         freq = 0;
@@ -308,7 +308,7 @@ int16_t DM6300_GetTemp() {
     return temp;
 }
 
-const dm6300_reg_value_t dm6300_init1_regs[] = {
+CODE_SEG const dm6300_reg_value_t dm6300_init1_regs[] = {
     {0x6, 0xFFC, 0x00000000},
     {0x6, 0xFFC, 0x00000001},
     {0x6, 0x7FC, 0x00000000},
@@ -328,7 +328,7 @@ void DM6300_init1() {
     WRITE_REG_MAP(dm6300_init1_regs);
 }
 
-const dm6300_reg_value_t dm6300_init2_regs_bw20[] = {
+CODE_SEG const dm6300_reg_value_t dm6300_init2_regs_bw20[] = {
     {0x6, 0xFF0, 0x00000018},
     {0x3, 0x2AC, 0x00000300},
     {0x3, 0x2B0, 0x00007007},
@@ -362,7 +362,7 @@ const dm6300_reg_value_t dm6300_init2_regs_bw20[] = {
     {0x3, 0x254, 0x00007813}, // 0x00007813
     {0x3, 0x258, 0x00010003},
 };
-const dm6300_reg_value_t dm6300_init2_regs_bw27[] = {
+CODE_SEG const dm6300_reg_value_t dm6300_init2_regs_bw27[] = {
     // 02_BBPLL_3456
     {0x6, 0xFF0, 0x00000018},
     {0x3, 0x2AC, 0x00000300},
@@ -457,7 +457,7 @@ void DM6300_init3(uint8_t ch) {
     WRITE_REG_MAP(dm6300_init3_regs);
 }
 
-const dm6300_reg_value_t dm6300_init4_regs[] = {
+CODE_SEG const dm6300_reg_value_t dm6300_init4_regs[] = {
     // 04_TX_CA1_RF
     {0x6, 0xFF0, 0x00000018},
     {0x3, 0x31C, 0x00000000}, // 0x00000030
@@ -481,7 +481,7 @@ void DM6300_init4() {
     WRITE_REG_MAP(dm6300_init4_regs);
 }
 
-const dm6300_reg_value_t dm6300_init5_regs[] = {
+CODE_SEG const dm6300_reg_value_t dm6300_init5_regs[] = {
     // 05_tx_cal_DAC_BBF
     {0x6, 0xFF0, 0x00000019},
     {0x3, 0x194, 0x0001FFFF},
@@ -547,7 +547,7 @@ void DM6300_init6(BWType_e sel) {
     WRITE_REG_MAP(dm6300_init6_regs);
 }
 
-const dm6300_reg_value_t dm6300_init7_regs_bw20[] = {
+CODE_SEG const dm6300_reg_value_t dm6300_init7_regs_bw20[] = {
     {0x6, 0xFF0, 0x00000018},
     {0x3, 0xC00, 0x005B0047},
     {0x3, 0xC04, 0xFFBB0017},
@@ -614,7 +614,7 @@ const dm6300_reg_value_t dm6300_init7_regs_bw20[] = {
     {0x3, 0xCF8, 0x0017FFBB},
     {0x3, 0xCFC, 0x0047005B},
 };
-const dm6300_reg_value_t dm6300_init7_regs_bw27[] = {
+CODE_SEG const dm6300_reg_value_t dm6300_init7_regs_bw27[] = {
     // 07_fir_128stap
     {0x6, 0xFF0, 0x00000018},
     {0x3, 0xC00, 0x004E0041},
@@ -691,7 +691,7 @@ void DM6300_init7(BWType_e sel) {
     }
 }
 
-const dm6300_reg_value_t dm6300_init_regs[] = {
+CODE_SEG const dm6300_reg_value_t dm6300_init_regs[] = {
     {0x6, 0xFF0, 0x00000018},
     {0x3, 0x2B0, 0x00077777},
     {0x3, 0x030, 0x00000013},

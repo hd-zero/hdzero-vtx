@@ -16,7 +16,7 @@ void Set_MAX7315(uint32_t val);
 #ifdef HDZERO_FREESTYLE
 void LED_TC3587_Init();
 #endif
-void Init_TC3587();
+void Init_TC3587(uint8_t fmt);
 
 extern uint8_t USE_MAX7315;
 extern uint8_t USE_PCA9554;

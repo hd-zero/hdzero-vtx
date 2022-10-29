@@ -45,7 +45,7 @@ typedef enum {
 #define EEP_ADDR_CAM_CONTRAST   0x43 //      0x53      0x63        0x73
 #define EEP_ADDR_CAM_HVFLIP     0x44 //      0x54      0x64        0x74
 #define EEP_ADDR_CAM_NIGHTMODE  0x45 //      0x55      0x65        0x75
-//#define EEP_ADDR_CAM_RATIO       0x46//      0x56      0x66        0x76
+#define EEP_ADDR_CAM_RATIO      0x46 //      0x56      0x66        0x76
 #define EEP_ADDR_CAM_WBMODE     0x47 //      0x57      0x67        0x77
 #define EEP_ADDR_CAM_WBRED      0x48 //      0x58      0x68        0x78
 //#define EEP_ADDR_CAM_WBRED       0x49//      0x59      0x69        0x79
@@ -93,10 +93,12 @@ void CFG_Back();
 
 void Set_720P50(uint8_t page);
 void Set_720P60(uint8_t page);
+void Set_720P90(uint8_t page);
 void Set_720P30(uint8_t page, uint8_t is_43);
 
 void Flicker_LED(uint8_t n);
 void LED_Task();
+
 #ifdef HDZERO_FREESTYLE
 extern uint8_t powerLock;
 #endif

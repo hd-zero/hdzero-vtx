@@ -70,7 +70,7 @@ uint8_t p;
 
 uint8_t i = 0;
 
-uint8_t BPLED[] = {
+CODE_SEG const uint8_t BPLED[] = {
     0xC0, // 0
     0xF9, // 1
     0xA4, // 2
@@ -149,6 +149,30 @@ void Set_720P30(uint8_t page, uint8_t is_43) {
     WriteReg(page, 0x4f, 0x00);
     WriteReg(page, 0x52, 0x04);
     WriteReg(page, 0x53, 0x00);
+    WriteReg(page, 0x54, 0x3C);
+
+    WriteReg(page, 0x06, 0x01);
+}
+
+void Set_720P90(uint8_t page) {
+    WriteReg(page, 0x21, 0x24);
+
+    WriteReg(page, 0x40, 0xD0);
+    WriteReg(page, 0x41, 0x22);
+    WriteReg(page, 0x42, 0x18);
+
+    // WriteReg(page, 0x43, 0xD4); //pat
+    // WriteReg(page, 0x44, 0x45);
+
+    WriteReg(page, 0x43, 0x1F); // cam
+    WriteReg(page, 0x44, 0x44);
+
+    WriteReg(page, 0x45, 0x29);
+    WriteReg(page, 0x49, 0x04);
+    WriteReg(page, 0x4c, 0x08);
+    WriteReg(page, 0x4f, 0x00);
+    WriteReg(page, 0x52, 0x04);
+    WriteReg(page, 0x53, 0x02);
     WriteReg(page, 0x54, 0x3C);
 
     WriteReg(page, 0x06, 0x01);
@@ -644,15 +668,22 @@ void PowerAutoSwitch() {
     if (temp_err)
         pwr_offset = 10;
 
+    if (OFFSET_25MW <= 10) {
+        if (temp_err)
+            pwr_offset = 10 - OFFSET_25MW;
+        else if (pwr_offset + OFFSET_25MW > 20)
+            pwr_offset = 20 - OFFSET_25MW;
+    }
+
     if (last_ofs != pwr_offset) {
 #ifdef _DEBUG_MODE
-        verbosef("\r\nPowerAutoSwitch:Yes %x %x", temp, (uint16_t)pwr_offset);
+        verbosef("\r\nPowerAutoSwitch:Yes 0x%x 0x%x", temp, (uint16_t)pwr_offset);
 #endif
         DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
         cur_pwr = RF_POWER;
     } else {
 #ifdef _DEBUG_MODE
-        verbosef("\r\nPowerAutoSwitch: No %x %x", temp, (uint16_t)pwr_offset);
+        verbosef("\r\nPowerAutoSwitch: No 0x%x 0x%x", temp, (uint16_t)pwr_offset);
 #endif
     }
 
@@ -685,7 +716,7 @@ void HeatProtect() {
 #ifdef USE_TEMPERATURE_SENSOR
                     verbosef("\r\nHeat detect: temp = %d, pwr_offset=%d", (uint16_t)temp, (uint16_t)pwr_offset);
 #else
-                    verbosef("\r\nHeat Protect detect: %x", temp);
+                    verbosef("\r\nHeat Protect detect: 0x%x", temp);
 #endif
 #endif
 

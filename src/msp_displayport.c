@@ -131,6 +131,7 @@ void msp_task() {
     if (timer_8hz) {
         len = get_tx_data_5680();
         insert_tx_buf(len);
+        //_outchar('0');
         if (dispF_cnt < DISPF_TIME)
             dispF_cnt++;
 
@@ -138,6 +139,7 @@ void msp_task() {
             msp_tx_cnt++;
         else
             msp_cmd_tx();
+        //_outchar('3');
     }
 
     // set_vtx
@@ -383,13 +385,15 @@ void fc_init() {
 
 uint8_t get_tx_data_5680() // prepare data to VRX
 {
+#ifdef USE_TEMPERATURE_SENSOR
     uint8_t temp;
+#endif
 
     tx_buf[0] = DP_HEADER0;
     tx_buf[1] = DP_HEADER1;
     tx_buf[2] = 0xff;
     // len
-    tx_buf[3] = 14;
+    tx_buf[3] = 15;
 
     // camType
     if (CAM_MODE == CAM_720P50)
@@ -400,6 +404,10 @@ uint8_t get_tx_data_5680() // prepare data to VRX
         tx_buf[4] = 0xAA;
     else if (CAM_MODE == CAM_720P30)
         tx_buf[4] = 0xCC;
+    else if (CAM_MODE == CAM_720X540_90)
+        tx_buf[4] = 0xEE;
+    else
+        tx_buf[4] = 0x99;
 
     // fcType
     tx_buf[5] = fc_variant[0];
@@ -410,11 +418,15 @@ uint8_t get_tx_data_5680() // prepare data to VRX
     // counter for link quality
     tx_buf[9] = lq_cnt++;
 
-    // VTX temp and overhot
+// VTX temp and overhot
+#ifdef USE_TEMPERATURE_SENSOR
     temp = pwr_offset >> 1;
     if (temp > 8)
         temp = 8;
-    tx_buf[10] = (heat_protect << 7) | temp;
+    tx_buf[10] = 0x80 | (heat_protect << 6) | temp;
+#else
+    tx_buf[10] = 0;
+#endif
 
     tx_buf[11] = fontType; // fontType
 
@@ -424,13 +436,13 @@ uint8_t get_tx_data_5680() // prepare data to VRX
 
     tx_buf[14] = fc_lock & 0x03;
 
-    tx_buf[15] = cam_4_3 ? 0xaa : 0x55;
+    tx_buf[15] = (camRatio == 0) ? 0xaa : 0x55;
 
     tx_buf[16] = VTX_VERSION_MAJOR;
     tx_buf[17] = VTX_VERSION_MINOR;
     tx_buf[18] = VTX_VERSION_PATCH_LEVEL;
 
-    return 19;
+    return 20;
 }
 
 uint8_t get_tx_data_osd(uint8_t index) // prepare osd+data to VTX
@@ -602,12 +614,16 @@ void insert_tx_buf(uint8_t len) {
 }
 
 void msp_send_header(uint8_t dl) {
-    if (dl)
+    if (dl) {
         WAIT(20);
-
+    }
+    //_outchar('F');
     CMS_tx(0x24);
+    //_outchar('G');
     CMS_tx(0x4d);
+    //_outchar('H');
     CMS_tx(0x3c);
+    //_outchar('I');
 }
 
 void msp_cmd_tx() // send 3 commands to FC
@@ -625,12 +641,19 @@ void msp_cmd_tx() // send 3 commands to FC
     else
         j = 4;
 
+    //_outchar('1');
     for (i = 0; i < j; i++) {
+        //_outchar('A');
         msp_send_header(0);
+        //_outchar('B');
         CMS_tx(0x00);
+        //_outchar('C');
         CMS_tx(msp_cmd[i]);
+        //_outchar('D');
         CMS_tx(msp_cmd[i]);
+        //_outchar('E');
     }
+    //_outchar('2');
 }
 
 void msp_eeprom_write() {
@@ -1636,6 +1659,19 @@ void set_vtx_param() {
                 DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
                 cur_pwr = RF_POWER;
             }
+        } else if (heat_protect) {
+#ifdef HDZERO_FREESTYLE
+            WriteReg(0, 0x8F, 0x00);
+            WriteReg(0, 0x8F, 0x01);
+            DM6300_Init(RF_FREQ, RF_BW);
+            DM6300_SetChannel(RF_FREQ);
+            DM6300_SetPower(0, RF_FREQ, 0);
+            WriteReg(0, 0x8F, 0x11);
+#else
+            DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+            cur_pwr = RF_POWER;
+            heat_protect = 0;
+#endif
         }
 
         first_arm = 1;
@@ -1656,7 +1692,7 @@ void set_vtx_param() {
 }
 
 #ifdef INIT_VTX_TABLE
-const uint8_t bf_vtx_band_table[6][31] = {
+CODE_SEG const uint8_t bf_vtx_band_table[6][31] = {
     /*BOSCAM_A*/
     {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x01, 0x08, 'B', 'O', 'S', 'C', 'A', 'M', '_', 'A', 'A', 0x01, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
     /*BOSCAM_B*/
@@ -1670,15 +1706,15 @@ const uint8_t bf_vtx_band_table[6][31] = {
     /*IMD6*/
     {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x06, 0x08, 'I', 'M', 'D', '6', ' ', ' ', ' ', ' ', 'I', 0x01, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
 };
-const uint8_t bf_vtx_power_table[5][9] = {
+CODE_SEG const uint8_t bf_vtx_power_table[5][9] = {
     {/*0x24,0x4d,0x3c,*/ 0x07, 0xe4, 0x01, 0x0e, 0x00, 0x03, '2', '5', ' '}, // 25mW
     {/*0x24,0x4d,0x3c,*/ 0x07, 0xe4, 0x02, 0x17, 0x00, 0x03, '2', '0', '0'}, // 200mW
     {/*0x24,0x4d,0x3c,*/ 0x07, 0xe4, 0x03, 0x00, 0x00, 0x03, '0', ' ', ' '}, // 0mW
     {/*0x24,0x4d,0x3c,*/ 0x07, 0xe4, 0x04, 0x00, 0x00, 0x03, '0', ' ', ' '}, // 0mW
     {/*0x24,0x4d,0x3c,*/ 0x07, 0xe4, 0x05, 0x00, 0x00, 0x03, '0', ' ', ' '}, // 0mW
 };
-const uint8_t bf_vtx_power_500mW[9] = {0x07, 0xe4, 0x03, 0x1b, 0x00, 0x03, '5', '0', '0'}; // 500mW
-const uint8_t bf_vtx_power_1W[9] = {0x07, 0xe4, 0x04, 0x1e, 0x00, 0x03, 'M', 'A', 'X'};    // MAX
+CODE_SEG const uint8_t bf_vtx_power_500mW[9] = {0x07, 0xe4, 0x03, 0x1b, 0x00, 0x03, '5', '0', '0'}; // 500mW
+CODE_SEG const uint8_t bf_vtx_power_1W[9] = {0x07, 0xe4, 0x04, 0x1e, 0x00, 0x03, 'M', 'A', 'X'};    // MAX
 
 void InitVtxTable() {
     uint8_t i, j;
