@@ -7,9 +7,9 @@ jobs:
       targets: ${{ steps.set-targets.outputs.targets }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - id: set-targets
-        run: echo "::set-output name=targets::[$(grep -r "\[env:" platformio.ini | sed 's/.*:\(.*\)].*/"\1"/' | tr '\n' ',')]"
+        run: echo "targets=[$(grep -r "\[env:" platformio.ini | sed 's/.*:\(.*\)].*/"\1"/' | tr '\n' ',')]" >> $GITHUB_OUTPUT
 
   build:
     needs: targets
@@ -20,16 +20,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Inject slug/short variables
-        uses: rlespinasse/github-slug-action@v3.x
+        uses: rlespinasse/github-slug-action@v4
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
 
       - name: Cache pip
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ matrix.target }}
@@ -40,7 +42,7 @@ jobs:
           pip install platformio
 
       - name: Cache PlatformIO
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.platformio
           key: ${{ runner.os }}-platformio
