@@ -174,25 +174,14 @@ void SA_Update(uint8_t cmd) {
     }
 #endif
     switch (cmd) {
-    case SA_GET_SETTINGS:
-        if (ch_bf == 25)
-            RF_FREQ = 8;
-        else if (ch_bf == 27)
-            RF_FREQ = 9;
-        else if (ch_bf >= 32 && ch_bf < 40)
-            RF_FREQ = ch_bf - 32;
-
-        if (last_SA_lock && (seconds < WAIT_SA_CONFIG)) {
-            ch_init = RF_FREQ;
-            pwr_init = dbm_to_pwr(SA_dbm);
-        }
 #ifdef _DEBUG_SMARTAUDIO
+    case SA_GET_SETTINGS:
         _outchar('G');
         debugf(" ch:%x", (uint16_t)ch_init);
         debugf(" pwr:%x", (uint16_t)pwr_init);
         debugf(" mode:%x", (uint16_t)mode_o);
-#endif
         break;
+#endif
 
     case SA_SET_PWR:
         if (!(sa_rbuf[0] >> 7))
@@ -556,6 +545,9 @@ void SA_Init() {
         ch_bf = ch + 32;
     mode_o |= PIT_MODE;
     mode_p |= (PIT_MODE << 1);
+
+    ch_init = RF_FREQ;
+    pwr_init = RF_POWER;
 
     switch (ch) {
     case 0:
