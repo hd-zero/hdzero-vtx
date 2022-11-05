@@ -88,6 +88,15 @@ uint8_t osd_menu_offset = 0;
 
 #ifdef USE_MSP
 
+uint8_t msp_cmp_fc_variant(const char *variant) {
+    for (uint8_t i = 0; i < sizeof(fc_variant); i++) {
+        if (fc_variant[i] != variant[i]) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 void msp_task() {
     uint8_t len;
     static uint8_t tx_row = 0;
@@ -245,18 +254,14 @@ uint8_t msp_read_one_frame() {
                 else if (cur_cmd == CUR_DISPLAYPORT)
                     ret = parse_displayport(osd_len);
                 full_frame = 1;
-                if (fc_lock & FC_VTX_CONFIG_LOCK) {
-                    if (!(fc_lock & FC_INIT_VTX_TABLE_LOCK)) {
-                        if (fc_lock & FC_VARIANT_LOCK) {
-                            fc_lock |= FC_INIT_VTX_TABLE_LOCK;
-                            if (fc_variant[0] == 'B' && fc_variant[1] == 'T' && fc_variant[2] == 'F' && fc_variant[3] == 'L') {
 #ifdef INIT_VTX_TABLE
-                                InitVtxTable();
-#endif
-                            }
-                        }
+                if (fc_lock & FC_VTX_CONFIG_LOCK && !(fc_lock & FC_INIT_VTX_TABLE_LOCK) && fc_lock & FC_VARIANT_LOCK) {
+                    fc_lock |= FC_INIT_VTX_TABLE_LOCK;
+                    if (msp_cmp_fc_variant("BTFL") || msp_cmp_fc_variant("QUIC")) {
+                        InitVtxTable();
                     }
                 }
+#endif
             }
 #ifdef _DEBUG_DISPLAYPORT
             else
@@ -410,10 +415,19 @@ uint8_t get_tx_data_5680() // prepare data to VRX
         tx_buf[4] = 0x99;
 
     // fcType
-    tx_buf[5] = fc_variant[0];
-    tx_buf[6] = fc_variant[1];
-    tx_buf[7] = fc_variant[2];
-    tx_buf[8] = fc_variant[3];
+    if (msp_cmp_fc_variant("QUIC")) {
+        // HACK!
+        // TODO: remove once another way of selecting font on the VRX is available
+        tx_buf[5] = 'A';
+        tx_buf[6] = 'R';
+        tx_buf[7] = 'D';
+        tx_buf[8] = 'U';
+    } else {
+        tx_buf[5] = fc_variant[0];
+        tx_buf[6] = fc_variant[1];
+        tx_buf[7] = fc_variant[2];
+        tx_buf[8] = fc_variant[3];
+    }
 
     // counter for link quality
     tx_buf[9] = lq_cnt++;
@@ -788,12 +802,9 @@ void parse_vtx_config() {
     if (!(fc_lock & FC_VTX_CONFIG_LOCK))
         fc_lock |= FC_VTX_CONFIG_LOCK;
 
-    if (fc_variant[0] == 'B' && fc_variant[1] == 'T' && fc_variant[2] == 'F' && fc_variant[3] == 'L')
-        ;
-    else if (fc_variant[0] == 'E' && fc_variant[1] == 'M' && fc_variant[2] == 'U' && fc_variant[3] == 'F')
-        ;
-    else
+    if (!msp_cmp_fc_variant("BTFL") && !msp_cmp_fc_variant("EMUF") && !msp_cmp_fc_variant("QUIC")) {
         return;
+    }
 
     fc_pwr_rx = msp_rx_buf[3] - 1;
     if (fc_pwr_rx > POWER_MAX + 2)
