@@ -58,6 +58,14 @@ uint8_t pwr_offset = 0;
 uint8_t heat_protect = 0;
 
 uint8_t last_SA_lock = 0;
+/*
+cur_pwr:
+    0: 25mW
+    1:200mW
+    .....
+    POWER_MAX+1: 0.1mw
+    POWER_MAX+2: 0mw
+*/
 uint8_t cur_pwr = 0;
 
 uint8_t led_status = 0;

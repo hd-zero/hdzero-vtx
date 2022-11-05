@@ -774,6 +774,13 @@ void parse_rc() {
 }
 void parse_vtx_config() {
     uint8_t nxt_ch = 0;
+    /*
+    nxt_pwr:
+        0: 25mW
+        1:200mW
+        .....
+        POWER_MAX+1: 0mw
+    */
     uint8_t nxt_pwr = 0;
     uint8_t pit_update = 0;
     uint8_t needSaveEEP = 0;
@@ -868,14 +875,15 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
         DM6300_AUXADC_Calib();
     }
 
-    if (fc_pit_rx != last_pit) {
-        PIT_MODE = fc_pit_rx & 1;
+    PIT_MODE = fc_pit_rx & 1;
 #ifdef _DEBUG_MODE
-        debugf("\r\nPIT_MODE = %x", (uint16_t)PIT_MODE);
+    debugf("\r\nPIT_MODE = %x", (uint16_t)PIT_MODE);
 #endif
+    if (fc_pit_rx != last_pit) {
         if (PIT_MODE) {
             DM6300_SetPower(POWER_MAX + 1, RF_FREQ, pwr_offset);
             cur_pwr = POWER_MAX + 1;
+            vtx_pit_save = PIT_MODE;
         } else {
 #ifndef VIDEO_PAT
 #ifdef HDZERO_FREESTYLE
@@ -893,10 +901,10 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
             } else {
                 DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
                 cur_pwr = RF_POWER;
+                vtx_pit_save = PIT_MODE;
             }
         }
         last_pit = fc_pit_rx;
-        vtx_pit_save = PIT_MODE;
         needSaveEEP = 1;
     }
 
@@ -909,9 +917,10 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
                     Init_6300RF(RF_FREQ, POWER_MAX + 1);
                 else
                     Init_6300RF(RF_FREQ, RF_POWER);
-                vtx_pit_save = PIT_MODE;
+                DM6300_AUXADC_Calib();
                 needSaveEEP = 1;
             }
+            vtx_pit_save = PIT_MODE;
         } else if (nxt_pwr == POWER_MAX + 1) {
             // Enter 0mW
             if (cur_pwr != POWER_MAX + 2) {
@@ -925,8 +934,7 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
             RF_POWER = nxt_pwr;
             if (PIT_MODE)
                 RF_POWER = POWER_MAX + 1;
-
-            if (!dm6300_init_done) {
+            if (dm6300_init_done) {
                 if (cur_pwr != RF_POWER) {
 #ifndef VIDEO_PAT
 #ifdef HDZERO_FREESTYLE
@@ -945,6 +953,7 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
                 Init_6300RF(RF_FREQ, RF_POWER);
                 DM6300_AUXADC_Calib();
             }
+            vtx_pit_save = PIT_MODE;
         }
         last_pwr = nxt_pwr;
     }
