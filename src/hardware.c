@@ -190,7 +190,7 @@ void Setting_Save() {
     uint8_t rcv = 0;
 
 #if (0)
-    if (cameraID == 0) {
+    if (cameraType == 0) {
         CAM_WriteCFG(0, RF_FREQ, RF_POWER, MODE);
         CAM_WriteCFG(0, RF_FREQ, RF_POWER, MODE);
         CAM_WriteCFG(0, RF_FREQ, RF_POWER, MODE);
@@ -405,35 +405,27 @@ void Init_6300RF(uint8_t freq, uint8_t pwr) {
 }
 
 void Init_HW() {
-    //--------- gpio init -----------------
     SPI_Init();
-
     LED_Init();
-
 #ifdef VIDEO_PAT
     Set_720P60(0);
     WriteReg(0, 0x50, 0x01);
     RF_FREQ = 0;
-    //--------- eeprom --------------------
     GetVtxParameter();
-
 #ifdef _RF_CALIB
     RF_POWER = 0; // max power
     RF_FREQ = 0;  // ch1
 #else
     RF_POWER = 0;
 #endif
-
     Init_6300RF(RF_FREQ, RF_POWER);
     DM6300_AUXADC_Calib();
 #else
 #ifdef HDZERO_FREESTYLE
     LED_TC3587_Init();
 #endif
-    //--------- eeprom --------------------
     GetVtxParameter();
     Get_EEP_LifeTime();
-    //---------- Camera ---------------
     CameraInit();
 //--------- dm6300 --------------------
 // move to RF_Delay_Init()
@@ -982,7 +974,7 @@ void Video_Detect() {
         if (heat_protect)
             return;
 
-        if (cameraID) {
+        if (cameraType) {
             for (i = 0; i < 5; i++) {
                 val |= I2C_Read16(ADDR_TC3587, 0x006A);
                 val |= I2C_Read16(ADDR_TC3587, 0x006E);

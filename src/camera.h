@@ -102,6 +102,6 @@ void camMenuInit();
 
 extern uint8_t camRatio;
 extern uint8_t CAM_MODE;
-extern uint8_t cameraID;
+extern uint8_t cameraType;
 
 #endif /* __CAMERA_H_ */
