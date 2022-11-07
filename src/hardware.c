@@ -974,7 +974,7 @@ void Video_Detect() {
         if (heat_protect)
             return;
 
-        if (cameraType) {
+        if (camera_type) {
             for (i = 0; i < 5; i++) {
                 val |= I2C_Read16(ADDR_TC3587, 0x006A);
                 val |= I2C_Read16(ADDR_TC3587, 0x006E);

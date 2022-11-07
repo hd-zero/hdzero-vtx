@@ -20,23 +20,22 @@ typedef enum {
 #define SPARKLE_T   20
 
 // vtx parameter
-#define EEP_ADDR_RF_FREQ        0x80
-#define EEP_ADDR_RF_POWER       0x81
-#define EEP_ADDR_LPMODE         0x82
-#define EEP_ADDR_PITMODE        0x83
-#define EEP_ADDR_25MW           0x84
-#define EEP_ADDR_SA_LOCK        0x88
-#define EEP_ADDR_POWER_LOCK     0x89
-#define EEP_ADDR_VTX_CONFIG     0x8a
-#define EEP_ADDR_LIFETIME_0     0xF0
-#define EEP_ADDR_LIFETIME_1     0xF1
-#define EEP_ADDR_LIFETIME_2     0xF2
-#define EEP_ADDR_LIFETIME_3     0xF3
+#define EEP_ADDR_RF_FREQ     0x80
+#define EEP_ADDR_RF_POWER    0x81
+#define EEP_ADDR_LPMODE      0x82
+#define EEP_ADDR_PITMODE     0x83
+#define EEP_ADDR_25MW        0x84
+#define EEP_ADDR_SA_LOCK     0x88
+#define EEP_ADDR_POWER_LOCK  0x89
+#define EEP_ADDR_VTX_CONFIG  0x8a
+#define EEP_ADDR_LIFETIME_0  0xF0
+#define EEP_ADDR_LIFETIME_1  0xF1
+#define EEP_ADDR_LIFETIME_2  0xF2
+#define EEP_ADDR_LIFETIME_3  0xF3
 // camera parameter
-#define EEP_ADDR_CAMERA_SETTING 0x3f
-#define EEP_ADDR_CAM_PROFILE    0x3f //
-                                     // [3:0] used for runcam v1
-                                     // [7:4] used for runcam v2
+#define EEP_ADDR_CAM_TYPE    0x40
+#define EEP_ADDR_CAM_PROFILE 0x41
+#define EEP_ADDR_CAM_SETTING 0x42
 
 //                              Micro V1    Micro V2  Nano V2     Nano Lite
 #define EEP_ADDR_CAM_BRIGHTNESS 0x40 //      0x50      0x60        0x70

@@ -9,30 +9,22 @@
 
 #define RUNCAM_MICRO_V1 0x42
 #define RUNCAM_MICRO_V2 0x44
-#define RUNCAM_MICRO_V3 0x46
+#define RUNCAM_NANO_90  0x46
 
-#define CAM_BRIGHTNESS_INITIAL 0x80
-#define CAM_SHARPNESS_INITIAL  1
-#define CAM_SATURATION_INITIAL 3
-#define CAM_CONTRAST_INITIAL   1
-#define CAM_HVFLIP_INITIAL     0
-#define CAM_NIGHTMODE_INITIAL  1
-#define CAM_WBRED_INITIAL      0xC7 // 0x314>>2
-#define CAM_WBBLUE_INITIAL     0xCA // 0x328>>2
-#define CAM_WBMODE_INITIAL     0
+#define CAMERA_SETTING_NUM 16
+#define CAMERA_PROFILE_NUM 3
+typedef enum {
+    CAMERA_MFR_UNKNOW,
+    CAMERA_MFR_FOXEER,
+    CAMERA_MFR_RUNCAM,
+} camera_manufacturer_e;
 
-#define BRIGHTNESS_MIN 0x40
-#define BRIGHTNESS_MAX 0xC0
-#define SHARPNESS_MIN  0x00
-#define SHARPNESS_MAX  0x02
-#define SATURATION_MIN 0x00
-#define SATURATION_MAX 0x06
-#define CONTRAST_MIN   0x00
-#define CONTRAST_MAX   0x02
-#define HVFLIP_MAX     0x01
-#define NIGHTMODE_MAX  0x01
-#define WBMODE_MIN     0x00
-#define WBMODE_MAX     0x04
+typedef enum {
+    CAMERA_TYPE_UNKNOW,
+    CAMERA_TYPE_RUNCAM_MICRO_V1,
+    CAMERA_TYPE_RUNCAM_MICRO_V2, // include nano V2 / nano lite
+    CAMERA_TYPE_RUNCAM_NANO_90,
+} camera_type_e;
 
 typedef enum {
     CAM_720P50,
@@ -60,17 +52,12 @@ typedef enum {
     Profile_Max,
 } RuncamV2Profile_e;
 
-typedef struct {
-    uint8_t brightness;
-    uint8_t sharpness;
-    uint8_t saturation;
-    uint8_t contrast;
-    uint8_t hvFlip;
-    uint8_t nightMode;
-    uint8_t wbMode;
-    uint8_t wbRed[WBMODE_MAX];
-    uint8_t wbBlue[WBMODE_MAX];
-} cameraConfig_t;
+typedef enum {
+    item_enbale,
+    item_min,
+    item_max,
+    item_default,
+} camera_setting_attribute;
 
 typedef enum {
     CAM_STATUS_IDLE = 0,
@@ -102,6 +89,6 @@ void camMenuInit();
 
 extern uint8_t camRatio;
 extern uint8_t CAM_MODE;
-extern uint8_t cameraType;
+extern uint8_t camera_type;
 
 #endif /* __CAMERA_H_ */
