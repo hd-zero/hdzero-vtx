@@ -10,6 +10,7 @@
         "utility": "c",
         "xmemory": "c",
         "xtr1common": "c",
-        "xutility": "c"
+        "xutility": "c",
+        "common.h": "c"
     },
 }

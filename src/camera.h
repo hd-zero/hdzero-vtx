@@ -27,14 +27,14 @@ typedef enum {
 } camera_type_e;
 
 typedef enum {
-    CAM_720P50,
-    CAM_720P60,
-    CAM_720P60_NEW,
-    CAM_720P30,
-    CAM_720X540_90,
-    CAM_720X540_60,
-    CAM_960x720_60
-} camFPSType_e;
+    VDO_FMT_720P50,
+    VDO_FMT_720P60,
+    VDO_FMT_720P60_NEW,
+    VDO_FMT_720P30,
+    VDO_FMT_720X540_90,
+    VDO_FMT_720X540_60,
+    VDO_FMT_960x720_60
+} video_format_e;
 
 typedef enum {
     VDO_720P60_16_9,
@@ -88,7 +88,8 @@ uint8_t camStatusUpdate(uint8_t op);
 void camMenuInit();
 
 extern uint8_t camRatio;
-extern uint8_t CAM_MODE;
+extern uint8_t video_format;
 extern uint8_t camera_type;
-
+extern uint8_t camera_device;
+extern uint8_t camera_setting_reg_set[CAMERA_SETTING_NUM];
 #endif /* __CAMERA_H_ */

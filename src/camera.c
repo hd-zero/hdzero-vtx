@@ -8,47 +8,35 @@
 #include "print.h"
 #include "runcam.h"
 
-uint8_t camera_type = 0;
-camera_manufacturer_e camera_mfr = CAMERA_MFR_UNKNOW;
+uint8_t camera_type;
+uint8_t camera_device;
+uint8_t camera_mfr = CAMERA_MFR_UNKNOW;
 uint8_t camera_profile;
 uint8_t camera_setting_reg_eep[CAMERA_PROFILE_NUM][CAMERA_SETTING_NUM];
-uint8_t camera_setting_reg_set[CAMERA_SETTING_NUM];
+uint8_t camera_setting_reg_set[CAMERA_SETTING_NUM] = {0};
 
-uint8_t CAM_MODE = CAM_720P60;
-/*
-0: 4:3
-1: 16_9 crop
-2: 16_9 full
-*/
+uint8_t video_format = VDO_FMT_720P60;
 uint8_t camRatio = 0;
 uint8_t camMenuStatus = CAM_STATUS_IDLE;
-uint8_t bw_changed = 0;
 
 void camMenuStringUpdate(uint8_t status);
 void camMenuSetVdoRatioInit();
 
 void camera_type_detect(void) {
+    camera_type = CAMERA_TYPE_UNKNOW;
 
     runcam_type_detect();
     if (camera_type) {
         camera_mfr = CAMERA_MFR_RUNCAM;
-        return;
-    }
-
-#if (0)
-    foxeer_detect_type();
-    if (camera_type) {
-        camera_mfr = CAMERA_MFR_FOXEER;
-        return;
-    }
+#ifdef _DEBUG_CAMERA
+        debugf("\r\ncamera mfr : RUNCAM");
+        debugf("\r\ncamera type: %d", (uint16_t)camera_type);
 #endif
+        return;
+    }
 }
 
-void camera_identify_resolution(void) {
-}
-
-uint8_t CamDetect() {
-    int mode = CAM_720P60;
+void camera_mode_detect() {
     uint8_t cycles = 4;
     uint8_t loss = 0;
     uint8_t detect_tries = 0;
@@ -58,32 +46,48 @@ uint8_t CamDetect() {
     WriteReg(0, 0x8F, 0x91);
 
     if (camera_type) {
-        if (camera_type == RUNCAM_NANO_90) {
-            Init_TC3587(1);
-            Set_720P90(0);
-            mode = CAM_720X540_90;
+        if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
+            if (camera_setting_reg_set[14] == 0) {
+                video_format = VDO_FMT_720X540_90;
+                Init_TC3587(1);
+                Set_720P90(0);
+            } else if (camera_setting_reg_set[14] == 1) {
+                video_format = VDO_FMT_720X540_60;
+                Init_TC3587(1);
+                Set_720P90(0);
+            } else {
+                Set_720P60(IS_RX);
+                Init_TC3587(0);
+                video_format = VDO_FMT_720P60;
+            }
         } else {
             Set_720P60(IS_RX);
             Init_TC3587(0);
+            video_format = VDO_FMT_720P60;
         }
         I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
     } else {
         while (cycles) {
-            if (mode == CAM_720P50) {
+            if (video_format == VDO_FMT_720P50) {
                 Init_TC3587(0);
                 Set_720P50(IS_RX);
+#ifdef _DEBUG_CAMERA
                 debugf("\r\nCamDetect: Set 50fps.");
-            } else if (mode == CAM_720P60) {
+#endif
+            } else if (video_format == VDO_FMT_720P60) {
                 Init_TC3587(0);
                 Set_720P60(IS_RX);
+#ifdef _DEBUG_CAMERA
                 debugf("\r\nCamDetect: Set 60fps.");
+#endif
             }
             WAIT(100);
 
             for (detect_tries = 0; detect_tries < 5; detect_tries++) {
                 status_reg = ReadReg(0, 0x02);
+#ifdef _DEBUG_CAMERA
                 debugf("\r\nCamDetect status_reg: %x", status_reg);
-
+#endif
                 if ((status_reg >> 4) != 0) {
                     loss = 1;
                 }
@@ -93,7 +97,7 @@ uint8_t CamDetect() {
             if (loss == 0)
                 break;
 
-            mode = (mode == CAM_720P60) ? CAM_720P50 : CAM_720P60;
+            video_format = (video_format == VDO_FMT_720P60) ? VDO_FMT_720P50 : VDO_FMT_720P60;
 
             loss = 0;
             cycles--;
@@ -103,8 +107,6 @@ uint8_t CamDetect() {
 #ifdef _DEBUG_MODE
     debugf("\r\ncameraID: %x", (uint16_t)camera_type);
 #endif
-
-    return mode;
 }
 
 void camera_button_init() {
@@ -112,273 +114,6 @@ void camera_button_init() {
     WriteReg(0, 0x16, 0x00);
     WriteReg(0, 0x15, 0x02);
     WriteReg(0, 0x14, 0x00);
-}
-
-/////////////////////////////////////////////////////////////////
-// runcam config
-void Runcam_SetBrightness(uint8_t val) {
-#if (0)
-    uint32_t d = 0x04004800;
-    uint32_t val_32;
-
-    camCfg_Cur.brightness = val;
-
-    if (camera_type == RUNCAM_MICRO_V1)
-        d = 0x0452484e;
-    else if (camera_type == RUNCAM_MICRO_V2 || camera_type == RUNCAM_NANO_90)
-        d = 0x04504850;
-
-    val_32 = (uint32_t)val;
-
-    // indoor
-    d += val_32;
-    d -= CAM_BRIGHTNESS_INITIAL;
-
-    // outdoor
-    d += (val_32 << 16);
-    d -= ((uint32_t)CAM_BRIGHTNESS_INITIAL << 16);
-
-    RUNCAM_Write(camera_type, 0x50, d);
-#ifdef _DEBUG_CAMERA
-    debugf("\r\nRUNCAM brightness:0x%02x", (uint16_t)val);
-#endif
-#endif
-}
-
-void Runcam_SetSharpness(uint8_t val) {
-#if (0)
-    uint32_t d = 0;
-
-    camCfg_Cur.sharpness = val;
-
-    if (camera_type == RUNCAM_MICRO_V1)
-        d = 0x03FF0100;
-    else if (camera_type == RUNCAM_MICRO_V2 || camera_type == RUNCAM_NANO_90)
-        d = 0x03FF0000;
-
-    if (val == 2) {
-        RUNCAM_Write(camera_type, 0x0003C4, 0x03FF0000);
-        RUNCAM_Write(camera_type, 0x0003CC, 0x28303840);
-        RUNCAM_Write(camera_type, 0x0003D8, 0x28303840);
-    } else if (val == 1) {
-        RUNCAM_Write(camera_type, 0x0003C4, 0x03FF0000);
-        RUNCAM_Write(camera_type, 0x0003CC, 0x14181C20);
-        RUNCAM_Write(camera_type, 0x0003D8, 0x14181C20);
-    } else if (val == 0) {
-        RUNCAM_Write(camera_type, 0x0003C4, d);
-        RUNCAM_Write(camera_type, 0x0003CC, 0x0A0C0E10);
-        RUNCAM_Write(camera_type, 0x0003D8, 0x0A0C0E10);
-    }
-#ifdef _DEBUG_CAMERA
-    debugf("\r\nRUNCAM sharpness:0x%02x", (uint16_t)val);
-#endif
-#endif
-}
-
-uint8_t Runcam_SetSaturation(uint8_t val) {
-#if (1)
-    return 0;
-#else
-    uint8_t ret = 1;
-    uint32_t d = 0x20242626;
-
-    camCfg_Cur.saturation = val;
-
-    // initial
-    if (camera_type == RUNCAM_MICRO_V1)
-        d = 0x20242626;
-    else if (camera_type == RUNCAM_MICRO_V2 || camera_type == RUNCAM_MICRO_V3)
-        d = 0x24282c30;
-
-    if (val == 0)
-        d = 0x00000000;
-    else if (val == 1)
-        d -= 0x18181414;
-    else if (val == 2)
-        d -= 0x14141010;
-    else if (val == 3)
-        d -= 0x0c0c0808;
-    else if (val == 4) // low
-        d -= 0x08080404;
-    else if (val == 5) // normal
-        ;
-    else if (val == 6) // high
-        d += 0x04041418;
-#ifdef _DEBUG_CAMERA
-    debugf("\r\nRUNCAM saturation:%02x", (uint16_t)val);
-#endif
-
-    ret = RUNCAM_Write(camera_type, 0x0003A4, d);
-    return ret;
-#endif
-}
-
-void Runcam_SetContrast(uint8_t val) {
-#if (0)
-    uint32_t d = 0x46484A4C;
-
-    camCfg_Cur.contrast = val;
-
-    if (camera_type == RUNCAM_MICRO_V1)
-        d = 0x46484A4C;
-    else if (camera_type == RUNCAM_MICRO_V2 || camera_type == RUNCAM_MICRO_V3)
-        d = 0x36383a3c;
-
-    if (val == 0) // low
-        d -= 0x06040404;
-    else if (val == 1) // normal
-        ;
-    else if (val == 2) // high
-        d += 0x04040404;
-
-    RUNCAM_Write(camera_type, 0x00038C, d);
-#ifdef _DEBUG_CAMERA
-    debugf("\r\nRUNCAM contrast:%02x", (uint16_t)val);
-#endif
-#endif
-}
-
-void Runcam_SetVdoRatio(uint8_t ratio) {
-#if (0)
-    /*
-        0: 720p60 4:3 default
-        1: 720p60 16:9 crop
-        2: 720p30 16:9 full
-    */
-    if (camera_type != RUNCAM_MICRO_V2)
-        return;
-
-    if (ratio == 0)
-        RUNCAM_Write(camera_type, 0x000008, 0x0008910B);
-    else if (ratio == 1)
-        RUNCAM_Write(camera_type, 0x000008, 0x00089102);
-    else if (ratio == 2)
-        RUNCAM_Write(camera_type, 0x000008, 0x00089110);
-    // save
-    RUNCAM_Write(camera_type, 0x000694, 0x00000310);
-    RUNCAM_Write(camera_type, 0x000694, 0x00000311);
-#ifdef _DEBUG_CAMERA
-    debugf("\r\nRUNCAM VdoRatio:%02x", (uint16_t)ratio);
-#endif
-#endif
-}
-
-#if (0)
-uint8_t Runcam_GetVdoFormat(uint8_t camera_type) {
-    /*
-        0: 720p60 16:9
-        0: 720p60 4:3
-        1: 720p30 16:9
-        1: 720p30 4:3
-    */
-    uint32_t val;
-    uint8_t ret = 0;
-
-    if (camera_type != RUNCAM_MICRO_V2)
-        return ret;
-    if (cameraTarget == 1)
-        return ret;
-
-    val = RUNCAM_Read(camera_type, 0x000008);
-    if (val == 0x00089102) { // 720p60  16:9
-        ret = 0;
-        camRatio = 0;
-    } else if (val == 0x0008910B) { // 720p60  4:3
-        ret = 0;
-        camRatio = 1;
-    } else if (val == 0x00089104) { // 720p30 16:9
-        ret = 1;
-        camRatio = 0;
-    } else if (val == 0x00089109) { // 720p60 4:3
-        ret = 1;
-        camRatio = 1;
-    } else {
-        ret = 2;
-        camRatio = 0;
-    }
-
-#ifdef _DEBUG_CAMERA
-    debugf("\r\nVdoFormat:%02x, 4_3:%02x", (uint16_t)ret, (uint16_t)camRatio);
-#endif
-    return ret;
-}
-#endif
-
-void Runcam_SetHVFlip(uint8_t val) {
-#if (0)
-    if (camera_type != RUNCAM_MICRO_V2 || camera_type == RUNCAM_MICRO_V3)
-        return;
-
-    camCfg_Cur.hvFlip = val;
-
-    if (val == 0)
-        RUNCAM_Write(camera_type, 0x000040, 0x0022ffa9);
-    else if (val == 1)
-        RUNCAM_Write(camera_type, 0x000040, 0x002effa9);
-#endif
-}
-
-void Runcam_SetNightMode(uint8_t val) {
-#if (0)
-    /*
-        0: night mode off
-        1: night mode on
-    */
-    if (camera_type != RUNCAM_MICRO_V2 || camera_type != RUNCAM_MICRO_V3)
-        return;
-
-    camCfg_Cur.nightMode = val;
-
-    if (val == 1) { // Max gain on
-        RUNCAM_Write(camera_type, 0x000070, 0x10000040);
-        // RUNCAM_Write(camera_type, 0x000070, 0x04000040);
-        RUNCAM_Write(camera_type, 0x000718, 0x28002700);
-        RUNCAM_Write(camera_type, 0x00071c, 0x29002800);
-        RUNCAM_Write(camera_type, 0x000720, 0x29002900);
-    } else if (val == 0) { // Max gain off
-        RUNCAM_Write(camera_type, 0x000070, 0x10000040);
-        // RUNCAM_Write(camera_type, 0x000070, 0x04000040);
-        RUNCAM_Write(camera_type, 0x000718, 0x30002900);
-        RUNCAM_Write(camera_type, 0x00071c, 0x32003100);
-        RUNCAM_Write(camera_type, 0x000720, 0x34003300);
-    }
-
-    // save
-    RUNCAM_Write(camera_type, 0x000694, 0x00000310);
-    RUNCAM_Write(camera_type, 0x000694, 0x00000311);
-#ifdef _DEBUG_CAMERA
-    debugf("\r\nRUNCAM NightMode:%02x", (uint16_t)val);
-#endif
-#endif
-}
-
-void Runcam_SetWB(uint8_t *wbRed, uint8_t *wbBlue, uint8_t wbMode) {
-#if (0)
-    uint32_t wbRed_u32 = 0x02000000;
-    uint32_t wbBlue_u32 = 0x00000000;
-    uint8_t i;
-
-    camCfg_Cur.wbMode = wbMode;
-    for (i = 0; i < WBMODE_MAX; i++) {
-        camCfg_Cur.wbRed[i] = wbRed[i];
-        camCfg_Cur.wbBlue[i] = wbBlue[i];
-    }
-
-    if (wbMode) {
-        wbRed_u32 += ((uint32_t)wbRed[wbMode - 1] << 2);
-        wbBlue_u32 += ((uint32_t)wbBlue[wbMode - 1] << 2);
-        wbRed_u32++;
-        wbBlue_u32++;
-    }
-
-    if (wbMode) { // MWB
-        RUNCAM_Write(camera_type, 0x0001b8, 0x020b007b);
-        RUNCAM_Write(camera_type, 0x000204, wbRed_u32);
-        RUNCAM_Write(camera_type, 0x000208, wbBlue_u32);
-    } else { // AWB
-        RUNCAM_Write(camera_type, 0x0001b8, 0x020b0079);
-    }
-#endif
 }
 
 void camera_reg_write_eep(uint16_t addr, uint8_t val) {
@@ -401,26 +136,20 @@ void camera_setting_profile_write(uint8_t profile) {
 void camera_setting_profile_reset(uint8_t profile) {
     if (camera_mfr == CAMERA_MFR_RUNCAM)
         runcam_setting_profile_reset(camera_setting_reg_eep[profile]);
-#if (0)
-    else if (camera_mfr == CAMERA_MFR_FOXEER)
-        foxeer_setting_profile_reset(camera_setting_reg_eep[profile]);
-#endif
 }
 void camera_setting_profile_check(uint8_t profile) {
     uint8_t need_reset = 0;
     if (camera_mfr == CAMERA_MFR_RUNCAM)
         need_reset = runcam_setting_profile_check(camera_setting_reg_eep[profile]);
-#if (0)
-    else if (camera_mfr == CAMERA_MFR_FOXEER)
-        need_reset = foxeer_setting_profile_check(camera_setting_reg_eep[profile]);
-#endif
 
     if (need_reset) {
         camera_setting_profile_reset(profile);
         camera_setting_profile_write(profile);
+#ifdef _DEBUG_CAMERA
+        debugf("\r\ncamera setting need to be reset");
+#endif
     }
 }
-
 void camera_profile_read(void) {
     camera_profile = camera_reg_read_eep(EEP_ADDR_CAM_PROFILE);
 }
@@ -438,8 +167,8 @@ void camera_profile_check(void) {
 }
 
 void camera_setting_read(void) {
+    uint8_t camera_type_last;
     uint8_t i;
-    camera_type_e camera_type_last;
 
     if (camera_type == CAMERA_TYPE_UNKNOW)
         return;
@@ -452,6 +181,11 @@ void camera_setting_read(void) {
             camera_setting_profile_reset(i);
             camera_setting_profile_write(i);
         }
+        camera_reg_write_eep(EEP_ADDR_CAM_TYPE, camera_type);
+        i = camera_reg_read_eep(EEP_ADDR_CAM_TYPE);
+#ifdef _DEBUG_CAMERA
+        debugf("\r\ncamera changed(%d->%d), reset camera setting", camera_type_last, i);
+#endif
     } else {
         camera_profile_read();
         camera_profile_check();
@@ -462,20 +196,19 @@ void camera_setting_read(void) {
     }
 }
 
-void camera_set(uint8_t is_init) {
-    if (camera_mfr == CAMERA_MFR_RUNCAM)
+void camera_set(uint8_t is_init, uint8_t save) {
+    if (camera_mfr == CAMERA_MFR_RUNCAM) {
         runcam_set(camera_setting_reg_eep[camera_profile], is_init);
-#if (0)
-    else if (camera_mfr == CAMERA_MFR_FOXEER)
-        foxeer_set(camera_setting_reg_eep[camera_profile]);
-#endif
+        if (save)
+            runcam_save();
+    }
 }
 
-void CameraInit() {
+void CameraInit(void) {
     camera_type_detect();
     camera_setting_read();
-    camera_set(1);
-    Init_TC3587(0);
+    camera_set(1, 1);
+    camera_mode_detect();
 
     camera_button_init();
 }

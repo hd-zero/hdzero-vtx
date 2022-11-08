@@ -401,15 +401,15 @@ uint8_t get_tx_data_5680() // prepare data to VRX
     tx_buf[3] = 15;
 
     // camType
-    if (CAM_MODE == CAM_720P50)
+    if (video_format == VDO_FMT_720P50)
         tx_buf[4] = 0x66;
-    else if (CAM_MODE == CAM_720P60)
+    else if (video_format == VDO_FMT_720P60)
         tx_buf[4] = 0x99;
-    else if (CAM_MODE == CAM_720P60_NEW)
+    else if (video_format == VDO_FMT_720P60_NEW)
         tx_buf[4] = 0xAA;
-    else if (CAM_MODE == CAM_720P30)
+    else if (video_format == VDO_FMT_720P30)
         tx_buf[4] = 0xCC;
-    else if (CAM_MODE == CAM_720X540_90)
+    else if (video_format == VDO_FMT_720X540_90)
         tx_buf[4] = 0xEE;
     else
         tx_buf[4] = 0x99;
