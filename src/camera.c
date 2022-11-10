@@ -187,7 +187,7 @@ void camera_setting_read(void) {
         camera_reg_write_eep(EEP_ADDR_CAM_TYPE, camera_type);
         i = camera_reg_read_eep(EEP_ADDR_CAM_TYPE);
 #ifdef _DEBUG_CAMERA
-        debugf("\r\ncamera changed(%d->%d), reset camera setting", camera_type_last, i);
+        debugf("\r\ncamera changed(%d==>%d), reset camera setting", camera_type_last, i);
 #endif
     } else {
         camera_profile_read();
@@ -351,26 +351,34 @@ uint8_t camera_menu_long_press(uint8_t op, uint8_t last_op, uint8_t is_init) {
 
 void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
     uint8_t item = camMenuStatus - 2;
+
     switch (camMenuStatus) {
     case CAM_STATUS_BRIGHTNESS:
+    case CAM_STATUS_WBRED:
+    case CAM_STATUS_WBBLUE:
         if (!camera_attribute[item][item_enbale])
             return;
+#if (0)
+        // if wb mode if auto, do not modify wbred/wbblue
         if ((camMenuStatus == CAM_STATUS_WBRED || camMenuStatus == CAM_STATUS_WBBLUE) &&
             (!camera_setting_reg_menu[4]))
-            return; // if wb mode if auto, do not modify wbred/wbblue
+            return;
+#endif
 
         if (op == BTN_RIGHT) {
             camera_setting_reg_menu[item] += camera_menu_long_press(op, last_op, 0);
             if (camera_setting_reg_menu[item] > camera_attribute[item][item_max])
-                camera_setting_reg_menu[item] = camera_attribute[item][item_max];
+                camera_setting_reg_menu[item] = camera_attribute[item][item_min];
 
             camera_set(camera_setting_reg_menu, 0, 0);
         } else if (op == BTN_LEFT) {
             camera_setting_reg_menu[item] -= camera_menu_long_press(op, last_op, 0);
             if (camera_setting_reg_menu[item] < camera_attribute[item][item_min])
-                camera_setting_reg_menu[item] = camera_attribute[item][item_min];
+                camera_setting_reg_menu[item] = camera_attribute[item][item_max];
 
             camera_set(camera_setting_reg_menu, 0, 0);
+        } else if (op == BTN_MID) {
+            camera_menu_long_press(op, last_op, 1);
         }
         break;
     case CAM_STATUS_SHARPNESS:
@@ -391,7 +399,10 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
             camera_set(camera_setting_reg_menu, 0, 0);
         } else if (op == BTN_LEFT) {
             camera_setting_reg_menu[item]--;
-            if (camera_setting_reg_menu[item] < camera_attribute[item][item_min])
+            if (camera_attribute[item][item_min] == 0) {
+                if (camera_setting_reg_menu[item] > camera_attribute[item][item_max])
+                    camera_setting_reg_menu[item] = camera_attribute[item][item_max];
+            } else if (camera_setting_reg_menu[item] < camera_attribute[item][item_min])
                 camera_setting_reg_menu[item] = camera_attribute[item][item_max];
             camera_set(camera_setting_reg_menu, 0, 0);
         }
@@ -426,6 +437,7 @@ uint8_t camStatusUpdate(uint8_t op) {
             // camera_menu_item_string_update();
             camera_menu_long_press(op, last_op, 1);
             camMenuStatus = CAM_STATUS_PROFILE;
+            camera_menu_cursor_update(0);
         }
         break;
 
@@ -445,7 +457,7 @@ uint8_t camStatusUpdate(uint8_t op) {
             camMenuStatus == CAM_STATUS_WBRED ||
             camMenuStatus == CAM_STATUS_WBBLUE)
             ; // note brightness/wbred/wbblue support long press
-        else if (last_op != BTN_MID)
+        else if (last_op == op)
             break;
 
         camera_menu_item_toggle(op);

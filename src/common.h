@@ -60,7 +60,7 @@
 #define _DEBUG_MODE
 //#define _DEBUG_DM6300
 //#define _DEBUG_TC3587
-//#define _DEBUG_CAMERA
+#define _DEBUG_CAMERA
 //#define _DEBUG_LIFETIME
 //#define _DEBUG_SA
 //#define _DEBUG_DISPLAYPORT
