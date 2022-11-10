@@ -14,20 +14,12 @@ const uint8_t runcam_micro_v1_attribute[CAMERA_SETTING_NUM][4] = {
     {1, 0x00, 0x01, 0x01},
     // saturation
     {1, 0x00, 0x06, 0x03},
-    // wb red[0]
-    {1, 0x00, 0xff, 0xc7},
-    // wb red[1]
-    {1, 0x00, 0xff, 0xc7},
-    // wb red[2]
-    {1, 0x00, 0xff, 0xc7},
-    // wb blue[0]
-    {1, 0x00, 0xff, 0xca},
-    // wb blue[1]
-    {1, 0x00, 0xff, 0xca},
-    // wb blue[2]
-    {1, 0x00, 0xff, 0xca},
     // wb mode
     {1, 0x00, 0x03, 0x00},
+    // wb red
+    {1, 0x00, 0xff, 0xc7},
+    // wb blue
+    {1, 0x00, 0xff, 0xca},
     // hv flip
     {0, 0x00, 0x01, 0x00},
     // night mode
@@ -37,6 +29,10 @@ const uint8_t runcam_micro_v1_attribute[CAMERA_SETTING_NUM][4] = {
     // led mode
     {1, 0x00, 0x01, 0x00},
 
+    {0, 0x00, 0x00, 0x00},
+    {0, 0x00, 0x00, 0x00},
+    {0, 0x00, 0x00, 0x00},
+    {0, 0x00, 0x00, 0x00},
     {0, 0x00, 0x00, 0x00},
 };
 
@@ -49,17 +45,9 @@ const uint8_t runcam_micro_v2_attribute[CAMERA_SETTING_NUM][4] = {
     {1, 0x00, 0x02, 0x01},
     // saturation
     {1, 0x00, 0x06, 0x05},
-    // wb red[0]
+    // wb red
     {1, 0x00, 0xff, 0xc7},
-    // wb red[1]
-    {1, 0x00, 0xff, 0xc7},
-    // wb red[2]
-    {1, 0x00, 0xff, 0xc7},
-    // wb blue[0]
-    {1, 0x00, 0xff, 0xca},
-    // wb blue[1]
-    {1, 0x00, 0xff, 0xca},
-    // wb blue[2]
+    // wb blue
     {1, 0x00, 0xff, 0xca},
     // wb mode
     {1, 0x00, 0x03, 0x00},
@@ -72,6 +60,10 @@ const uint8_t runcam_micro_v2_attribute[CAMERA_SETTING_NUM][4] = {
     // led mode
     {1, 0x00, 0x01, 0x00},
 
+    {0, 0x00, 0x00, 0x00},
+    {0, 0x00, 0x00, 0x00},
+    {0, 0x00, 0x00, 0x00},
+    {0, 0x00, 0x00, 0x00},
     {0, 0x00, 0x00, 0x00},
 };
 
@@ -84,17 +76,9 @@ const uint8_t runcam_nano_90_attribute[CAMERA_SETTING_NUM][4] = {
     {1, 0x00, 0x02, 0x01},
     // saturation
     {1, 0x00, 0x06, 0x05},
-    // wb red[0]
+    // wb red
     {1, 0x00, 0xff, 0xc7},
-    // wb red[1]
-    {1, 0x00, 0xff, 0xc7},
-    // wb red[2]
-    {1, 0x00, 0xff, 0xc7},
-    // wb blue[0]
-    {1, 0x00, 0xff, 0xca},
-    // wb blue[1]
-    {1, 0x00, 0xff, 0xca},
-    // wb blue[2]
+    // wb blue
     {1, 0x00, 0xff, 0xca},
     // wb mode
     {1, 0x00, 0x03, 0x00},
@@ -108,9 +92,11 @@ const uint8_t runcam_nano_90_attribute[CAMERA_SETTING_NUM][4] = {
     {1, 0x00, 0x01, 0x00},
 
     {0, 0x00, 0x00, 0x00},
+    {0, 0x00, 0x00, 0x00},
+    {0, 0x00, 0x00, 0x00},
+    {0, 0x00, 0x00, 0x00},
+    {0, 0x00, 0x00, 0x00},
 };
-
-uint8_t runcam_attribute[CAMERA_SETTING_NUM][4];
 
 void runcam_type_detect(void) {
     uint8_t i, j;
@@ -120,21 +106,21 @@ void runcam_type_detect(void) {
         camera_device = RUNCAM_MICRO_V1;
         for (i = 0; i < CAMERA_SETTING_NUM; i++) {
             for (j = 0; j < 4; j++)
-                runcam_attribute[i][j] = runcam_micro_v1_attribute[i][j];
+                camera_attribute[i][j] = runcam_micro_v1_attribute[i][j];
         }
     } else if (!RUNCAM_Write(RUNCAM_MICRO_V2, 0x50, 0x0452484E)) {
         camera_type = CAMERA_TYPE_RUNCAM_MICRO_V2;
         camera_device = RUNCAM_MICRO_V2;
         for (i = 0; i < CAMERA_SETTING_NUM; i++) {
             for (j = 0; j < 4; j++)
-                runcam_attribute[i][j] = runcam_micro_v2_attribute[i][j];
+                camera_attribute[i][j] = runcam_micro_v2_attribute[i][j];
         }
     } else if (!RUNCAM_Write(RUNCAM_NANO_90, 0x50, 0x04484848)) {
         camera_type = CAMERA_TYPE_RUNCAM_NANO_90;
         camera_device = RUNCAM_NANO_90;
         for (i = 0; i < CAMERA_SETTING_NUM; i++) {
             for (j = 0; j < 4; j++)
-                runcam_attribute[i][j] = runcam_nano_90_attribute[i][j];
+                camera_attribute[i][j] = runcam_nano_90_attribute[i][j];
         }
     }
 }
@@ -142,16 +128,16 @@ void runcam_type_detect(void) {
 void runcam_setting_profile_reset(uint8_t *setting_profile) {
     uint8_t i;
     for (i = 0; i < CAMERA_SETTING_NUM; i++)
-        setting_profile[i] = runcam_attribute[i][item_default];
+        setting_profile[i] = camera_attribute[i][item_default];
 }
 
 uint8_t runcam_setting_profile_check(uint8_t *setting_profile) {
     uint8_t i;
     for (i = 0; i < CAMERA_SETTING_NUM; i++) {
         if (runcam_micro_v1_attribute[i][item_enbale]) {
-            if (setting_profile[i] < runcam_attribute[i][item_min])
+            if (setting_profile[i] < camera_attribute[i][item_min])
                 return 1;
-            if (setting_profile[i] > runcam_attribute[i][item_max])
+            if (setting_profile[i] > camera_attribute[i][item_max])
                 return 1;
         }
     }
@@ -163,7 +149,7 @@ void runcam_brightness(uint8_t val, uint8_t led_mode) {
     uint32_t val_32;
 
     camera_setting_reg_set[0] = val;
-    camera_setting_reg_set[14] = led_mode;
+    camera_setting_reg_set[10] = led_mode;
 
     if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1)
         d = 0x0452004e;
@@ -182,10 +168,10 @@ void runcam_brightness(uint8_t val, uint8_t led_mode) {
     // indoor
     d += val_32;
 
-    d -= runcam_attribute[0][item_default];
+    d -= camera_attribute[0][item_default];
     // outdoor
     d += (val_32 << 16);
-    d -= ((uint32_t)runcam_attribute[0][item_default] << 16);
+    d -= ((uint32_t)camera_attribute[0][item_default] << 16);
 
     RUNCAM_Write(camera_device, 0x50, d);
 #ifdef _DEBUG_RUNCAM
@@ -278,20 +264,17 @@ uint8_t runcam_saturation(uint8_t val) {
     return ret;
 }
 
-void runcam_wb(uint8_t *wbRed, uint8_t *wbBlue, uint8_t wbMode) {
+void runcam_wb(uint8_t wbMode, uint8_t wbRed, uint8_t wbBlue) {
     uint32_t wbRed_u32 = 0x02000000;
     uint32_t wbBlue_u32 = 0x00000000;
-    uint8_t i;
 
-    for (i = 0; i < 3; i++) {
-        camera_setting_reg_set[4 + i] = wbRed[i];
-        camera_setting_reg_set[7 + i] = wbBlue[i];
-    }
-    camera_setting_reg_set[10] = wbMode;
+    camera_setting_reg_set[4] = wbRed;
+    camera_setting_reg_set[5] = wbBlue;
+    camera_setting_reg_set[6] = wbMode;
 
     if (wbMode) {
-        wbRed_u32 += ((uint32_t)wbRed[wbMode - 1] << 2);
-        wbBlue_u32 += ((uint32_t)wbBlue[wbMode - 1] << 2);
+        wbRed_u32 += ((uint32_t)wbRed << 2);
+        wbBlue_u32 += ((uint32_t)wbBlue << 2);
         wbRed_u32++;
         wbBlue_u32++;
     }
@@ -304,10 +287,8 @@ void runcam_wb(uint8_t *wbRed, uint8_t *wbBlue, uint8_t wbMode) {
         RUNCAM_Write(camera_device, 0x0001b8, 0x020b0079);
     }
 #ifdef _DEBUG_RUNCAM
-    debugf("\r\nRUNCAM wb:red(%02x, %02x, %02x) blue(%02x,%02x,%02x), mode(%02x)",
-           (uint16_t)wbRed[0], (uint16_t)wbRed[1], (uint16_t)wbRed[2],
-           (uint16_t)wbBlue[0], (uint16_t)wbBlue[1], (uint16_t)wbBlue[2],
-           (uint16_t)wbMode);
+    debugf("\r\nRUNCAM wb:red(%02x),blue(%02x),mode(%02x)",
+           (uint16_t)wbRed, (uint16_t)wbBlue, (uint16_t)wbMode);
 #endif
 }
 
@@ -315,7 +296,7 @@ void runcam_hv_flip(uint8_t val) {
     if (camera_type != CAMERA_TYPE_RUNCAM_MICRO_V2 && camera_type != CAMERA_TYPE_RUNCAM_NANO_90)
         return;
 
-    camera_setting_reg_set[11] = val;
+    camera_setting_reg_set[7] = val;
 
     if (val == 0)
         RUNCAM_Write(camera_device, 0x000040, 0x0022ffa9);
@@ -334,7 +315,7 @@ void runcam_night_mode(uint8_t val) {
     if (camera_type != CAMERA_TYPE_RUNCAM_MICRO_V2 && camera_type != CAMERA_TYPE_RUNCAM_NANO_90)
         return;
 
-    camera_setting_reg_set[12] = val;
+    camera_setting_reg_set[8] = val;
 
     if (val == 0) { // Max gain off
         RUNCAM_Write(camera_device, 0x000070, 0x10000040);
@@ -364,7 +345,7 @@ void runcam_video_format(uint8_t val) {
         1: 720x540@60
         2: 960x720@60
     */
-    camera_setting_reg_set[13] = val;
+    camera_setting_reg_set[9] = val;
 
     if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2) {
         if (val == 0)
@@ -408,7 +389,7 @@ uint8_t runcam_set(uint8_t *setting_profile, uint8_t is_init) {
     uint8_t ret = 0;
 
     if (is_init || runcam_setting_update_need(&setting_profile[0], 0, 0) || runcam_setting_update_need(&setting_profile[14], 14, 14))
-        runcam_brightness(setting_profile[0], setting_profile[14]);
+        runcam_brightness(setting_profile[0], setting_profile[9]); // include led_mode
 
     if (is_init || runcam_setting_update_need(&setting_profile[1], 1, 1))
         runcam_sharpness(setting_profile[1]);
@@ -419,17 +400,17 @@ uint8_t runcam_set(uint8_t *setting_profile, uint8_t is_init) {
     if (is_init || runcam_setting_update_need(&setting_profile[3], 3, 3))
         runcam_saturation(setting_profile[3]);
 
-    if (is_init || runcam_setting_update_need(&setting_profile[4], 4, 10))
-        runcam_wb(&setting_profile[4], &setting_profile[7], setting_profile[10]);
+    if (is_init || runcam_setting_update_need(&setting_profile[4], 4, 6))
+        runcam_wb(setting_profile[4], setting_profile[5], setting_profile[6]);
 
-    if (is_init || runcam_setting_update_need(&setting_profile[11], 11, 11))
-        runcam_hv_flip(setting_profile[11]);
+    if (is_init || runcam_setting_update_need(&setting_profile[7], 7, 7))
+        runcam_hv_flip(setting_profile[7]);
 
-    if (is_init || runcam_setting_update_need(&setting_profile[12], 12, 12))
-        runcam_night_mode(setting_profile[12]);
+    if (is_init || runcam_setting_update_need(&setting_profile[8], 8, 8))
+        runcam_night_mode(setting_profile[8]);
 
-    if (is_init || runcam_setting_update_need(&setting_profile[13], 13, 13)) {
-        runcam_video_format(setting_profile[13]);
+    if (is_init || runcam_setting_update_need(&setting_profile[10], 10, 10)) {
+        runcam_video_format(setting_profile[10]);
         ret = 1;
     }
 

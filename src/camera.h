@@ -70,11 +70,13 @@ typedef enum {
     CAM_STATUS_WBRED,
     CAM_STATUS_WBBLUE,
     CAM_STATUS_HVFLIP,
-    CAM_STATUS_NIGHTMODE,
-    CAM_STATUS_VDO_RATIO,
+    CAM_STATUS_NIGHT_MODE,
+    CAM_STATUS_LED_MODE,
+    CAM_STATUS_VDO_FMT,
     CAM_STATUS_RESET,
     CAM_STATUS_EXIT,
     CAM_STATUS_SAVE_EXIT,
+
     CAM_STATUS_SET_VDO_RATIO_4_3,
     CAM_STATUS_SET_VDO_RATIO_16_9_CROP,
     CAM_STATUS_SET_VDO_RATIO_16_9_FULL,
@@ -85,11 +87,12 @@ typedef enum {
 
 void CameraInit();
 uint8_t camStatusUpdate(uint8_t op);
-void camMenuInit();
+void camMenuInit(void);
 
 extern uint8_t camRatio;
 extern uint8_t video_format;
 extern uint8_t camera_type;
 extern uint8_t camera_device;
+extern uint8_t camera_attribute[CAMERA_SETTING_NUM][4];
 extern uint8_t camera_setting_reg_set[CAMERA_SETTING_NUM];
 #endif /* __CAMERA_H_ */
