@@ -53,7 +53,7 @@ typedef enum {
 } RuncamV2Profile_e;
 
 typedef enum {
-    item_enbale,
+    item_enable,
     item_min,
     item_max,
     item_default,

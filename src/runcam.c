@@ -24,10 +24,10 @@ const uint8_t runcam_micro_v1_attribute[CAMERA_SETTING_NUM][4] = {
     {0, 0x00, 0x01, 0x00},
     // night mode
     {0, 0x00, 0x01, 0x01},
-    // video fmt
-    {0, 0x00, 0x00, 0x00},
     // led mode
     {1, 0x00, 0x01, 0x00},
+    // video fmt
+    {0, 0x00, 0x00, 0x00},
 
     {0, 0x00, 0x00, 0x00},
     {0, 0x00, 0x00, 0x00},
@@ -134,7 +134,7 @@ void runcam_setting_profile_reset(uint8_t *setting_profile) {
 uint8_t runcam_setting_profile_check(uint8_t *setting_profile) {
     uint8_t i;
     for (i = 0; i < CAMERA_SETTING_NUM; i++) {
-        if (camera_attribute[i][item_enbale]) {
+        if (camera_attribute[i][item_enable]) {
             if (setting_profile[i] < camera_attribute[i][item_min])
                 return 1;
             if (setting_profile[i] > camera_attribute[i][item_max])
