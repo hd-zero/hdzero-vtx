@@ -20,27 +20,31 @@ typedef enum {
 #define SPARKLE_T   20
 
 // eeprom parameter
-#define EEP_ADDR_RF_FREQ     0x80
-#define EEP_ADDR_RF_POWER    0x81
-#define EEP_ADDR_LPMODE      0x82
-#define EEP_ADDR_PITMODE     0x83
-#define EEP_ADDR_25MW        0x84
-#define EEP_ADDR_SA_LOCK     0x88
-#define EEP_ADDR_POWER_LOCK  0x89
-#define EEP_ADDR_VTX_CONFIG  0x8A
-#define EEP_ADDR_LIFETIME_0  0xF0
-#define EEP_ADDR_LIFETIME_1  0xF1
-#define EEP_ADDR_LIFETIME_2  0xF2
-#define EEP_ADDR_LIFETIME_3  0xF3
 #define EEP_ADDR_CAM_TYPE    0x40
 #define EEP_ADDR_CAM_PROFILE 0x41
+// profile 1: 0x42~0x51
+// profile 2: 0x52~0x61
+// profile 2: 0x62~0x71
 #define EEP_ADDR_CAM_SETTING 0x42
-#define EEP_ADDR_DCOC_EN     0xC0
-#define EEP_ADDR_DCOC_IH     0xC1
-#define EEP_ADDR_DCOC_IL     0xC2
-#define EEP_ADDR_DCOC_QH     0xC3
-#define EEP_ADDR_DCOC_QL     0xC4
-#define EEP_ADDR_EEP_VLD     0xFF
+
+#define EEP_ADDR_RF_FREQ    0x80
+#define EEP_ADDR_RF_POWER   0x81
+#define EEP_ADDR_LPMODE     0x82
+#define EEP_ADDR_PITMODE    0x83
+#define EEP_ADDR_25MW       0x84
+#define EEP_ADDR_SA_LOCK    0x88
+#define EEP_ADDR_POWER_LOCK 0x89
+#define EEP_ADDR_VTX_CONFIG 0x8A
+#define EEP_ADDR_DCOC_EN    0xC0
+#define EEP_ADDR_DCOC_IH    0xC1
+#define EEP_ADDR_DCOC_IL    0xC2
+#define EEP_ADDR_DCOC_QH    0xC3
+#define EEP_ADDR_DCOC_QL    0xC4
+#define EEP_ADDR_LIFETIME_0 0xF0
+#define EEP_ADDR_LIFETIME_1 0xF1
+#define EEP_ADDR_LIFETIME_2 0xF2
+#define EEP_ADDR_LIFETIME_3 0xF3
+#define EEP_ADDR_EEP_VLD    0xFF
 
 #define FREQ_MAX     7
 #define FREQ_MAX_EXT 9

@@ -121,26 +121,34 @@ void camera_button_init() {
 
 void camera_reg_write_eep(uint16_t addr, uint8_t val) {
     I2C_Write8_Wait(10, ADDR_EEPROM, addr, val);
+    debugf("\r\neep write(%02x,%d)", addr, (uint16_t)val);
 }
 uint8_t camera_reg_read_eep(uint16_t addr) {
     return I2C_Read8_Wait(10, ADDR_EEPROM, addr);
 }
 
 void camera_setting_profile_read(uint8_t profile) {
-    uint8_t i;
-    for (i = 0; i < CAMERA_SETTING_NUM; i++)
-        camera_setting_reg_eep[profile][i] = camera_reg_read_eep(EEP_ADDR_CAM_SETTING + profile * CAMERA_SETTING_NUM + i);
+    uint8_t i, addr;
+    for (i = 0; i < CAMERA_SETTING_NUM; i++) {
+        addr = EEP_ADDR_CAM_SETTING + profile * CAMERA_SETTING_NUM + i;
+        camera_setting_reg_eep[profile][i] = camera_reg_read_eep(addr);
+    }
 }
 void camera_setting_profile_write(uint8_t profile) {
     uint8_t i, j;
+    uint8_t addr;
     if (profile == 0xff) {
         for (i = 0; i < CAMERA_SETTING_NUM; i++) {
-            for (j = 0; j < CAMERA_PROFILE_NUM; j++)
-                camera_reg_write_eep(EEP_ADDR_CAM_SETTING + profile * CAMERA_SETTING_NUM + i, camera_setting_reg_eep[j][i]);
+            for (j = 0; j < CAMERA_PROFILE_NUM; j++) {
+                addr = EEP_ADDR_CAM_SETTING + j * CAMERA_SETTING_NUM + i;
+                camera_reg_write_eep(addr, camera_setting_reg_eep[j][i]);
+            }
         }
     } else {
-        for (i = 0; i < CAMERA_SETTING_NUM; i++)
-            camera_reg_write_eep(EEP_ADDR_CAM_SETTING + profile * CAMERA_SETTING_NUM + i, camera_setting_reg_eep[profile][i]);
+        for (i = 0; i < CAMERA_SETTING_NUM; i++) {
+            addr = EEP_ADDR_CAM_SETTING + profile * CAMERA_SETTING_NUM + i;
+            camera_reg_write_eep(addr, camera_setting_reg_eep[profile][i]);
+        }
     }
 }
 void camera_setting_profile_reset(uint8_t profile) {
@@ -212,6 +220,10 @@ void camera_setting_reg_menu_update(void) {
     uint8_t i;
     for (i = 0; i < CAMERA_SETTING_NUM; i++)
         camera_setting_reg_menu[i] = camera_setting_reg_eep[camera_profile_menu][i];
+
+#ifdef _DEBUG_CAMERA
+    debugf("\r\ncamera profile:%d", camera_profile_menu);
+#endif
 }
 
 void camera_setting_reg_eep_update(void) {
@@ -286,7 +298,7 @@ void camMenuDrawBracket(void) {
 void camMenuDrawValue(void) {
     const char *wb_mode_str[] = {"  AUTO", "MANUAL"};
     const char *switch_str[] = {"OFF", " ON"};
-    const char *resolution_runcam_micro_v2[] = {"      4:3", "16:9 FULL", "16:9 CLIP"};
+    const char *resolution_runcam_micro_v2[] = {"      4:3", "16:9 CLIP", "16:9 FULL"};
     const char *resolution_runcam_nano_90[] = {"540P@90", "540P@60", "720P@60"};
 
     uint8_t str[4];
@@ -498,6 +510,7 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
             camera_set(camera_setting_reg_menu, 0);
         }
         break;
+
     default:
         break;
     }
@@ -561,33 +574,39 @@ uint8_t camStatusUpdate(uint8_t op) {
     case CAM_STATUS_RESET:
         if (last_op == op)
             break;
-        camera_setting_reg_menu_toggle(last_op, op);
-        camera_setting_profile_reset(camera_profile_menu);
-        camera_setting_reg_menu_update();
-        camera_set(camera_setting_reg_menu, 0);
-        camMenuDrawValue();
+        camera_menu_item_toggle(op);
+        if (op == BTN_RIGHT) {
+            camera_setting_profile_reset(camera_profile_menu);
+            camera_setting_reg_menu_update();
+            camera_set(camera_setting_reg_menu, 0);
+            camMenuDrawValue();
+        }
         break;
 
     case CAM_STATUS_EXIT:
         if (last_op == op)
             break;
-        camera_setting_reg_menu_toggle(last_op, op);
-        camera_setting_reg_menu_update();
-        camera_set(camera_setting_reg_menu, 0);
-
-        ret = 1;
+        camera_menu_item_toggle(op);
+        if (op == BTN_RIGHT) {
+            camera_setting_reg_menu_update();
+            camera_set(camera_setting_reg_menu, 0);
+            camMenuStatus = CAM_STATUS_IDLE;
+            ret = 1;
+        }
         break;
     case CAM_STATUS_SAVE_EXIT:
         if (last_op == op)
             break;
-        camera_setting_reg_menu_toggle(last_op, op);
-        camera_profile_eep = camera_profile_menu;
-        camera_profile_write();
-        camera_set(camera_setting_reg_menu, 1);
-        camera_setting_reg_eep_update();
-        camera_setting_profile_write(0xff);
-
-        ret = 1;
+        camera_menu_item_toggle(op);
+        if (op == BTN_RIGHT) {
+            camera_profile_eep = camera_profile_menu;
+            camera_profile_write();
+            camera_set(camera_setting_reg_menu, 1);
+            camera_setting_reg_eep_update();
+            camera_setting_profile_write(0xff);
+            camMenuStatus = CAM_STATUS_IDLE;
+            ret = 1;
+        }
         break;
     case CAM_STATUS_REPOWER:
         break;
@@ -603,21 +622,6 @@ uint8_t camStatusUpdate(uint8_t op) {
 }
 #endif
 
-void camMenuSetVdoRatioInit() {
-#if (0)
-    memset(osd_buf, 0x20, sizeof(osd_buf));
-    strcpy(osd_buf[0] + osd_menu_offset + 2, "--VIDEO FORMAT--");
-    strcpy(osd_buf[1] + osd_menu_offset + 3, "SET 720P 4:3  DEFAULT");
-    strcpy(osd_buf[2] + osd_menu_offset + 3, "SET 720P 16:9 CROP");
-    strcpy(osd_buf[3] + osd_menu_offset + 3, "SET 720P 16:9 FULL");
-    strcpy(osd_buf[4] + osd_menu_offset + 3, "RETURN");
-    osd_buf[1][osd_menu_offset + 2] = '>';
-#endif
-}
-
 const char *cam_names[] = {"   MICRO V2", "    NANO V2", "  NANO LITE"};
 const char *low_med_high_strs[] = {"   LOW", "MEDIUM", "  HIGH"};
 const char *off_on_strs[] = {"  OFF", "   ON"};
-
-void camMenuStringUpdate(uint8_t status) {
-}
