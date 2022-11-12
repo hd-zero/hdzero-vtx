@@ -396,7 +396,7 @@ uint8_t runcam_set(uint8_t *setting_profile) {
     static uint8_t init_done = 0;
     uint8_t ret = 0;
     if (!init_done || runcam_setting_update_need(setting_profile, 0, 0) || runcam_setting_update_need(setting_profile, 10, 10))
-        runcam_brightness(setting_profile[0], setting_profile[9]); // include led_mode
+        runcam_brightness(setting_profile[0], setting_profile[10]); // include led_mode
 
     if (!init_done || runcam_setting_update_need(setting_profile, 1, 1))
         runcam_sharpness(setting_profile[1]);

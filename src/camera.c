@@ -296,8 +296,8 @@ void camMenuDrawBracket(void) {
 void camMenuDrawValue(void) {
     const char *wb_mode_str[] = {"   AUTO", " MANUAL"};
     const char *switch_str[] = {"    OFF", "     ON"};
-    const char *resolution_runcam_micro_v2[] = {"      4:3", "16:9 CLIP", "16:9 FULL"};
-    const char *resolution_runcam_nano_90[] = {"  540P@90", "  540P@60", "  720P@60"};
+    const char *resolution_runcam_micro_v2[] = {"     4:3", "16:9CLIP", "16:9FULL"};
+    const char *resolution_runcam_nano_90[] = {" 540P@90", " 540P@60", " 720P@60"};
 
     uint8_t str[4];
     uint8_t i;
@@ -367,9 +367,9 @@ void camMenuDrawValue(void) {
 
             case CAM_STATUS_VDO_FMT: // vdo fmt
                 if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2) {
-                    strcpy(&osd_buf[i][osd_menu_offset + 19], resolution_runcam_micro_v2[camera_setting_reg_menu[i - 1]]);
+                    strcpy(&osd_buf[i][osd_menu_offset + 20], resolution_runcam_micro_v2[camera_setting_reg_menu[i - 1]]);
                 } else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
-                    strcpy(&osd_buf[i][osd_menu_offset + 19], resolution_runcam_nano_90[camera_setting_reg_menu[i - 1]]);
+                    strcpy(&osd_buf[i][osd_menu_offset + 20], resolution_runcam_nano_90[camera_setting_reg_menu[i - 1]]);
                 }
                 break;
             default:
@@ -512,7 +512,9 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
             camera_setting_reg_menu[item]++;
             if (camera_setting_reg_menu[item] > camera_attribute[item][item_max])
                 camera_setting_reg_menu[item] = camera_attribute[item][item_min];
-            camera_set(camera_setting_reg_menu, 0);
+
+            if (camMenuStatus != CAM_STATUS_VDO_FMT) // vdo format will be configured when exit camera menu
+                camera_set(camera_setting_reg_menu, 0);
         } else if (op == BTN_LEFT) {
             camera_setting_reg_menu[item]--;
             if (camera_attribute[item][item_min] == 0) {
@@ -520,7 +522,9 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
                     camera_setting_reg_menu[item] = camera_attribute[item][item_max];
             } else if (camera_setting_reg_menu[item] < camera_attribute[item][item_min])
                 camera_setting_reg_menu[item] = camera_attribute[item][item_max];
-            camera_set(camera_setting_reg_menu, 0);
+
+            if (camMenuStatus != CAM_STATUS_VDO_FMT) // vdo format will be configured when exit camera menu
+                camera_set(camera_setting_reg_menu, 0);
         }
         break;
 
