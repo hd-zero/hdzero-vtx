@@ -288,13 +288,18 @@ void camera_button_op(uint8_t op) {
 void camMenuDrawBracket(void) {
     uint8_t i;
     for (i = CAM_STATUS_PROFILE; i <= CAM_STATUS_VDO_FMT; i++) {
+#if (0)
         if (i == CAM_STATUS_PROFILE) {
             osd_buf[i][osd_menu_offset + 19] = '<';
             osd_buf[i][osd_menu_offset + 29] = '>';
-        } else if (camera_attribute[i - CAM_STATUS_PROFILE][item_enable]) {
+        } else if (camera_attribute[i - 2][item_enable]) {
             osd_buf[i][osd_menu_offset + 19] = '<';
             osd_buf[i][osd_menu_offset + 29] = '>';
         }
+#else
+        osd_buf[i][osd_menu_offset + 19] = '<';
+        osd_buf[i][osd_menu_offset + 29] = '>';
+#endif
     }
 }
 
@@ -308,85 +313,80 @@ void camMenuDrawValue(void) {
     uint8_t i;
     uint8_t dat;
 
-    for (i = CAM_STATUS_PROFILE; i <= CAM_STATUS_VDO_FMT; i++)
-        switch (i) {
-        case CAM_STATUS_PROFILE: // profile
-            uint8ToString(camera_profile_menu + 1, str);
-            strcpy(&osd_buf[i][osd_menu_offset + 25], str);
-            break;
-        case CAM_STATUS_BRIGHTNESS: // brightness
-            if (camera_setting_reg_menu[0] > camera_attribute[0][item_default]) {
-                dat = camera_setting_reg_menu[0] - camera_attribute[0][item_default];
-                uint8ToString(dat, str);
-                if (dat > 99) {
-                    strcpy(&osd_buf[i][osd_menu_offset + 24], "+");
-                    strcpy(&osd_buf[i][osd_menu_offset + 25], str);
-                } else if (dat > 9) {
-                    strcpy(&osd_buf[i][osd_menu_offset + 24], " +");
-                    strcpy(&osd_buf[i][osd_menu_offset + 26], str + 1);
+    for (i = CAM_STATUS_PROFILE; i <= CAM_STATUS_VDO_FMT; i++) {
+        if (i > CAM_STATUS_PROFILE && camera_attribute[i - 2][item_enable] == 0)
+            strcpy(&osd_buf[i][osd_menu_offset + 27], "-");
+        else {
+            switch (i) {
+            case CAM_STATUS_PROFILE: // profile
+                uint8ToString(camera_profile_menu + 1, str);
+                strcpy(&osd_buf[i][osd_menu_offset + 25], str);
+                break;
+            case CAM_STATUS_BRIGHTNESS: // brightness
+                if (camera_setting_reg_menu[0] > camera_attribute[0][item_default]) {
+                    dat = camera_setting_reg_menu[0] - camera_attribute[0][item_default];
+                    uint8ToString(dat, str);
+                    if (dat > 99) {
+                        strcpy(&osd_buf[i][osd_menu_offset + 24], "+");
+                        strcpy(&osd_buf[i][osd_menu_offset + 25], str);
+                    } else if (dat > 9) {
+                        strcpy(&osd_buf[i][osd_menu_offset + 24], " +");
+                        strcpy(&osd_buf[i][osd_menu_offset + 26], str + 1);
+                    } else {
+                        strcpy(&osd_buf[i][osd_menu_offset + 24], "  +");
+                        strcpy(&osd_buf[i][osd_menu_offset + 27], str + 2);
+                    }
+                } else if (camera_setting_reg_menu[0] < camera_attribute[0][item_default]) {
+                    dat = camera_attribute[0][item_default] - camera_setting_reg_menu[0];
+                    uint8ToString(dat, str);
+                    if (dat > 99) {
+                        strcpy(&osd_buf[i][osd_menu_offset + 24], "-  ");
+                        strcpy(&osd_buf[i][osd_menu_offset + 25], str);
+                    } else if (dat > 9) {
+                        strcpy(&osd_buf[i][osd_menu_offset + 24], " -");
+                        strcpy(&osd_buf[i][osd_menu_offset + 26], str + 1);
+                    } else {
+                        strcpy(&osd_buf[i][osd_menu_offset + 24], "  -");
+                        strcpy(&osd_buf[i][osd_menu_offset + 27], str + 2);
+                    }
                 } else {
-                    strcpy(&osd_buf[i][osd_menu_offset + 24], "  +");
-                    strcpy(&osd_buf[i][osd_menu_offset + 27], str + 2);
+                    strcpy(&osd_buf[i][osd_menu_offset + 24], "   0");
                 }
-            } else if (camera_setting_reg_menu[0] < camera_attribute[0][item_default]) {
-                dat = camera_attribute[0][item_default] - camera_setting_reg_menu[0];
-                uint8ToString(dat, str);
-                if (dat > 99) {
-                    strcpy(&osd_buf[i][osd_menu_offset + 24], "-  ");
-                    strcpy(&osd_buf[i][osd_menu_offset + 25], str);
-                } else if (dat > 9) {
-                    strcpy(&osd_buf[i][osd_menu_offset + 24], " -");
-                    strcpy(&osd_buf[i][osd_menu_offset + 26], str + 1);
-                } else {
-                    strcpy(&osd_buf[i][osd_menu_offset + 24], "  -");
-                    strcpy(&osd_buf[i][osd_menu_offset + 27], str + 2);
-                }
-            } else {
-                strcpy(&osd_buf[i][osd_menu_offset + 24], "   0");
-            }
-            break;
-        case CAM_STATUS_SHARPNESS:  // sharpness
-        case CAM_STATUS_CONTRAST:   // contrast
-        case CAM_STATUS_SATURATION: // saturation
-            if (camera_attribute[i - 2][item_enable]) {
+                break;
+            case CAM_STATUS_SHARPNESS:  // sharpness
+            case CAM_STATUS_CONTRAST:   // contrast
+            case CAM_STATUS_SATURATION: // saturation
                 uint8ToString(camera_setting_reg_menu[i - 2] + 1, str);
                 strcpy(&osd_buf[i][osd_menu_offset + 25], str);
-            }
-            break;
+                break;
 
-        case CAM_STATUS_WBRED:  // wb red
-        case CAM_STATUS_WBBLUE: // wb blue
-            if (camera_attribute[i - 2][item_enable]) {
+            case CAM_STATUS_WBRED:  // wb red
+            case CAM_STATUS_WBBLUE: // wb blue
                 uint8ToString(camera_setting_reg_menu[i - 2], str);
                 strcpy(&osd_buf[i][osd_menu_offset + 25], str);
-            }
-            break;
-        case CAM_STATUS_HVFLIP:     // hv flip
-        case CAM_STATUS_NIGHT_MODE: // night mode
-        case CAM_STATUS_LED_MODE:   // led mode
-            if (camera_attribute[i - 2][item_enable]) {
+                break;
+            case CAM_STATUS_HVFLIP:     // hv flip
+            case CAM_STATUS_NIGHT_MODE: // night mode
+            case CAM_STATUS_LED_MODE:   // led mode
                 strcpy(&osd_buf[i][osd_menu_offset + 21], switch_str[camera_setting_reg_menu[i - 2]]);
-            }
-            break;
+                break;
 
-        case CAM_STATUS_WBMODE: // wb mode
-            if (camera_attribute[i - 2][item_enable]) {
+            case CAM_STATUS_WBMODE: // wb mode
                 strcpy(&osd_buf[i][osd_menu_offset + 21], wb_mode_str[camera_setting_reg_menu[i - 2]]);
-            }
-            break;
+                break;
 
-        case CAM_STATUS_VDO_FMT: // vdo fmt
-            if (camera_attribute[i - 2][item_enable]) {
+            case CAM_STATUS_VDO_FMT: // vdo fmt
                 if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2) {
                     strcpy(&osd_buf[i][osd_menu_offset + 19], resolution_runcam_micro_v2[camera_setting_reg_menu[i - 2]]);
                 } else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
                     strcpy(&osd_buf[i][osd_menu_offset + 19], resolution_runcam_nano_90[camera_setting_reg_menu[i - 2]]);
                 }
+                break;
+            default:
+                break;
             }
-            break;
-        default:
-            break;
         }
+    }
 }
 
 void camMenuInit(void) {

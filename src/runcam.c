@@ -11,7 +11,7 @@ const uint8_t runcam_micro_v1_attribute[CAMERA_SETTING_NUM][4] = {
     // sharpness
     {1, 0x00, 0x02, 0x01},
     // contrast
-    {1, 0x00, 0x01, 0x01},
+    {1, 0x00, 0x02, 0x01},
     // saturation
     {1, 0x00, 0x06, 0x03},
     // wb mode
