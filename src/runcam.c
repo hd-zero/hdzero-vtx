@@ -376,7 +376,6 @@ void runcam_shutter_speed(uint8_t val) {
 
 uint8_t runcam_setting_update_need(uint8_t *setting_p, uint8_t start, uint8_t stop) {
     uint8_t i;
-    static uint8_t setting_cur[CAMERA_SETTING_NUM] = {0};
     for (i = start; i <= stop; i++) {
         if (camera_setting_reg_set[i] != setting_p[i])
             return 1;

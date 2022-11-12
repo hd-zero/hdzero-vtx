@@ -89,7 +89,8 @@ uint8_t osd_menu_offset = 0;
 #ifdef USE_MSP
 
 uint8_t msp_cmp_fc_variant(const char *variant) {
-    for (uint8_t i = 0; i < sizeof(fc_variant); i++) {
+    uint8_t i;
+    for (i = 0; i < sizeof(fc_variant); i++) {
         if (fc_variant[i] != variant[i]) {
             return 0;
         }
