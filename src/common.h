@@ -62,7 +62,7 @@
 //#define _DEBUG_TC3587
 //#define _DEBUG_CAMERA
 //#define _DEBUG_LIFETIME
-//#define _DEBUG_SA
+//#define _DEBUG_SMARTAUDIO
 //#define _DEBUG_DISPLAYPORT
 //#define _DEBUG_RUNCAM
 //#define _DEBUG_SPI
