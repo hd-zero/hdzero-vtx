@@ -1,16 +1,3 @@
 {
     "editor.formatOnSave": true,
-    "files.associations": {
-        "global.h": "c",
-        "camera.h": "c",
-        "runcam.h": "c",
-        "compare": "c",
-        "tuple": "c",
-        "type_traits": "c",
-        "utility": "c",
-        "xmemory": "c",
-        "xtr1common": "c",
-        "xutility": "c",
-        "common.h": "c"
-    },
 }
