@@ -388,28 +388,28 @@ void runcam_save(void) {
 uint8_t runcam_set(uint8_t *setting_profile) {
     static uint8_t init_done = 0;
     uint8_t ret = 0;
-    if (init_done || runcam_setting_update_need(setting_profile, 0, 0) || runcam_setting_update_need(setting_profile, 9, 9))
+    if (!init_done || runcam_setting_update_need(setting_profile, 0, 0) || runcam_setting_update_need(setting_profile, 9, 9))
         runcam_brightness(setting_profile[0], setting_profile[9]); // include led_mode
 
-    if (init_done || runcam_setting_update_need(setting_profile, 1, 1))
+    if (!init_done || runcam_setting_update_need(setting_profile, 1, 1))
         runcam_sharpness(setting_profile[1]);
 
-    if (init_done || runcam_setting_update_need(setting_profile, 2, 2))
+    if (!init_done || runcam_setting_update_need(setting_profile, 2, 2))
         runcam_contrast(setting_profile[2]);
 
-    if (init_done || runcam_setting_update_need(setting_profile, 3, 3))
+    if (!init_done || runcam_setting_update_need(setting_profile, 3, 3))
         runcam_saturation(setting_profile[3]);
 
-    if (init_done || runcam_setting_update_need(setting_profile, 4, 6))
+    if (!init_done || runcam_setting_update_need(setting_profile, 4, 6))
         runcam_wb(setting_profile[4], setting_profile[5], setting_profile[6]);
 
-    if (init_done || runcam_setting_update_need(setting_profile, 7, 7))
+    if (!init_done || runcam_setting_update_need(setting_profile, 7, 7))
         runcam_hv_flip(setting_profile[7]);
 
-    if (init_done || runcam_setting_update_need(setting_profile, 8, 8))
+    if (!init_done || runcam_setting_update_need(setting_profile, 8, 8))
         runcam_night_mode(setting_profile[8]);
 
-    if (init_done || runcam_setting_update_need(setting_profile, 10, 10)) {
+    if (!init_done || runcam_setting_update_need(setting_profile, 10, 10)) {
         runcam_video_format(setting_profile[10]);
         ret = 1;
     }
