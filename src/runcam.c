@@ -15,7 +15,7 @@ const uint8_t runcam_micro_v1_attribute[CAMERA_SETTING_NUM][4] = {
     // saturation
     {1, 0x00, 0x06, 0x03},
     // shutter speed
-    {0, 0x00, 0x06, 0x00},
+    {0, 0x00, 0x20, 0x00},
     // wb mode
     {1, 0x00, 0x01, 0x00},
     // wb red
@@ -47,7 +47,7 @@ const uint8_t runcam_micro_v2_attribute[CAMERA_SETTING_NUM][4] = {
     // saturation
     {1, 0x00, 0x06, 0x05},
     // shutter speed
-    {1, 0x00, 0x06, 0x00},
+    {1, 0x00, 0x20, 0x00},
     // wb mode
     {1, 0x00, 0x01, 0x00},
     // wb red
@@ -79,7 +79,7 @@ const uint8_t runcam_nano_90_attribute[CAMERA_SETTING_NUM][4] = {
     // saturation
     {1, 0x00, 0x06, 0x05},
     // shutter speed
-    {1, 0x00, 0x06, 0x00},
+    {1, 0x00, 0x20, 0x00},
     // wb mode
     {1, 0x00, 0x01, 0x00},
     // wb red
@@ -370,8 +370,16 @@ void runcam_video_format(uint8_t val) {
 #endif
 }
 
-void runcam_shutter_speed(uint8_t val) {
+void runcam_shutter(uint8_t val) {
+    uint32_t dat;
     camera_setting_reg_set[4] = val;
+
+    if (val == 0) // auto
+        dat = 0x447;
+    else // manual
+        dat = (uint32_t)(val)*25;
+    RUNCAM_Write(camera_device, 0x00006c, dat);
+    RUNCAM_Write(camera_device, 0x000044, 0x80009629);
 }
 
 uint8_t runcam_setting_update_need(uint8_t *setting_p, uint8_t start, uint8_t stop) {
@@ -407,7 +415,7 @@ uint8_t runcam_set(uint8_t *setting_profile) {
         runcam_saturation(setting_profile[3]);
 
     if (!init_done || runcam_setting_update_need(setting_profile, 4, 4))
-        runcam_shutter_speed(setting_profile[4]);
+        runcam_shutter(setting_profile[4]);
 
     if (!init_done || runcam_setting_update_need(setting_profile, 5, 7))
         runcam_wb(setting_profile[5], setting_profile[6], setting_profile[7]);

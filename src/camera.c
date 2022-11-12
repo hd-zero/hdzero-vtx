@@ -345,9 +345,17 @@ void camMenuDrawValue(void) {
             case CAM_STATUS_SHARPNESS:
             case CAM_STATUS_CONTRAST:
             case CAM_STATUS_SATURATION:
-            case CAM_STATUS_SHUTTER:
                 uint8ToString(camera_setting_reg_menu[i - 1] + 1, str);
                 strcpy(&osd_buf[i][osd_menu_offset + 25], str);
+                break;
+            case CAM_STATUS_SHUTTER:
+                if (camera_setting_reg_menu[i - 1] == 0)
+                    strcpy(&osd_buf[i][osd_menu_offset + 24], "AUTO");
+                else {
+                    uint8ToString(camera_setting_reg_menu[i - 1], str);
+                    osd_buf[i][osd_menu_offset + 24] = ' ';
+                    strcpy(&osd_buf[i][osd_menu_offset + 25], str);
+                }
                 break;
 
             case CAM_STATUS_WBRED:  // wb red
