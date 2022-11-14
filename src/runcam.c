@@ -93,7 +93,7 @@ const uint8_t runcam_nano_90_attribute[CAMERA_SETTING_NUM][4] = {
     // led mode
     {1, 0x00, 0x01, 0x00},
     // video fmt
-    {1, 0x00, 0x02, 0x00},
+    {1, 0x00, 0x03, 0x00},
 
     {0, 0x00, 0x00, 0x00},
     {0, 0x00, 0x00, 0x00},
@@ -345,8 +345,9 @@ void runcam_video_format(uint8_t val) {
 
     RUNCAM_NANO_90:
         0: 720x540@90
-        1: 720x540@60
-        2: 960x720@60
+        1: 720x540@90 crop
+        2: 720x540@60
+        3: 960x720@60
     */
     camera_setting_reg_set[11] = val;
 
@@ -360,10 +361,14 @@ void runcam_video_format(uint8_t val) {
     } else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
         if (val == 0)
             RUNCAM_Write(camera_device, 0x000008, 0x8008811d);
+#if (0) // Not yet supported
         else if (val == 1)
+            RUNCAM_Write(camera_device, 0x000008, 0x83088120);
+        else if (val == 2)
             RUNCAM_Write(camera_device, 0x000008, 0x8108811e);
-        else // if (val == 2)
+        else // if (val == 3)
             RUNCAM_Write(camera_device, 0x000008, 0x8208811f);
+#endif
     }
 #ifdef _DEBUG_RUNCAM
     debugf("\r\nRUNCAM video format:%02x", (uint16_t)val);
@@ -371,12 +376,15 @@ void runcam_video_format(uint8_t val) {
 }
 
 void runcam_shutter(uint8_t val) {
-    uint32_t dat;
+    uint32_t dat = 0;
     camera_setting_reg_set[4] = val;
 
-    if (val == 0) // auto
-        dat = 0x447;
-    else // manual
+    if (val == 0) { // auto
+        if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2)
+            dat = 0x460;
+        else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90)
+            dat = 0x447;
+    } else // manual
         dat = (uint32_t)(val)*25;
     RUNCAM_Write(camera_device, 0x00006c, dat);
     RUNCAM_Write(camera_device, 0x000044, 0x80009629);

@@ -378,27 +378,36 @@ void camMenuDrawValue(void) {
 }
 
 void camera_menu_init(void) {
+    const char *cam_menu_string[] = {
+        "CAMERA MENU     PROFILE < >",
+        "BRIGHTNESS",
+        "SHARPNESS",
+        "CONTRAST",
+        "SATURATION",
+        "SHUTTER",
+        "WB MODE",
+        "WB RED",
+        "WB BLUE",
+        "HV FLIP",
+        "MAX GAIN",
+        "LED MODE",
+        "ASPECT RATIO",
+        "RESET",
+        "EXIT",
+        "SAVE&EXIT",
+    };
+    char *osd_buf_p;
+    uint8_t i;
+
     memset(osd_buf, 0x20, sizeof(osd_buf));
     disp_mode = DISPLAY_CMS;
     if (camera_type == 0)
         camera_button_enter;
     else {
-        strcpy(osd_buf[0] + osd_menu_offset + 3, "CAMERA MENU     PROFILE < >");
-        strcpy(osd_buf[1] + osd_menu_offset + 3, "BRIGHTNESS");
-        strcpy(osd_buf[2] + osd_menu_offset + 3, "SHARPNESS");
-        strcpy(osd_buf[3] + osd_menu_offset + 3, "CONTRAST");
-        strcpy(osd_buf[4] + osd_menu_offset + 3, "SATURATION");
-        strcpy(osd_buf[5] + osd_menu_offset + 3, "SHUTTER");
-        strcpy(osd_buf[6] + osd_menu_offset + 3, "WB MODE");
-        strcpy(osd_buf[7] + osd_menu_offset + 3, "WB RED");
-        strcpy(osd_buf[8] + osd_menu_offset + 3, "WB BLUE");
-        strcpy(osd_buf[9] + osd_menu_offset + 3, "HV FLIP");
-        strcpy(osd_buf[10] + osd_menu_offset + 3, "MAX GAIN");
-        strcpy(osd_buf[11] + osd_menu_offset + 3, "LED MODE");
-        strcpy(osd_buf[12] + osd_menu_offset + 3, "ASPECT RATIO");
-        strcpy(osd_buf[13] + osd_menu_offset + 3, "RESET");
-        strcpy(osd_buf[14] + osd_menu_offset + 3, "EXIT");
-        strcpy(osd_buf[15] + osd_menu_offset + 3, "SAVE&EXIT");
+        for (i = 0; i <= 15; i++) {
+            osd_buf_p = osd_buf[i] + osd_menu_offset + 3;
+            strcpy(osd_buf_p, cam_menu_string[i]);
+        }
         camera_menu_draw_bracket();
         camMenuDrawValue();
     }
