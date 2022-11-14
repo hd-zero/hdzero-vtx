@@ -16,8 +16,6 @@
 #define FREQ_F2 (uint16_t)5760
 #define FREQ_F4 (uint16_t)5800
 
-//#define DBG_SMARTAUDIO
-
 #define SA_HEADER0_BYTE 0xAA
 #define SA_HEADER1_BYTE 0x55
 #define SA_VERSION_BYTE 0x09
