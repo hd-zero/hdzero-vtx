@@ -22,9 +22,6 @@ uint8_t video_format = VDO_FMT_720P60;
 uint8_t camRatio = 0;
 uint8_t camMenuStatus = CAM_STATUS_IDLE;
 
-void camMenuStringUpdate(uint8_t status);
-void camMenuSetVdoRatioInit();
-
 void camera_type_detect(void) {
     camera_type = CAMERA_TYPE_UNKNOW;
 
@@ -253,39 +250,32 @@ void CameraInit(void) {
     camera_button_init();
 }
 
-void Cam_Button_ENTER() { WriteReg(0, 0x14, 0x32); }
-void Cam_Button_RIGHT() { WriteReg(0, 0x14, 0x58); }
-void Cam_Button_DOWN() { WriteReg(0, 0x14, 0x64); }
-void Cam_Button_LEFT() { WriteReg(0, 0x14, 0x3F); }
-void Cam_Button_UP() { WriteReg(0, 0x14, 0x4B); }
-void Cam_Button_MID() { WriteReg(0, 0x14, 0x00); }
-
 void camera_button_op(uint8_t op) {
     switch (op) {
     case BTN_UP:
-        Cam_Button_UP();
+        camera_button_up;
         break;
     case BTN_DOWN:
-        Cam_Button_DOWN();
+        camera_button_down;
         break;
     case BTN_LEFT:
-        Cam_Button_LEFT();
+        camera_button_left;
         break;
     case BTN_RIGHT:
-        Cam_Button_RIGHT();
+        camera_button_right;
         break;
     case BTN_ENTER:
-        Cam_Button_ENTER();
+        camera_button_enter;
         break;
     case BTN_MID:
-        Cam_Button_MID();
+        camera_button_mid;
         break;
     default:
         break;
     }
 }
 
-void camMenuDrawBracket(void) {
+void camera_menu_draw_bracket(void) {
     uint8_t i;
     for (i = CAM_STATUS_BRIGHTNESS; i <= CAM_STATUS_VDO_FMT; i++) {
         osd_buf[i][osd_menu_offset + 19] = '<';
@@ -307,13 +297,13 @@ void camMenuDrawValue(void) {
     osd_buf[0][osd_menu_offset + 28] = '1' + camera_profile_menu;
 
     for (i = CAM_STATUS_BRIGHTNESS; i <= CAM_STATUS_VDO_FMT; i++) {
-        if (camera_attribute[i - 1][item_enable] == 0)
+        if (camera_attribute[i - 1][CAM_SETTING_ITEM_ENBALE] == 0)
             strcpy(&osd_buf[i][osd_menu_offset + 27], "-");
         else {
             switch (i) {
             case CAM_STATUS_BRIGHTNESS: // brightness
-                if (camera_setting_reg_menu[0] > camera_attribute[0][item_default]) {
-                    dat = camera_setting_reg_menu[0] - camera_attribute[0][item_default];
+                if (camera_setting_reg_menu[0] > camera_attribute[0][CAM_SETTING_ITEM_DEFAULT]) {
+                    dat = camera_setting_reg_menu[0] - camera_attribute[0][CAM_SETTING_ITEM_DEFAULT];
                     uint8ToString(dat, str);
                     if (dat > 99) {
                         strcpy(&osd_buf[1][osd_menu_offset + 24], "+");
@@ -325,8 +315,8 @@ void camMenuDrawValue(void) {
                         strcpy(&osd_buf[1][osd_menu_offset + 24], "  +");
                         strcpy(&osd_buf[1][osd_menu_offset + 27], str + 2);
                     }
-                } else if (camera_setting_reg_menu[0] < camera_attribute[0][item_default]) {
-                    dat = camera_attribute[0][item_default] - camera_setting_reg_menu[0];
+                } else if (camera_setting_reg_menu[0] < camera_attribute[0][CAM_SETTING_ITEM_DEFAULT]) {
+                    dat = camera_attribute[0][CAM_SETTING_ITEM_DEFAULT] - camera_setting_reg_menu[0];
                     uint8ToString(dat, str);
                     if (dat > 99) {
                         strcpy(&osd_buf[1][osd_menu_offset + 24], "-  ");
@@ -387,11 +377,11 @@ void camMenuDrawValue(void) {
     }
 }
 
-void camMenuInit(void) {
+void camera_menu_init(void) {
     memset(osd_buf, 0x20, sizeof(osd_buf));
     disp_mode = DISPLAY_CMS;
     if (camera_type == 0)
-        Cam_Button_ENTER();
+        camera_button_enter;
     else {
         strcpy(osd_buf[0] + osd_menu_offset + 3, "CAMERA MENU     PROFILE < >");
         strcpy(osd_buf[1] + osd_menu_offset + 3, "BRIGHTNESS");
@@ -409,7 +399,7 @@ void camMenuInit(void) {
         strcpy(osd_buf[13] + osd_menu_offset + 3, "RESET");
         strcpy(osd_buf[14] + osd_menu_offset + 3, "EXIT");
         strcpy(osd_buf[15] + osd_menu_offset + 3, "SAVE&EXIT");
-        camMenuDrawBracket();
+        camera_menu_draw_bracket();
         camMenuDrawValue();
     }
 }
@@ -479,7 +469,7 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
     case CAM_STATUS_BRIGHTNESS:
     case CAM_STATUS_WBRED:
     case CAM_STATUS_WBBLUE:
-        if (!camera_attribute[item][item_enable])
+        if (!camera_attribute[item][CAM_SETTING_ITEM_ENBALE])
             return;
 #if (0)
         // if wb mode if auto, do not modify wbred/wbblue
@@ -490,14 +480,14 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
 
         if (op == BTN_RIGHT) {
             camera_setting_reg_menu[item] += camera_menu_long_press(op, last_op, 0);
-            if (camera_setting_reg_menu[item] > camera_attribute[item][item_max])
-                camera_setting_reg_menu[item] = camera_attribute[item][item_min];
+            if (camera_setting_reg_menu[item] > camera_attribute[item][CAM_SETTING_ITEM_MAX])
+                camera_setting_reg_menu[item] = camera_attribute[item][CAM_SETTING_ITEM_MIN];
 
             camera_set(camera_setting_reg_menu, 0);
         } else if (op == BTN_LEFT) {
             camera_setting_reg_menu[item] -= camera_menu_long_press(op, last_op, 0);
-            if (camera_setting_reg_menu[item] < camera_attribute[item][item_min])
-                camera_setting_reg_menu[item] = camera_attribute[item][item_max];
+            if (camera_setting_reg_menu[item] < camera_attribute[item][CAM_SETTING_ITEM_MIN])
+                camera_setting_reg_menu[item] = camera_attribute[item][CAM_SETTING_ITEM_MAX];
 
             camera_set(camera_setting_reg_menu, 0);
         } else if (op == BTN_MID) {
@@ -513,23 +503,23 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
     case CAM_STATUS_NIGHT_MODE:
     case CAM_STATUS_LED_MODE:
     case CAM_STATUS_VDO_FMT:
-        if (!camera_attribute[item][item_enable])
+        if (!camera_attribute[item][CAM_SETTING_ITEM_ENBALE])
             return;
 
         if (op == BTN_RIGHT) {
             camera_setting_reg_menu[item]++;
-            if (camera_setting_reg_menu[item] > camera_attribute[item][item_max])
-                camera_setting_reg_menu[item] = camera_attribute[item][item_min];
+            if (camera_setting_reg_menu[item] > camera_attribute[item][CAM_SETTING_ITEM_MAX])
+                camera_setting_reg_menu[item] = camera_attribute[item][CAM_SETTING_ITEM_MIN];
 
             if (camMenuStatus != CAM_STATUS_VDO_FMT) // vdo format will be configured when exit camera menu
                 camera_set(camera_setting_reg_menu, 0);
         } else if (op == BTN_LEFT) {
             camera_setting_reg_menu[item]--;
-            if (camera_attribute[item][item_min] == 0) {
-                if (camera_setting_reg_menu[item] > camera_attribute[item][item_max])
-                    camera_setting_reg_menu[item] = camera_attribute[item][item_max];
-            } else if (camera_setting_reg_menu[item] < camera_attribute[item][item_min])
-                camera_setting_reg_menu[item] = camera_attribute[item][item_max];
+            if (camera_attribute[item][CAM_SETTING_ITEM_MIN] == 0) {
+                if (camera_setting_reg_menu[item] > camera_attribute[item][CAM_SETTING_ITEM_MAX])
+                    camera_setting_reg_menu[item] = camera_attribute[item][CAM_SETTING_ITEM_MAX];
+            } else if (camera_setting_reg_menu[item] < camera_attribute[item][CAM_SETTING_ITEM_MIN])
+                camera_setting_reg_menu[item] = camera_attribute[item][CAM_SETTING_ITEM_MAX];
 
             if (camMenuStatus != CAM_STATUS_VDO_FMT) // vdo format will be configured when exit camera menu
                 camera_set(camera_setting_reg_menu, 0);
@@ -542,7 +532,7 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
 }
 
 #ifdef USE_MSP
-uint8_t camStatusUpdate(uint8_t op) {
+uint8_t camera_status_update(uint8_t op) {
 
     uint8_t ret = 0;
     static uint8_t step = 1;
@@ -663,7 +653,6 @@ uint8_t camStatusUpdate(uint8_t op) {
     } // switch(camMenuStatus)
 
     last_op = op;
-    // camMenuStringUpdate(camMenuStatus);
 
     return ret;
 }

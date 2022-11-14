@@ -1,9 +1,9 @@
 #ifndef __CAMERA_H_
 #define __CAMERA_H_
 
-#include <stdint.h>
-
 #include "common.h"
+#include "sfr_ext.h"
+#include <stdint.h>
 
 #define CAM_PROFILE_NUM 4
 
@@ -13,6 +13,14 @@
 
 #define CAMERA_SETTING_NUM 16
 #define CAMERA_PROFILE_NUM 3
+
+#define camera_button_enter WriteReg(0, 0x14, 0x32)
+#define camera_button_right WriteReg(0, 0x14, 0x58)
+#define camera_button_down  WriteReg(0, 0x14, 0x64)
+#define camera_button_left  WriteReg(0, 0x14, 0x3F)
+#define camera_button_up    WriteReg(0, 0x14, 0x4B)
+#define camera_button_mid   WriteReg(0, 0x14, 0x00)
+
 typedef enum {
     CAMERA_MFR_UNKNOW,
     CAMERA_MFR_FOXEER,
@@ -45,19 +53,11 @@ typedef enum {
 } VdoFormatType_e;
 
 typedef enum {
-    // Profile_MicroV1,
-    Profile_MicroV2,
-    Profile_NanoV2,
-    Profile_NanoLite,
-    Profile_Max,
-} RuncamV2Profile_e;
-
-typedef enum {
-    item_enable,
-    item_min,
-    item_max,
-    item_default,
-} camera_setting_attribute;
+    CAM_SETTING_ITEM_ENBALE,
+    CAM_SETTING_ITEM_MIN,
+    CAM_SETTING_ITEM_MAX,
+    CAM_SETTING_ITEM_DEFAULT,
+} camera_setting_attribute_e;
 
 typedef enum {
     CAM_STATUS_IDLE = 0xff,
@@ -80,11 +80,11 @@ typedef enum {
     CAM_STATUS_REPOWER,
 
     CAM_STATUS_END,
-} camStatusType_e;
+} camera_status_e;
 
 void CameraInit();
-uint8_t camStatusUpdate(uint8_t op);
-void camMenuInit(void);
+uint8_t camera_status_update(uint8_t op);
+void camera_menu_init(void);
 
 extern uint8_t camRatio;
 extern uint8_t video_format;

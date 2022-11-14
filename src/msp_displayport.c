@@ -1416,7 +1416,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
             cms_cnt = 0;
             disp_mode = DISPLAY_CMS;
             clear_screen();
-            camMenuInit();
+            camera_menu_init();
             cms_state = CMS_CAM;
         }
         break;
@@ -1429,7 +1429,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
         else
             cms_cnt = 0;
 
-        if (camStatusUpdate(VirtualBtn) || (cms_cnt == 10)) {
+        if (camera_status_update(VirtualBtn) || (cms_cnt == 10)) {
             disp_mode = DISPLAY_OSD;
             cms_state = CMS_OSD;
             fc_init();

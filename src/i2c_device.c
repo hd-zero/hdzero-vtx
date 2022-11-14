@@ -129,6 +129,6 @@ void Init_TC3587(uint8_t fmt) {
     I2C_Write16(ADDR_TC3587, 0x0002, 0x0000);
     // WAIT(100);
 #ifdef _DEBUG_TC3587
-    debugf("\r\Init TC3587 done");
+    debugf("\r\nInit TC3587 done");
 #endif
 }

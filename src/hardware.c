@@ -190,7 +190,7 @@ void Setting_Save() {
     uint8_t rcv = 0;
 
 #if (0)
-    if (cameraType == 0) {
+    if (camera_type == 0) {
         CAM_WriteCFG(0, RF_FREQ, RF_POWER, MODE);
         CAM_WriteCFG(0, RF_FREQ, RF_POWER, MODE);
         CAM_WriteCFG(0, RF_FREQ, RF_POWER, MODE);
@@ -675,13 +675,13 @@ void PowerAutoSwitch() {
 
     if (last_ofs != pwr_offset) {
 #ifdef _DEBUG_MODE
-        ; // verbosef("\r\nPowerAutoSwitch:Yes 0x%x 0x%x", temp, (uint16_t)pwr_offset);
+        verbosef("\r\nPowerAutoSwitch:Yes 0x%x 0x%x", temp, (uint16_t)pwr_offset);
 #endif
         DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
         cur_pwr = RF_POWER;
     } else {
 #ifdef _DEBUG_MODE
-        ; // verbosef("\r\nPowerAutoSwitch: No 0x%x 0x%x", temp, (uint16_t)pwr_offset);
+        verbosef("\r\nPowerAutoSwitch: No 0x%x 0x%x", temp, (uint16_t)pwr_offset);
 #endif
     }
 

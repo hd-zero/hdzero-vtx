@@ -131,16 +131,16 @@ void runcam_type_detect(void) {
 void runcam_setting_profile_reset(uint8_t *setting_profile) {
     uint8_t i;
     for (i = 0; i < CAMERA_SETTING_NUM; i++)
-        setting_profile[i] = camera_attribute[i][item_default];
+        setting_profile[i] = camera_attribute[i][CAM_SETTING_ITEM_DEFAULT];
 }
 
 uint8_t runcam_setting_profile_check(uint8_t *setting_profile) {
     uint8_t i;
     for (i = 0; i < CAMERA_SETTING_NUM; i++) {
-        if (camera_attribute[i][item_enable]) {
-            if (setting_profile[i] < camera_attribute[i][item_min])
+        if (camera_attribute[i][CAM_SETTING_ITEM_ENBALE]) {
+            if (setting_profile[i] < camera_attribute[i][CAM_SETTING_ITEM_MIN])
                 return 1;
-            if (setting_profile[i] > camera_attribute[i][item_max])
+            if (setting_profile[i] > camera_attribute[i][CAM_SETTING_ITEM_MAX])
                 return 1;
         }
     }
@@ -171,10 +171,10 @@ void runcam_brightness(uint8_t val, uint8_t led_mode) {
     // indoor
     d += val_32;
 
-    d -= camera_attribute[0][item_default];
+    d -= camera_attribute[0][CAM_SETTING_ITEM_DEFAULT];
     // outdoor
     d += (val_32 << 16);
-    d -= ((uint32_t)camera_attribute[0][item_default] << 16);
+    d -= ((uint32_t)camera_attribute[0][CAM_SETTING_ITEM_DEFAULT] << 16);
 
     RUNCAM_Write(camera_device, 0x50, d);
 #ifdef _DEBUG_RUNCAM
