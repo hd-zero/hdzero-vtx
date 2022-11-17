@@ -140,6 +140,25 @@ void Set_720P60(uint8_t page) {
     WriteReg(page, 0x06, 0x01);
 }
 
+void Set_960x720P60(uint8_t page) {
+    WriteReg(page, 0x21, 0x1F);
+
+    WriteReg(page, 0x40, 0xC0);
+    WriteReg(page, 0x41, 0x23);
+    WriteReg(page, 0x42, 0xD0);
+    WriteReg(page, 0x43, 0x49);
+    WriteReg(page, 0x44, 0x45);
+    WriteReg(page, 0x45, 0xE3);
+    WriteReg(page, 0x49, 0x04);
+    WriteReg(page, 0x4c, 0x08);
+    WriteReg(page, 0x4f, 0x00);
+    WriteReg(page, 0x52, 0x04);
+    WriteReg(page, 0x53, 0x02);
+    WriteReg(page, 0x54, 0x3C);
+
+    WriteReg(page, 0x06, 0x01);
+}
+
 void Set_720P30(uint8_t page, uint8_t is_43) {
     if (is_43)
         WriteReg(page, 0x21, 0x28);
@@ -162,8 +181,12 @@ void Set_720P30(uint8_t page, uint8_t is_43) {
     WriteReg(page, 0x06, 0x01);
 }
 
-void Set_720P90(uint8_t page) {
+void Set_540P90(uint8_t page) {
+#ifdef CAM90_DEMO
     WriteReg(page, 0x21, 0x24);
+#else
+    WriteReg(page, 0x21, 0x21);
+#endif
 
     WriteReg(page, 0x40, 0xD0);
     WriteReg(page, 0x41, 0x22);

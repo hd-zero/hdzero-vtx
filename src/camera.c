@@ -47,18 +47,19 @@ void camera_mode_detect() {
 
     if (camera_type) {
         if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
-            if (camera_setting_reg_set[14] == 0) {
-                video_format = VDO_FMT_720X540_90;
+            if (camera_setting_reg_set[11] == 0 || camera_setting_reg_set[11] == 1) {
+                video_format = VDO_FMT_540P90;
                 Init_TC3587(1);
-                Set_720P90(0);
-            } else if (camera_setting_reg_set[14] == 1) {
-                video_format = VDO_FMT_720X540_60;
+                Set_540P90(0);
+            } else if (camera_setting_reg_set[11] == 2) {
+                video_format = VDO_FMT_540P60;
                 Init_TC3587(1);
-                Set_720P90(0);
-            } else {
+                Set_540P90(0);
+            } else if (camera_setting_reg_set[11] == 3) {
                 Set_720P60(IS_RX);
                 Init_TC3587(0);
-                video_format = VDO_FMT_720P60;
+                Set_960x720P60(0);
+                video_format = VDO_FMT_960x720P60;
             }
         } else {
             Set_720P60(IS_RX);
@@ -278,7 +279,7 @@ void camera_button_op(uint8_t op) {
 void camera_menu_draw_bracket(void) {
     uint8_t i;
     for (i = CAM_STATUS_BRIGHTNESS; i <= CAM_STATUS_VDO_FMT; i++) {
-        osd_buf[i][osd_menu_offset + 19] = '<';
+        osd_buf[i][osd_menu_offset + 18] = '<';
         osd_buf[i][osd_menu_offset + 29] = '>';
     }
 }
@@ -286,8 +287,8 @@ void camera_menu_draw_bracket(void) {
 void camMenuDrawValue(void) {
     const char *wb_mode_str[] = {"   AUTO", " MANUAL"};
     const char *switch_str[] = {"    OFF", "     ON"};
-    const char *resolution_runcam_micro_v2[] = {"     4:3", "16:9CLIP", "16:9FULL"};
-    const char *resolution_runcam_nano_90[] = {" 540P@90", " 540P@60", " 720P@60"};
+    const char *resolution_runcam_micro_v2[] = {"       4:3", "  16:9CROP", "  16:9FULL"};
+    const char *resolution_runcam_nano_90[] = {"   540P@90", "540@90CROP", "   540P@60", "960X720@60"};
 
     uint8_t str[4];
     uint8_t i;
@@ -365,9 +366,10 @@ void camMenuDrawValue(void) {
 
             case CAM_STATUS_VDO_FMT: // vdo fmt
                 if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2) {
-                    strcpy(&osd_buf[i][osd_menu_offset + 20], resolution_runcam_micro_v2[camera_setting_reg_menu[i - 1]]);
+                    strcpy(&osd_buf[i][osd_menu_offset + 19], resolution_runcam_micro_v2[camera_setting_reg_menu[i - 1]]);
                 } else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
-                    strcpy(&osd_buf[i][osd_menu_offset + 20], resolution_runcam_nano_90[camera_setting_reg_menu[i - 1]]);
+                    strcpy(&osd_buf[i][osd_menu_offset + 19], resolution_runcam_nano_90[camera_setting_reg_menu[i - 1]]);
+                    osd_buf[i][osd_menu_offset + 29] = '>';
                 }
                 break;
             default:
@@ -391,7 +393,7 @@ void camera_menu_init(void) {
         "HV FLIP",
         "MAX GAIN",
         "LED MODE",
-        "ASPECT RATIO",
+        "VIDEO MODE",
         "RESET",
         "EXIT",
         "SAVE&EXIT",

@@ -120,7 +120,7 @@ void Init_TC3587(uint8_t fmt) {
     if (fmt == 0)                                 // 50/60fps
         I2C_Write16(ADDR_TC3587, 0x0016, 0x3057); // pll
     else if (fmt == 1)                            // 90fps
-        I2C_Write16(ADDR_TC3587, 0x0016, 0x808b); // pll
+        I2C_Write16(ADDR_TC3587, 0x0016, 0x809f); // pll
     I2C_Write16(ADDR_TC3587, 0x0020, 0x0000);     // clk config
     I2C_Write16(ADDR_TC3587, 0x000c, 0x0101);     // mclk
     I2C_Write16(ADDR_TC3587, 0x0018, 0x0111);     // pll

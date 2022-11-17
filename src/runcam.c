@@ -339,13 +339,13 @@ void runcam_night_mode(uint8_t val) {
 void runcam_video_format(uint8_t val) {
     /*
     RUNCAM_MICRO_V2:
-        0: 960x720@60
-        1: 1280x720@60 crop
-        2: 1280x720@60 full
+        0: 1280x720@60 4:3
+        1: 1280x720@60 16:9 crop
+        2: 1280x720@60 16:9 full
 
     RUNCAM_NANO_90:
         0: 720x540@90
-        1: 720x540@90 crop
+        1: 720x540@90 crop //NANO 90 DEMO CAMERA DOESN"T SUPPORT
         2: 720x540@60
         3: 960x720@60
     */
@@ -361,14 +361,14 @@ void runcam_video_format(uint8_t val) {
     } else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
         if (val == 0)
             RUNCAM_Write(camera_device, 0x000008, 0x8008811d);
-#if (0) // Not yet supported
+#if (0)
         else if (val == 1)
             RUNCAM_Write(camera_device, 0x000008, 0x83088120);
         else if (val == 2)
             RUNCAM_Write(camera_device, 0x000008, 0x8108811e);
-        else // if (val == 3)
-            RUNCAM_Write(camera_device, 0x000008, 0x8208811f);
 #endif
+        else if (val == 3)
+            RUNCAM_Write(camera_device, 0x000008, 0x8208811f);
     }
 #ifdef _DEBUG_RUNCAM
     debugf("\r\nRUNCAM video format:%02x", (uint16_t)val);

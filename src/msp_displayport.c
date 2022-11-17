@@ -401,7 +401,7 @@ uint8_t get_tx_data_5680() // prepare data to VRX
     // len
     tx_buf[3] = 15;
 
-    // camType
+    // video format
     if (video_format == VDO_FMT_720P50)
         tx_buf[4] = 0x66;
     else if (video_format == VDO_FMT_720P60)
@@ -410,8 +410,12 @@ uint8_t get_tx_data_5680() // prepare data to VRX
         tx_buf[4] = 0xAA;
     else if (video_format == VDO_FMT_720P30)
         tx_buf[4] = 0xCC;
-    else if (video_format == VDO_FMT_720X540_90)
+    else if (video_format == VDO_FMT_540P90)
         tx_buf[4] = 0xEE;
+    else if (video_format == VDO_FMT_540P60)
+        tx_buf[4] = 0x33;
+    else if (video_format == VDO_FMT_960x720P60)
+        tx_buf[4] = 0x55;
     else
         tx_buf[4] = 0x99;
 

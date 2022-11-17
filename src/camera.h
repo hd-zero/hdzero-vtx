@@ -39,9 +39,9 @@ typedef enum {
     VDO_FMT_720P60,
     VDO_FMT_720P60_NEW,
     VDO_FMT_720P30,
-    VDO_FMT_720X540_90,
-    VDO_FMT_720X540_60,
-    VDO_FMT_960x720_60
+    VDO_FMT_540P90,
+    VDO_FMT_540P60,
+    VDO_FMT_960x720P60
 } video_format_e;
 
 typedef enum {

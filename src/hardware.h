@@ -77,7 +77,8 @@ void CFG_Back();
 
 void Set_720P50(uint8_t page);
 void Set_720P60(uint8_t page);
-void Set_720P90(uint8_t page);
+void Set_540P90(uint8_t page);
+void Set_960x720P60(uint8_t page);
 void Set_720P30(uint8_t page, uint8_t is_43);
 
 void Flicker_LED(uint8_t n);
