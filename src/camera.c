@@ -416,7 +416,7 @@ void camera_menu_init(void) {
 }
 void camera_menu_show_repower(void) {
     memset(osd_buf, 0x20, sizeof(osd_buf));
-    strcpy(osd_buf[1] + osd_menu_offset + 3, "ASPECT RATIO IS CHANGED");
+    strcpy(osd_buf[1] + osd_menu_offset + 3, "VIDEO MODE IS CHANGED");
     strcpy(osd_buf[2] + osd_menu_offset + 3, "NEED TO REPOWER VTX");
 }
 

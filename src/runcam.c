@@ -363,12 +363,10 @@ void runcam_video_format(uint8_t val) {
     } else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
         if (val == 0)
             RUNCAM_Write(camera_device, 0x000008, 0x8008811d);
-#if (0)
         else if (val == 1)
             RUNCAM_Write(camera_device, 0x000008, 0x83088120);
         else if (val == 2)
             RUNCAM_Write(camera_device, 0x000008, 0x8108811e);
-#endif
         else if (val == 3)
             RUNCAM_Write(camera_device, 0x000008, 0x8208811f);
     }
