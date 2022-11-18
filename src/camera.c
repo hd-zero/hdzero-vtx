@@ -241,7 +241,7 @@ uint8_t camera_set(uint8_t *camera_setting_reg, uint8_t save) {
     return ret;
 }
 
-void CameraInit(void) {
+void camera_init(void) {
     camera_type_detect();
     camera_setting_read();
     camera_setting_reg_menu_update();
@@ -284,7 +284,7 @@ void camera_menu_draw_bracket(void) {
     }
 }
 
-void camMenuDrawValue(void) {
+void camera_menu_draw_value(void) {
     const char *wb_mode_str[] = {"   AUTO", " MANUAL"};
     const char *switch_str[] = {"    OFF", "     ON"};
     const char *resolution_runcam_micro_v2[] = {"       4:3", "  16:9CROP", "  16:9FULL"};
@@ -411,7 +411,7 @@ void camera_menu_init(void) {
             strcpy(osd_buf_p, cam_menu_string[i]);
         }
         camera_menu_draw_bracket();
-        camMenuDrawValue();
+        camera_menu_draw_value();
     }
 }
 void camera_menu_show_repower(void) {
@@ -475,6 +475,7 @@ uint8_t camera_menu_long_press(uint8_t op, uint8_t last_op, uint8_t is_init) {
 
 void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
     uint8_t item = camMenuStatus - 1;
+    uint8_t step = 1;
 
     switch (camMenuStatus) {
     case CAM_STATUS_BRIGHTNESS:
@@ -490,19 +491,30 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
 #endif
 
         if (op == BTN_RIGHT) {
-            camera_setting_reg_menu[item] += camera_menu_long_press(op, last_op, 0);
-            if (camera_setting_reg_menu[item] > camera_attribute[item][CAM_SETTING_ITEM_MAX])
-                camera_setting_reg_menu[item] = camera_attribute[item][CAM_SETTING_ITEM_MIN];
+            step = camera_menu_long_press(op, last_op, 0);
+            if (((camera_setting_reg_menu[item] + step) & 0xff) < camera_setting_reg_menu[item]) { // overflow
+                camera_setting_reg_menu[item] = 0xff;
+            } else {
+                camera_setting_reg_menu[item] += step;
+            }
 
-            camera_set(camera_setting_reg_menu, 0);
-        } else if (op == BTN_LEFT) {
-            camera_setting_reg_menu[item] -= camera_menu_long_press(op, last_op, 0);
-            if (camera_setting_reg_menu[item] < camera_attribute[item][CAM_SETTING_ITEM_MIN])
+            if (camera_setting_reg_menu[item] > camera_attribute[item][CAM_SETTING_ITEM_MAX])
                 camera_setting_reg_menu[item] = camera_attribute[item][CAM_SETTING_ITEM_MAX];
 
             camera_set(camera_setting_reg_menu, 0);
+        } else if (op == BTN_LEFT) {
+            step = camera_menu_long_press(op, last_op, 0);
+            if (((camera_setting_reg_menu[item] - step) & 0xff) > camera_setting_reg_menu[item]) // overflow
+                camera_setting_reg_menu[item] = 0;
+            else
+                camera_setting_reg_menu[item] -= step;
+
+            if (camera_setting_reg_menu[item] < camera_attribute[item][CAM_SETTING_ITEM_MIN])
+                camera_setting_reg_menu[item] = camera_attribute[item][CAM_SETTING_ITEM_MIN];
+
+            camera_set(camera_setting_reg_menu, 0);
         } else if (op == BTN_MID) {
-            camera_menu_long_press(op, last_op, 1);
+            step = camera_menu_long_press(op, last_op, 1);
         }
         break;
     case CAM_STATUS_SHARPNESS:
@@ -599,7 +611,7 @@ uint8_t camera_status_update(uint8_t op) {
             camera_profile_menu_toggle(op);
         else
             camera_setting_reg_menu_toggle(last_op, op);
-        camMenuDrawValue();
+        camera_menu_draw_value();
         break;
     case CAM_STATUS_RESET:
         if (last_op == op)
@@ -611,7 +623,7 @@ uint8_t camera_status_update(uint8_t op) {
             camera_setting_profile_reset(camera_profile_menu);
             camera_setting_reg_menu_update();
             camera_set(camera_setting_reg_menu, 0);
-            camMenuDrawValue();
+            camera_menu_draw_value();
         }
         break;
 

@@ -447,7 +447,7 @@ void Init_HW() {
 #endif
     GetVtxParameter();
     Get_EEP_LifeTime();
-    CameraInit();
+    camera_init();
 //--------- dm6300 --------------------
 // move to RF_Delay_Init()
 #endif

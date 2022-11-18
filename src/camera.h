@@ -82,7 +82,7 @@ typedef enum {
     CAM_STATUS_END,
 } camera_status_e;
 
-void CameraInit();
+void camera_init();
 uint8_t camera_status_update(uint8_t op);
 void camera_menu_init(void);
 
