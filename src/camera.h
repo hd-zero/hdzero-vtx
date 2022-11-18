@@ -29,8 +29,8 @@ typedef enum {
 
 typedef enum {
     CAMERA_TYPE_UNKNOW,
-    CAMERA_TYPE_RUNCAM_MICRO_V1,
-    CAMERA_TYPE_RUNCAM_MICRO_V2, // include nano V2 / nano lite
+    CAMERA_TYPE_RUNCAM_MICRO_V1, // include nano v1
+    CAMERA_TYPE_RUNCAM_MICRO_V2, // include nano v2 / nano lite
     CAMERA_TYPE_RUNCAM_NANO_90,
 } camera_type_e;
 
