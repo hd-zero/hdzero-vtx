@@ -121,6 +121,7 @@ uint8_t I2C_Write8(uint8_t slave_addr, uint8_t reg_addr, uint8_t val) {
 
 uint8_t I2C_Write8_Wait(uint16_t ms, uint8_t slave_addr, uint8_t reg_addr, uint8_t val) {
     WAIT(ms);
+    // debugf("\r\nEEP:0x%04x, 0x%04x", reg_addr, (uint16_t)val);
     return I2C_Write8(slave_addr, reg_addr, val);
 }
 
@@ -262,7 +263,7 @@ uint8_t RUNCAM_Write(uint8_t cam_id, uint32_t addr, uint32_t val) {
     value = I2C_write_byte(cam_id); // slave
     if (value) {
         I2C_stop();
-#ifdef _DEBUG_MODE
+#ifdef _DEBUG_RUNCAM
         debugf("\r\nRUNCAM_Write error id: %x value: %d", cam_id, value);
 #endif
         return 1;

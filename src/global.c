@@ -112,4 +112,5 @@ void uint8ToString(uint8_t dec, uint8_t *Str) {
 
     val = dec % 10;
     Str[2] = '0' + val;
+    Str[3] = '\0';
 }

@@ -182,10 +182,6 @@ void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset) {
             p = 0;
         SPI_Write(0x3, 0xD1C, (uint8_t)p);
     }
-
-#ifdef _DEBUG_MODE
-    debugf("\r\nDM6300 SetPower done.  %x, %x", (uint16_t)table_power[freq][pwr], offset);
-#endif
 }
 
 void DM6300_SetSingleTone(uint8_t enable) {
@@ -214,11 +210,11 @@ void DM6300_InitAUXADC() {
 
     SPI_Write(0x6, 0xFF0, 0x00000018);
     SPI_Read(0x3, 0x254, &dat);
-#ifdef _DEBUG_MODE
+#ifdef _DEBUG_DM6300
     debugf("\r\nDM6300 0x254 = %x%x.\r\n", (uint16_t)((dat >> 16) & 0xFFFF), (uint16_t)(dat & 0xFFFF));
 #endif
     dat |= 0x200;
-#ifdef _DEBUG_MODE
+#ifdef _DEBUG_DM6300
     debugf("\r\nDM6300 0x254 = %x%x.\r\n", (uint16_t)((dat >> 16) & 0xFFFF), (uint16_t)(dat & 0xFFFF));
 #endif
     SPI_Write(0x3, 0x254, dat);
@@ -250,7 +246,7 @@ void DM6300_InitAUXADC() {
     auxadc_offset = dat3 - ((dat1 + dat2) >> 1);
     if (auxadc_offset < 0x420)
         auxadc_offset = 0x420;
-#ifdef _DEBUG_MODE
+#ifdef _DEBUG_DM6300
     debugf("\r\nDM6300 AUXADC Calib done. data1=%x, data2=%x, data3=%x, offset=%x", dat1, dat2, dat3, auxadc_offset);
 #endif
 }
@@ -967,7 +963,7 @@ void DM6300_EFUSE2() {
     for (i = 0; i < 4; i++) {
         version[i] = efuse.macro.m0.efuse_ver[i];
     }
-#ifdef _DEBUG_MODE
+#ifdef _DEBUG_DM6300
     debugf("\r\n version = %s", version);
 #endif
     // version[1];  //version[1] M.N---M
@@ -980,7 +976,7 @@ void DM6300_EFUSE2() {
     {
 // efuse.macro.m2[i].tx1.freq_start = (efuse.macro.m2[i].tx1.freq_start >> 8) | (efuse.macro.m2[i].tx1.freq_start << 8);
 // efuse.macro.m2[i].tx1.freq_stop = (efuse.macro.m2[i].tx1.freq_stop >> 8) | (efuse.macro.m2[i].tx1.freq_stop << 8);
-#ifdef _DEBUG_MODE
+#ifdef _DEBUG_DM6300
         debugf("\r\n start=%x, stop=%x", efuse.macro.m2[i].tx1.freq_start, efuse.macro.m2[i].tx1.freq_stop);
 #endif
 
@@ -1012,7 +1008,7 @@ void DM6300_EFUSE2() {
                                            ((efuse.macro.m2[i].tx1.dcoc_q << 8) & 0xFF0000) |
                                            ((efuse.macro.m2[i].tx1.dcoc_q << 24) & 0xFF000000);
 #endif
-
+#ifdef _DEBUG_DM6300
             debugf("\r\niqmismatch_old=%lx", efuse.macro.m2[i].tx1.iqmismatch);
             debugf("\r\ndcoc_i_old=%lx", efuse.macro.m2[i].tx1.dcoc_i);
             debugf("\r\ndcoc_q_old=%lx", efuse.macro.m2[i].tx1.dcoc_q);
@@ -1020,7 +1016,7 @@ void DM6300_EFUSE2() {
             // change dc_i/dc_q
             debugf("\r\n version[1] = %c", (uint16_t)version[1]);
             debugf("\r\n version[3] = %c", (uint16_t)version[3]);
-
+#endif
             // if((version[1]>'2') | ((version[1]>='2') && (version[3]>'1'))){ //version > 2.1
             if ((version[1] == '2') && (version[3] == '2')) { // version = 2.2
                 ef_data = efuse.macro.m2[i].tx1.dcoc_i;
@@ -1046,7 +1042,9 @@ void DM6300_EFUSE2() {
             if (EE_VALID) {
                 rdat = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_EN);
                 if ((rdat & 0xFF) == 0) {
+#ifdef _DEBUG_DM6300
                     debugf("\r\nDCOC read from EEPROM:");
+#endif
                     SPI_Write(0x6, 0xFF0, 0x00000018);
 
                     rdat = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_IH);
@@ -1054,14 +1052,18 @@ void DM6300_EFUSE2() {
                     rdat |= I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_IL);
                     rdat |= dcoc_ih;
                     SPI_Write(0x3, 0x380, rdat);
+#ifdef _DEBUG_DM6300
                     debugf("\r\ndcoc_i=%lx", rdat);
+#endif
 
                     rdat = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_QH);
                     rdat <<= 8;
                     rdat |= I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_QL);
                     rdat |= dcoc_qh;
                     SPI_Write(0x3, 0x388, rdat);
+#ifdef _DEBUG_DM6300
                     debugf("\r\ndcoc_q=%lx", rdat);
+#endif
                 }
             }
 

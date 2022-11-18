@@ -83,6 +83,15 @@ void UART1_isr() INTERRUPT(6) {
     }
 }
 
+void version_info(void) {
+#ifdef _DEBUG_MODE
+    debugf("\r\n");
+    debugf("\r\nVtx        : %s", VTX_NAME);
+    debugf("\r\nVersion    : %s", VTX_VERSION_STRING);
+    debugf("\r\nBuild time : " __DATE__ " " __TIME__);
+#endif
+}
+
 void main(void) {
     // init
     CPU_init();
@@ -90,14 +99,7 @@ void main(void) {
     WriteReg(0, 0xB2, 0x03);
     WriteReg(0, 0x80, 0xC8);
     // WAIT(100);
-
-#ifdef _DEBUG_MODE
-    debugf("\r\n");
-    debugf("\r\nVtx        : %s", VTX_NAME);
-    debugf("\r\nVersion    : %s", VTX_VERSION_STRING);
-    debugf("\r\nBuild time : " __DATE__ " " __TIME__);
-#endif
-
+    version_info();
     Init_HW(); // init
     fc_init(); // init displayport
 
@@ -111,10 +113,6 @@ void main(void) {
 
     // main loop
     while (1) {
-#if (0)
-        CMS_tx(0xaa);
-        _outchar('_');
-#else
         timer_task();
 
 #ifdef USE_SMARTAUDIO
@@ -141,7 +139,6 @@ void main(void) {
         }
 
         RF_Delay_Init();
-#endif
     }
 }
 

@@ -89,7 +89,8 @@ uint8_t osd_menu_offset = 0;
 #ifdef USE_MSP
 
 uint8_t msp_cmp_fc_variant(const char *variant) {
-    for (uint8_t i = 0; i < sizeof(fc_variant); i++) {
+    uint8_t i;
+    for (i = 0; i < sizeof(fc_variant); i++) {
         if (fc_variant[i] != variant[i]) {
             return 0;
         }
@@ -400,17 +401,21 @@ uint8_t get_tx_data_5680() // prepare data to VRX
     // len
     tx_buf[3] = 15;
 
-    // camType
-    if (CAM_MODE == CAM_720P50)
+    // video format
+    if (video_format == VDO_FMT_720P50)
         tx_buf[4] = 0x66;
-    else if (CAM_MODE == CAM_720P60)
+    else if (video_format == VDO_FMT_720P60)
         tx_buf[4] = 0x99;
-    else if (CAM_MODE == CAM_720P60_NEW)
+    else if (video_format == VDO_FMT_720P60_NEW)
         tx_buf[4] = 0xAA;
-    else if (CAM_MODE == CAM_720P30)
+    else if (video_format == VDO_FMT_720P30)
         tx_buf[4] = 0xCC;
-    else if (CAM_MODE == CAM_720X540_90)
+    else if (video_format == VDO_FMT_540P90)
         tx_buf[4] = 0xEE;
+    else if (video_format == VDO_FMT_540P60)
+        tx_buf[4] = 0x33;
+    else if (video_format == VDO_FMT_960x720P60)
+        tx_buf[4] = 0x55;
     else
         tx_buf[4] = 0x99;
 
@@ -1415,7 +1420,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
             cms_cnt = 0;
             disp_mode = DISPLAY_CMS;
             clear_screen();
-            camMenuInit();
+            camera_menu_init();
             cms_state = CMS_CAM;
         }
         break;
@@ -1428,7 +1433,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
         else
             cms_cnt = 0;
 
-        if (camStatusUpdate(VirtualBtn) || (cms_cnt == 10)) {
+        if (camera_status_update(VirtualBtn) || (cms_cnt == 10)) {
             disp_mode = DISPLAY_OSD;
             cms_state = CMS_OSD;
             fc_init();
