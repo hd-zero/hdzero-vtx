@@ -415,19 +415,10 @@ uint8_t get_tx_data_5680() // prepare data to VRX
         tx_buf[4] = 0x99;
 
     // fcType
-    if (msp_cmp_fc_variant("QUIC")) {
-        // HACK!
-        // TODO: remove once another way of selecting font on the VRX is available
-        tx_buf[5] = 'A';
-        tx_buf[6] = 'R';
-        tx_buf[7] = 'D';
-        tx_buf[8] = 'U';
-    } else {
-        tx_buf[5] = fc_variant[0];
-        tx_buf[6] = fc_variant[1];
-        tx_buf[7] = fc_variant[2];
-        tx_buf[8] = fc_variant[3];
-    }
+    tx_buf[5] = fc_variant[0];
+    tx_buf[6] = fc_variant[1];
+    tx_buf[7] = fc_variant[2];
+    tx_buf[8] = fc_variant[3];
 
     // counter for link quality
     tx_buf[9] = lq_cnt++;
