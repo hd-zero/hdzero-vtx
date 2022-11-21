@@ -412,6 +412,13 @@ void runcam_save(void) {
 #endif
 }
 
+void runcam_reset_isp(void) {
+    RUNCAM_Write(camera_device, 0x000694, 0x00000130);
+#ifdef _DEBUG_RUNCAM
+    debugf("\r\nRUNCAM reset isp");
+#endif
+}
+
 uint8_t runcam_set(uint8_t *setting_profile) {
     static uint8_t init_done = 0;
     uint8_t ret = 0;
