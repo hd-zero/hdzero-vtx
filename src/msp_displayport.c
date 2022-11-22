@@ -553,7 +553,7 @@ uint8_t get_tx_data_osd(uint8_t index) // prepare osd+data to VTX
     } else {
         // blank line
         tx_buf[3] = 0;
-        return 4;
+        return 5;
     }
 }
 
