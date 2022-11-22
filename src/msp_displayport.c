@@ -504,7 +504,7 @@ uint8_t get_tx_data_osd(uint8_t index) // prepare osd+data to VTX
     // string
     for (i = 0; i < hmax; i++) {
         t1 = osd_buf[index][i];
-        if (t1 != ' ') {
+        if ((t1 != 0x20) && (t1 != 0x00)) {
             mask[i >> 3] |= (1 << (i & 0x07));
             tx_buf[ptr] = t1;
 
@@ -526,29 +526,35 @@ uint8_t get_tx_data_osd(uint8_t index) // prepare osd+data to VTX
     tx_buf[0] = DP_HEADER0;
     tx_buf[1] = DP_HEADER1;
     tx_buf[2] = (resolution << 5) | index;
-    tx_buf[3] = ptr - 4; // len
 
-    // 0x20 flag
-    for (i = 0; i < len_mask; i++) {
-        tx_buf[4 + i] = mask[i];
-    }
+    if (num) {
+        tx_buf[3] = ptr - 4; // len
 
-    // location_flag
-    if (resolution == SD_3016) {
-        if (disp_mode == DISPLAY_OSD) {
-            tx_buf[8] = loc_buf[index][0];
-            tx_buf[9] = loc_buf[index][1];
-            tx_buf[10] = loc_buf[index][2];
-            tx_buf[11] = loc_buf[index][3];
-        } else {
-            tx_buf[8] = 0x00; // 0x04;
-            tx_buf[9] = 0x00;
-            tx_buf[10] = 0x00; // 0x04;
-            tx_buf[11] = 0x00;
+        // 0x20 flag
+        for (i = 0; i < len_mask; i++) {
+            tx_buf[4 + i] = mask[i];
         }
-    }
 
-    return (uint8_t)(ptr + 1);
+        // location_flag
+        if (resolution == SD_3016) {
+            if (disp_mode == DISPLAY_OSD) {
+                tx_buf[8] = loc_buf[index][0];
+                tx_buf[9] = loc_buf[index][1];
+                tx_buf[10] = loc_buf[index][2];
+                tx_buf[11] = loc_buf[index][3];
+            } else {
+                tx_buf[8] = 0x00; // 0x04;
+                tx_buf[9] = 0x00;
+                tx_buf[10] = 0x00; // 0x04;
+                tx_buf[11] = 0x00;
+            }
+        }
+        return (uint8_t)(ptr + 1);
+    } else {
+        // blank line
+        tx_buf[3] = 0;
+        return 4;
+    }
 }
 
 void insert_tx_byte(uint8_t c) {
