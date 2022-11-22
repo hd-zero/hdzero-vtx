@@ -26,7 +26,7 @@ uint8_t fc_lock = 0;
 uint8_t disp_mode; // DISPLAY_OSD | DISPLAY_CMS;
 uint8_t osd_ready;
 
-uint8_t fc_variant[4] = {'B', 'T', 'F', 'L'};
+uint8_t fc_variant[4] = {0xff, 0xff, 0xff, 0xff};
 uint8_t fontType = 0x00;
 uint8_t resolution = SD_3016;
 uint8_t resolution_last = HD_5018;
