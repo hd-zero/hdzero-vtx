@@ -125,17 +125,24 @@ void main(void) {
 #elif defined _DEBUG_MODE
         Monitor();
 #endif
-
+        debugf("\r\na:%d", timer_ms10x);
         Video_Detect();
+        debugf("\r\nb:%d", timer_ms10x);
         if (!SA_lock)
             OnButton1();
 
+        debugf("\r\nc:%d", timer_ms10x);
         if ((last_SA_lock && (seconds > WAIT_SA_CONFIG)) || (last_SA_lock == 0)) {
             LED_Task();
+            debugf("\r\nd:%d", timer_ms10x);
             TempDetect(); // temperature dectect
-            PwrLMT();     // RF power ctrl
-            msp_task();   // msp displayport process
+            debugf("\r\nc:%e", timer_ms10x);
+            PwrLMT(); // RF power ctrl
+            debugf("\r\nf:%d", timer_ms10x);
+            msp_task(); // msp displayport process
+            debugf("\r\ng:%d", timer_ms10x);
             Update_EEP_LifeTime();
+            debugf("\r\nf:%h", timer_ms10x);
         }
 
         RF_Delay_Init();
