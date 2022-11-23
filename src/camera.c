@@ -658,10 +658,10 @@ uint8_t camera_status_update(uint8_t op) {
                 if (camera_mfr == CAMERA_MFR_RUNCAM) {
                     runcam_reset_isp();
                     camera_init();
-                    camMenuStatus = CAM_STATUS_IDLE;
-                    ret = 1;
                 }
             }
+            camMenuStatus = CAM_STATUS_IDLE;
+            ret = 1;
         }
         break;
         // case CAM_STATUS_REPOWER:
