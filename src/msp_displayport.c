@@ -98,9 +98,40 @@ uint8_t msp_cmp_fc_variant(const char *variant) {
     return 1;
 }
 
+uint8_t hdzero_dynamic_osd_refresh_adapter(uint8_t t1) {
+    static uint16_t osd_line_crc_lst[HD_VMAX] = {0};
+    static uint8_t refresh_cnt[HD_VMAX] = {0};
+    uint8_t crc_u8[2] = {0, 0};
+    uint16_t crc_u16 = 0;
+    uint8_t i;
+    uint8_t ret;
+
+    // calc crc
+    for (i = 0; i < tx_buf[3]; i++) {
+        crc_u8[0] = crc8tab[crc_u8[0] ^ tx_buf[3 + i]];
+        crc_u8[1] += tx_buf[3 + i];
+    }
+    crc_u16 = (((uint16_t)crc_u8[0]) << 8) | crc_u8[1];
+
+    // osd line unchanged
+    if (crc_u16 == osd_line_crc_lst[t1]) {
+        if (tx_buf[3] == 0)
+            ret = ((refresh_cnt[t1] & 7) == 0);
+        else
+            ret = ((refresh_cnt[t1] & 3) == 0);
+        refresh_cnt[t1]++;
+    } else {
+        refresh_cnt[t1] = 0;
+        ret = 1;
+    }
+
+    osd_line_crc_lst[t1] = crc_u16;
+
+    return ret;
+}
+
 void msp_task() {
     uint8_t len;
-    static uint8_t tx_row = 0;
     static uint8_t t1 = 0;
     static uint8_t vmax = SD_VMAX;
 
@@ -115,10 +146,8 @@ void msp_task() {
     // decide by osd_frame size/rate and dptx rate
     if (msp_read_one_frame()) {
         if (resolution == HD_5018) {
-            tx_row = HD_VMAX >> 1;
             vmax = HD_VMAX;
         } else {
-            tx_row = SD_VMAX;
             vmax = SD_VMAX;
         }
     }
@@ -126,11 +155,12 @@ void msp_task() {
     if (osd_ready) {
         // send osd
         len = get_tx_data_osd(t1);
+        if (hdzero_dynamic_osd_refresh_adapter(t1))
+            insert_tx_buf(len);
+
 #ifdef _DEBUG_DISPLAYPORT
 // debugf("\n\r%x ", (uint16_t)t1);
 #endif
-        insert_tx_buf(len);
-
         t1++;
         if (t1 >= vmax)
             t1 = 0;
@@ -526,8 +556,11 @@ uint8_t get_tx_data_osd(uint8_t index) // prepare osd+data to VTX
     tx_buf[0] = DP_HEADER0;
     tx_buf[1] = DP_HEADER1;
     tx_buf[2] = (resolution << 5) | index;
-
+#if (0)
     if (num) {
+#else
+    if (1) {
+#endif
         tx_buf[3] = ptr - 4; // len
 
         // 0x20 flag
