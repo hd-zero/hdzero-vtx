@@ -446,13 +446,13 @@ void camera_profile_menu_toggle(uint8_t op) {
         if (camera_profile_menu == CAMERA_PROFILE_NUM)
             camera_profile_menu = 0;
         camera_setting_reg_menu_update();
-        camera_set(camera_setting_reg_menu, 0);
+        camera_set(camera_setting_reg_menu, 0); // bug here
     } else if (op == BTN_LEFT) {
         camera_profile_menu--;
         if (camera_profile_menu > CAMERA_PROFILE_NUM)
             camera_profile_menu = CAMERA_PROFILE_NUM - 1;
         camera_setting_reg_menu_update();
-        camera_set(camera_setting_reg_menu, 0);
+        camera_set(camera_setting_reg_menu, 0); // bug here
     }
 }
 
