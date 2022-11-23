@@ -256,7 +256,7 @@ uint8_t msp_read_one_frame() {
                     ret = parse_displayport(osd_len);
                 full_frame = 1;
 #ifdef INIT_VTX_TABLE
-                if ((fc_lock & FC_VTX_CONFIG_LOCK) && (fc_lock & FC_INIT_VTX_TABLE_LOCK) != 0 && (fc_lock & FC_VARIANT_LOCK)) {
+                if ((fc_lock & FC_VTX_CONFIG_LOCK) && (fc_lock & FC_INIT_VTX_TABLE_LOCK) == 0 && (fc_lock & FC_VARIANT_LOCK)) {
                     fc_lock |= FC_INIT_VTX_TABLE_LOCK;
                     if (msp_cmp_fc_variant("BTFL") || msp_cmp_fc_variant("QUIC")) {
                         InitVtxTable();
