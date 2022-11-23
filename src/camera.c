@@ -56,10 +56,16 @@ void camera_mode_detect() {
                 Init_TC3587(1);
                 Set_540P90(0);
             } else if (camera_setting_reg_set[11] == 3) {
+#if (0)
                 Set_720P60(IS_RX);
                 Init_TC3587(0);
                 Set_960x720P60(0);
                 video_format = VDO_FMT_960x720P60;
+#else
+                Init_TC3587(1);
+                Set_960x720P60(0);
+                video_format = VDO_FMT_960x720P60;
+#endif
             }
         } else {
             Set_720P60(IS_RX);
