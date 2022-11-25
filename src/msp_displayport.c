@@ -141,7 +141,6 @@ void msp_task() {
     if (timer_8hz) {
         len = get_tx_data_5680();
         insert_tx_buf(len);
-        //_outchar('0');
         if (dispF_cnt < DISPF_TIME)
             dispF_cnt++;
 
@@ -149,7 +148,6 @@ void msp_task() {
             msp_tx_cnt++;
         else
             msp_cmd_tx();
-        //_outchar('3');
     }
 
     // set_vtx
@@ -627,13 +625,9 @@ void msp_send_header(uint8_t dl) {
     if (dl) {
         WAIT(20);
     }
-    //_outchar('F');
     CMS_tx(0x24);
-    //_outchar('G');
     CMS_tx(0x4d);
-    //_outchar('H');
     CMS_tx(0x3c);
-    //_outchar('I');
 }
 
 void msp_cmd_tx() // send 3 commands to FC
@@ -651,19 +645,12 @@ void msp_cmd_tx() // send 3 commands to FC
     else
         j = 4;
 
-    //_outchar('1');
     for (i = 0; i < j; i++) {
-        //_outchar('A');
         msp_send_header(0);
-        //_outchar('B');
         CMS_tx(0x00);
-        //_outchar('C');
         CMS_tx(msp_cmd[i]);
-        //_outchar('D');
         CMS_tx(msp_cmd[i]);
-        //_outchar('E');
     }
-    //_outchar('2');
 }
 
 void msp_eeprom_write() {
@@ -1783,8 +1770,8 @@ void InitVtxTable() {
         msp_send_header(1);
         crc = 0;
         for (j = 0; j < 9; j++) {
-            CMS_tx(bf_vtx_power_table[i][j]);
-            crc ^= bf_vtx_power_table[i][j];
+            CMS_tx(power_table[i][j]);
+            crc ^= power_table[i][j];
         }
         CMS_tx(crc);
     }
