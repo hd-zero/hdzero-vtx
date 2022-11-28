@@ -36,6 +36,23 @@ void camera_type_detect(void) {
     }
 }
 
+void camera_ratio_detect(void) {
+    if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1) {
+        camRatio = 0;
+    } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2) {
+        if (camera_setting_reg_set[11] == 0)
+            camRatio = 1;
+        else
+            camRatio = 0;
+    } else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
+        if (camera_setting_reg_set[11] == 1)
+            camRatio = 0;
+        else
+            camRatio = 1;
+    } else
+        camRatio = 0;
+}
+
 void camera_mode_detect() {
     uint8_t cycles = 4;
     uint8_t loss = 0;
@@ -110,7 +127,7 @@ void camera_mode_detect() {
             cycles--;
         }
     }
-
+    camera_ratio_detect();
 #ifdef _DEBUG_MODE
     debugf("\r\ncameraID: %x", (uint16_t)camera_type);
 #endif
