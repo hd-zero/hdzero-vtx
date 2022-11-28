@@ -205,11 +205,7 @@ void Set_540P90(uint8_t page) {
 }
 
 void Set_540P90_crop(uint8_t page) {
-#ifdef CAM90_DEMO
-    WriteReg(page, 0x21, 0x24);
-#else
     WriteReg(page, 0x21, 0x1f);
-#endif
 
     WriteReg(page, 0x40, 0xD0);
     WriteReg(page, 0x41, 0x22);
