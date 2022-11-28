@@ -64,25 +64,19 @@ void camera_mode_detect() {
 
     if (camera_type) {
         if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
-            if (camera_setting_reg_set[11] == 0 || camera_setting_reg_set[11] == 1) {
+            Init_TC3587(1);
+            if (camera_setting_reg_set[11] == 0) {
+                Set_540P90(0);
                 video_format = VDO_FMT_540P90;
-                Init_TC3587(1);
-                Set_540P90(0);
+            } else if (camera_setting_reg_set[11] == 1) {
+                Set_540P90_crop(0);
+                video_format = VDO_FMT_540P90;
             } else if (camera_setting_reg_set[11] == 2) {
-                video_format = VDO_FMT_540P60;
-                Init_TC3587(1);
-                Set_540P90(0);
+                ; // Set_540P90(0);
+                ; // video_format = VDO_FMT_540P60;
             } else if (camera_setting_reg_set[11] == 3) {
-#if (0)
-                Set_720P60(IS_RX);
-                Init_TC3587(0);
                 Set_960x720P60(0);
                 video_format = VDO_FMT_960x720P60;
-#else
-                Init_TC3587(1);
-                Set_960x720P60(0);
-                video_format = VDO_FMT_960x720P60;
-#endif
             }
         } else {
             Set_720P60(IS_RX);

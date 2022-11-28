@@ -412,6 +412,8 @@ uint8_t get_tx_data_5680() // prepare data to VRX
         tx_buf[4] = 0xCC;
     else if (video_format == VDO_FMT_540P90)
         tx_buf[4] = 0xEE;
+    else if (video_format == VDO_FMT_540P90_CROP)
+        tx_buf[4] = 0x44;
     else if (video_format == VDO_FMT_540P60)
         tx_buf[4] = 0x33;
     else if (video_format == VDO_FMT_960x720P60)
@@ -455,7 +457,7 @@ uint8_t get_tx_data_5680() // prepare data to VRX
 
     tx_buf[14] = fc_lock & 0x03;
 
-    tx_buf[15] = (camRatio == 0) ? 0xaa : 0x55;
+    tx_buf[15] = (camRatio == 0) ? 0x55 : 0xaa;
 
     tx_buf[16] = VTX_VERSION_MAJOR;
     tx_buf[17] = VTX_VERSION_MINOR;
