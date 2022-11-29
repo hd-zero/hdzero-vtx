@@ -45,10 +45,7 @@ void camera_ratio_detect(void) {
         else
             camRatio = 0;
     } else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
-        if (camera_setting_reg_set[11] == 1)
-            camRatio = 0;
-        else
-            camRatio = 1;
+        camRatio = 1;
     } else
         camRatio = 0;
 }
@@ -70,7 +67,7 @@ void camera_mode_detect() {
                 video_format = VDO_FMT_540P90;
             } else if (camera_setting_reg_set[11] == 1) {
                 Set_540P90_crop(0);
-                video_format = VDO_FMT_540P90;
+                video_format = VDO_FMT_540P90_CROP;
             } else if (camera_setting_reg_set[11] == 2) {
                 ; // Set_540P90(0);
                 ; // video_format = VDO_FMT_540P60;

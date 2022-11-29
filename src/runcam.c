@@ -345,7 +345,7 @@ void runcam_video_format(uint8_t val) {
 
     RUNCAM_NANO_90:
         0: 720x540@90 4:3
-        1: 720x540@90 16:9 crop // NANO 90 DEMO CAMERA DOESN"T SUPPORT
+        1: 720x540@90 4:3 crop // NANO 90 DEMO CAMERA DOESN"T SUPPORT
         2: 720x540@60 4:3
         3: 960x720@60 4:3
     */
