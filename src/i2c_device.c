@@ -87,6 +87,7 @@ void Init_TC3587(uint8_t fmt) {
 #ifdef _DEBUG_TC3587
     debugf("\r\nDetecte TC3587...");
 #endif
+#if (0) // some vtx cannot pass tc3587 detect, I don't know the reason.
     while (1) {
         val = I2C_Read16(ADDR_TC3587, 0x0000);
         if (val == 0x4401) {
@@ -105,6 +106,10 @@ void Init_TC3587(uint8_t fmt) {
             }
         }
     }
+#else
+    LED_BLUE_ON;
+    led_status = ON;
+#endif
     I2C_Write16(ADDR_TC3587, 0x0002, 0x0001);
     I2C_Write16(ADDR_TC3587, 0x0002, 0x0000); // srst
 
