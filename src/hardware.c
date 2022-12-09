@@ -936,7 +936,7 @@ void Video_Detect() {
     static uint16_t last_sec = 0;
     static uint8_t sec = 0;
     static uint8_t cnt = 0;
-    static uint16_t val = 0;
+    uint16_t val = 0;
 
     if (last_sec != seconds) {
         last_sec = seconds;
@@ -1001,15 +1001,16 @@ void Video_Detect() {
         if (camera_type) {
             val |= I2C_Read16(ADDR_TC3587, 0x006A);
             val |= I2C_Read16(ADDR_TC3587, 0x006E);
-            if (cnt == 5) {
-                if (val)
-                    cameraLost = 0;
-                else
-                    cameraLost = 1;
-                val = 0;
+            if (val)
                 cnt = 0;
-            } else
+            else
                 cnt++;
+            debugf("\r\nVideo_Detect:%d %d", val, (uint16_t)cnt);
+            if (cnt == 5)
+                cameraLost = 1;
+            else {
+                cameraLost = 0;
+            }
             return;
         }
 
