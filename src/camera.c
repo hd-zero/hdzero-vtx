@@ -21,6 +21,7 @@ uint8_t camera_profile_menu;
 uint8_t video_format = VDO_FMT_720P60;
 uint8_t camRatio = 0;
 uint8_t camMenuStatus = CAM_STATUS_IDLE;
+uint8_t reset_isp_need = 0;
 
 void camera_type_detect(void) {
     camera_type = CAMERA_TYPE_UNKNOW;
@@ -36,6 +37,20 @@ void camera_type_detect(void) {
     }
 }
 
+void camera_ratio_detect(void) {
+    if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1) {
+        camRatio = 0;
+    } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2) {
+        if (camera_setting_reg_set[11] == 0)
+            camRatio = 1;
+        else
+            camRatio = 0;
+    } else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
+        camRatio = 1;
+    } else
+        camRatio = 0;
+}
+
 void camera_mode_detect() {
     uint8_t cycles = 4;
     uint8_t loss = 0;
@@ -47,17 +62,17 @@ void camera_mode_detect() {
 
     if (camera_type) {
         if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
-            if (camera_setting_reg_set[11] == 0 || camera_setting_reg_set[11] == 1) {
+            Init_TC3587(1);
+            if (camera_setting_reg_set[11] == 0) {
+                Set_540P90(0);
                 video_format = VDO_FMT_540P90;
-                Init_TC3587(1);
-                Set_540P90(0);
+            } else if (camera_setting_reg_set[11] == 1) {
+                Set_540P90_crop(0);
+                video_format = VDO_FMT_540P90_CROP;
             } else if (camera_setting_reg_set[11] == 2) {
-                video_format = VDO_FMT_540P60;
-                Init_TC3587(1);
-                Set_540P90(0);
+                ; // Set_540P90(0);
+                ; // video_format = VDO_FMT_540P60;
             } else if (camera_setting_reg_set[11] == 3) {
-                Set_720P60(IS_RX);
-                Init_TC3587(0);
                 Set_960x720P60(0);
                 video_format = VDO_FMT_960x720P60;
             }
@@ -104,7 +119,7 @@ void camera_mode_detect() {
             cycles--;
         }
     }
-
+    camera_ratio_detect();
 #ifdef _DEBUG_MODE
     debugf("\r\ncameraID: %x", (uint16_t)camera_type);
 #endif
@@ -246,6 +261,10 @@ void camera_init(void) {
     camera_setting_read();
     camera_setting_reg_menu_update();
     camera_set(camera_setting_reg_menu, 1);
+
+    if (camera_mfr == CAMERA_MFR_RUNCAM)
+        runcam_reset_isp();
+
     camera_mode_detect();
 
     camera_button_init();
@@ -369,8 +388,8 @@ void camera_menu_draw_value(void) {
                     strcpy(&osd_buf[i][osd_menu_offset + 19], resolution_runcam_micro_v2[camera_setting_reg_menu[i - 1]]);
                 } else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
                     strcpy(&osd_buf[i][osd_menu_offset + 19], resolution_runcam_nano_90[camera_setting_reg_menu[i - 1]]);
-                    osd_buf[i][osd_menu_offset + 29] = '>';
                 }
+                osd_buf[i][osd_menu_offset + 29] = '>';
                 break;
             default:
                 break;
@@ -446,13 +465,13 @@ void camera_profile_menu_toggle(uint8_t op) {
         if (camera_profile_menu == CAMERA_PROFILE_NUM)
             camera_profile_menu = 0;
         camera_setting_reg_menu_update();
-        camera_set(camera_setting_reg_menu, 0);
+        reset_isp_need |= camera_set(camera_setting_reg_menu, 0);
     } else if (op == BTN_LEFT) {
         camera_profile_menu--;
         if (camera_profile_menu > CAMERA_PROFILE_NUM)
             camera_profile_menu = CAMERA_PROFILE_NUM - 1;
         camera_setting_reg_menu_update();
-        camera_set(camera_setting_reg_menu, 0);
+        reset_isp_need |= camera_set(camera_setting_reg_menu, 0);
     }
 }
 
@@ -559,7 +578,6 @@ uint8_t camera_status_update(uint8_t op) {
 
     uint8_t ret = 0;
     static uint8_t step = 1;
-    static uint8_t repower = 0;
     // static uint8_t cnt;
     static uint8_t last_op = BTN_RIGHT;
 
@@ -578,7 +596,7 @@ uint8_t camera_status_update(uint8_t op) {
             camera_setting_reg_menu_update();
 
             camera_menu_long_press(op, last_op, 1);
-            repower = 0;
+            reset_isp_need = 0;
 
             camMenuStatus = CAM_STATUS_PROFILE;
             camera_menu_cursor_update(0);
@@ -635,15 +653,10 @@ uint8_t camera_status_update(uint8_t op) {
 
         if (op == BTN_RIGHT) {
             camera_setting_reg_menu_update();
-            repower = camera_set(camera_setting_reg_menu, 0);
+            camera_set(camera_setting_reg_menu, 0);
 
-            if (repower) {
-                camera_menu_show_repower();
-                camMenuStatus = CAM_STATUS_REPOWER;
-            } else {
-                camMenuStatus = CAM_STATUS_IDLE;
-                ret = 1;
-            }
+            camMenuStatus = CAM_STATUS_IDLE;
+            ret = 1;
         }
         break;
     case CAM_STATUS_SAVE_EXIT:
@@ -653,19 +666,23 @@ uint8_t camera_status_update(uint8_t op) {
         camera_menu_item_toggle(op);
 
         if (op == BTN_RIGHT) {
+            // 540@60 do not work for now
+            if (camera_mfr == CAMERA_MFR_RUNCAM && camera_type == CAMERA_TYPE_RUNCAM_NANO_90 && camera_setting_reg_menu[11] == 2)
+                break;
             camera_profile_eep = camera_profile_menu;
             camera_profile_write();
-            repower = camera_set(camera_setting_reg_menu, 1);
+            reset_isp_need |= camera_set(camera_setting_reg_menu, 1);
             camera_setting_reg_eep_update();
             camera_setting_profile_write(0xff);
 
-            if (repower) {
-                camera_menu_show_repower();
-                camMenuStatus = CAM_STATUS_REPOWER;
-            } else {
-                camMenuStatus = CAM_STATUS_IDLE;
-                ret = 1;
+            if (reset_isp_need) {
+                if (camera_mfr == CAMERA_MFR_RUNCAM) {
+                    runcam_reset_isp();
+                    camera_mode_detect();
+                }
             }
+            camMenuStatus = CAM_STATUS_IDLE;
+            ret = 1;
         }
         break;
         // case CAM_STATUS_REPOWER:

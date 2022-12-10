@@ -344,10 +344,10 @@ void runcam_video_format(uint8_t val) {
         2: 1280x720@60 16:9 full
 
     RUNCAM_NANO_90:
-        0: 720x540@90
-        1: 720x540@90 crop //NANO 90 DEMO CAMERA DOESN"T SUPPORT
-        2: 720x540@60
-        3: 960x720@60
+        0: 720x540@90 4:3
+        1: 720x540@90 4:3 crop // NANO 90 DEMO CAMERA DOESN"T SUPPORT
+        2: 720x540@60 4:3
+        3: 960x720@60 4:3
     */
     camera_setting_reg_set[11] = val;
 
@@ -409,6 +409,13 @@ void runcam_save(void) {
     RUNCAM_Write(camera_device, 0x000694, 0x00000311);
 #ifdef _DEBUG_RUNCAM
     debugf("\r\nRUNCAM Save");
+#endif
+}
+
+void runcam_reset_isp(void) {
+    RUNCAM_Write(camera_device, 0x000694, 0x00000130);
+#ifdef _DEBUG_RUNCAM
+    debugf("\r\nRUNCAM reset isp");
 #endif
 }
 
