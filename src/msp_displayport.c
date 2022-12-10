@@ -1471,8 +1471,6 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
 
 void vtx_menu_init() {
     uint8_t i;
-    uint8_t hourString[4];
-    uint8_t minuteString[2];
 
     disp_mode = DISPLAY_CMS;
     clear_screen();
@@ -1500,16 +1498,6 @@ void vtx_menu_init() {
 
     // draw version
     strcpy(osd_buf[11] + osd_menu_offset + 13, VTX_VERSION_STRING);
-
-    ParseLifeTime(hourString, minuteString);
-    osd_buf[12][osd_menu_offset + 13] = hourString[0];
-    osd_buf[12][osd_menu_offset + 14] = hourString[1];
-    osd_buf[12][osd_menu_offset + 15] = hourString[2];
-    osd_buf[12][osd_menu_offset + 16] = hourString[3];
-    osd_buf[12][osd_menu_offset + 17] = 'H';
-    osd_buf[12][osd_menu_offset + 18] = minuteString[0];
-    osd_buf[12][osd_menu_offset + 19] = minuteString[1];
-    osd_buf[12][osd_menu_offset + 20] = 'M';
 
     vtx_channel = RF_FREQ;
     vtx_power = RF_POWER;
