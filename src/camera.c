@@ -21,6 +21,7 @@ uint8_t camera_profile_menu;
 uint8_t video_format = VDO_FMT_720P60;
 uint8_t camRatio = 0;
 uint8_t camMenuStatus = CAM_STATUS_IDLE;
+uint8_t reset_isp_need = 0;
 
 void camera_type_detect(void) {
     camera_type = CAMERA_TYPE_UNKNOW;
@@ -260,6 +261,10 @@ void camera_init(void) {
     camera_setting_read();
     camera_setting_reg_menu_update();
     camera_set(camera_setting_reg_menu, 1);
+
+    if (camera_mfr == CAMERA_MFR_RUNCAM)
+        runcam_reset_isp();
+
     camera_mode_detect();
 
     camera_button_init();
@@ -460,13 +465,13 @@ void camera_profile_menu_toggle(uint8_t op) {
         if (camera_profile_menu == CAMERA_PROFILE_NUM)
             camera_profile_menu = 0;
         camera_setting_reg_menu_update();
-        camera_set(camera_setting_reg_menu, 0); // bug here
+        reset_isp_need |= camera_set(camera_setting_reg_menu, 0);
     } else if (op == BTN_LEFT) {
         camera_profile_menu--;
         if (camera_profile_menu > CAMERA_PROFILE_NUM)
             camera_profile_menu = CAMERA_PROFILE_NUM - 1;
         camera_setting_reg_menu_update();
-        camera_set(camera_setting_reg_menu, 0); // bug here
+        reset_isp_need |= camera_set(camera_setting_reg_menu, 0);
     }
 }
 
@@ -573,7 +578,6 @@ uint8_t camera_status_update(uint8_t op) {
 
     uint8_t ret = 0;
     static uint8_t step = 1;
-    static uint8_t repower = 0;
     // static uint8_t cnt;
     static uint8_t last_op = BTN_RIGHT;
 
@@ -592,7 +596,7 @@ uint8_t camera_status_update(uint8_t op) {
             camera_setting_reg_menu_update();
 
             camera_menu_long_press(op, last_op, 1);
-            repower = 0;
+            reset_isp_need = 0;
 
             camMenuStatus = CAM_STATUS_PROFILE;
             camera_menu_cursor_update(0);
@@ -649,7 +653,7 @@ uint8_t camera_status_update(uint8_t op) {
 
         if (op == BTN_RIGHT) {
             camera_setting_reg_menu_update();
-            repower = camera_set(camera_setting_reg_menu, 0);
+            camera_set(camera_setting_reg_menu, 0);
 
             camMenuStatus = CAM_STATUS_IDLE;
             ret = 1;
@@ -664,14 +668,14 @@ uint8_t camera_status_update(uint8_t op) {
         if (op == BTN_RIGHT) {
             camera_profile_eep = camera_profile_menu;
             camera_profile_write();
-            repower = camera_set(camera_setting_reg_menu, 1);
+            reset_isp_need |= camera_set(camera_setting_reg_menu, 1);
             camera_setting_reg_eep_update();
             camera_setting_profile_write(0xff);
 
-            if (repower) {
+            if (reset_isp_need) {
                 if (camera_mfr == CAMERA_MFR_RUNCAM) {
                     runcam_reset_isp();
-                    camera_init();
+                    camera_mode_detect();
                 }
             }
             camMenuStatus = CAM_STATUS_IDLE;
