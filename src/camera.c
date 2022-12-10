@@ -666,6 +666,9 @@ uint8_t camera_status_update(uint8_t op) {
         camera_menu_item_toggle(op);
 
         if (op == BTN_RIGHT) {
+            // 540@60 do not work for now
+            if (camera_mfr == CAMERA_MFR_RUNCAM && camera_type == CAMERA_TYPE_RUNCAM_NANO_90 && camera_setting_reg_menu[11] == 2)
+                break;
             camera_profile_eep = camera_profile_menu;
             camera_profile_write();
             reset_isp_need |= camera_set(camera_setting_reg_menu, 1);
