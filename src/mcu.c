@@ -125,7 +125,6 @@ void main(void) {
 #elif defined _DEBUG_MODE
         Monitor();
 #endif
-
         Video_Detect();
         if (!SA_lock)
             OnButton1();
@@ -177,10 +176,10 @@ void RF_Delay_Init() {
     if (SA_saved == 0) {
         if (seconds >= WAIT_SA_CONFIG) {
             I2C_Write8(ADDR_EEPROM, EEP_ADDR_SA_LOCK, SA_lock);
+            SA_saved = 1;
 #ifdef _DEBUG_MODE
             debugf("\r\nSave SA_lock(%x) to EEPROM", (uint16_t)SA_lock);
 #endif
-            SA_saved = 1;
         }
     }
 

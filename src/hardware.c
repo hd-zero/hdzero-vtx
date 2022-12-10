@@ -935,6 +935,7 @@ void Flicker_LED(uint8_t n) {
 void Video_Detect() {
     static uint16_t last_sec = 0;
     static uint8_t sec = 0;
+    static uint8_t cnt = 0;
     uint16_t val = 0;
 
     if (last_sec != seconds) {
@@ -998,14 +999,18 @@ void Video_Detect() {
             return;
 
         if (camera_type) {
-            for (i = 0; i < 5; i++) {
-                val |= I2C_Read16(ADDR_TC3587, 0x006A);
-                val |= I2C_Read16(ADDR_TC3587, 0x006E);
-            }
+            val |= I2C_Read16(ADDR_TC3587, 0x006A);
+            val |= I2C_Read16(ADDR_TC3587, 0x006E);
             if (val)
-                cameraLost = 0;
+                cnt = 0;
             else
+                cnt++;
+            debugf("\r\nVideo_Detect:%d %d", val, (uint16_t)cnt);
+            if (cnt == 5)
                 cameraLost = 1;
+            else {
+                cameraLost = 0;
+            }
             return;
         }
 
