@@ -24,6 +24,7 @@
 #define MSP_CMD_STATUS_BYTE      0x65
 #define MSP_CMD_RC_BYTE          0x69
 #define MSP_CMD_DISPLAYPORT_BYTE 0xB6
+#define MSP_CMD_SET_OSD_CANVAS   0xBC
 
 #define DP_HEADER0 0x56
 #define DP_HEADER1 0x80

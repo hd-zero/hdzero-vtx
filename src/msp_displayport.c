@@ -13,6 +13,10 @@
 #include "uart.h"
 #include "version.h"
 
+#define CMS_TX_CRC(byte) \
+    CMS_tx(byte);        \
+    crc ^= byte;
+
 uint8_t osd_buf[HD_VMAX][HD_HMAX];
 uint8_t loc_buf[HD_VMAX][7];
 uint8_t page_extend_buf[HD_VMAX][7];
@@ -671,6 +675,29 @@ void msp_send_header(uint8_t dl) {
     CMS_tx(0x3c);
 }
 
+void msp_send_canvas_size() {
+    uint8_t crc = 0;
+
+    msp_send_header(0);
+    CMS_TX_CRC(2); // len
+    CMS_TX_CRC(MSP_CMD_SET_OSD_CANVAS);
+
+    switch (resolution) {
+    case HD_3016:
+    case SD_3016:
+        CMS_TX_CRC(30); // cols
+        CMS_TX_CRC(16); // rows
+        break;
+
+    case HD_5018:
+        CMS_TX_CRC(50); // cols
+        CMS_TX_CRC(18); // rows
+        break;
+    }
+
+    CMS_tx(crc);
+}
+
 void msp_cmd_tx() // send 3 commands to FC
 {
     uint8_t i, j;
@@ -692,6 +719,8 @@ void msp_cmd_tx() // send 3 commands to FC
         CMS_tx(msp_cmd[i]);
         CMS_tx(msp_cmd[i]);
     }
+
+    msp_send_canvas_size();
 }
 
 void msp_eeprom_write() {
