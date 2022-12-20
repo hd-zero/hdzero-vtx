@@ -13,9 +13,9 @@
 #include "uart.h"
 #include "version.h"
 
-uint8_t osd_buf[HD_VMAX][HD_HMAX];
-uint8_t loc_buf[HD_VMAX][7];
-uint8_t page_extend_buf[HD_VMAX][7];
+uint8_t osd_buf[HD_VMAX1][HD_HMAX1];
+uint8_t loc_buf[HD_VMAX1][7];
+uint8_t page_extend_buf[HD_VMAX1][7];
 uint8_t tx_buf[TXBUF_SIZE]; // buffer for sending data to VRX
 uint8_t dptxbuf[256];
 uint8_t dptx_rptr, dptx_wptr;
@@ -99,8 +99,8 @@ uint8_t msp_cmp_fc_variant(const char *variant) {
 }
 
 uint8_t hdzero_dynamic_osd_refresh_adapter(uint8_t t1) {
-    static uint16_t osd_line_crc_lst[HD_VMAX] = {0};
-    static uint8_t refresh_cnt[HD_VMAX] = {0};
+    static uint16_t osd_line_crc_lst[HD_VMAX1] = {0};
+    static uint8_t refresh_cnt[HD_VMAX1] = {0};
     uint8_t crc_u8[2] = {0, 0};
     uint16_t crc_u16 = 0;
     uint8_t i;
@@ -146,7 +146,9 @@ void msp_task() {
     // decide by osd_frame size/rate and dptx rate
     if (msp_read_one_frame()) {
         if (resolution == HD_5018) {
-            vmax = HD_VMAX;
+            vmax = HD_VMAX0;
+        } else if (resolution == HD_5320) {
+            vmax = HD_VMAX1;
         } else {
             vmax = SD_VMAX;
         }
@@ -255,6 +257,8 @@ uint8_t msp_read_one_frame() {
                     cur_cmd = CUR_FC_VARIANT;
                 } else if (rx == MSP_CMD_VTX_CONFIG) {
                     cur_cmd = CUR_VTX_CONFIG;
+                } else if (rx == MSP_CMD_GET_OSD_CANVAS) {
+                    cur_cmd = CUR_GET_OSD_CANVAS;
                 }
                 state = MSP_RX1;
             }
@@ -280,6 +284,8 @@ uint8_t msp_read_one_frame() {
                     parse_variant();
                 else if (cur_cmd == CUR_VTX_CONFIG)
                     parse_vtx_config();
+                else if (cur_cmd == CUR_GET_OSD_CANVAS)
+                    parse_get_osd_canvas();
                 else if (cur_cmd == CUR_DISPLAYPORT)
                     ret = parse_displayport(osd_len);
                 full_frame = 1;
@@ -371,23 +377,31 @@ void clear_screen() {
 }
 
 void write_string(uint8_t rx, uint8_t row, uint8_t col, uint8_t page_extend) {
+    uint8_t hmax, vmax;
     if (disp_mode == DISPLAY_OSD) {
-        if (resolution == HD_5018) {
-            if (row < HD_VMAX && col < HD_HMAX) {
-                osd_buf[row][col] = rx;
-                if (page_extend)
-                    page_extend_buf[row][col >> 3] |= (1 << (col & 0x07));
-                else
-                    page_extend_buf[row][col >> 3] &= (0xff - (1 << (col & 0x07)));
-            }
-        } else if (resolution == SD_3016 || resolution == HD_3016) {
-            if (row < SD_VMAX && col < SD_HMAX) {
-                osd_buf[row][col] = rx;
-                if (page_extend)
-                    page_extend_buf[row][col >> 3] |= (1 << (col & 0x07));
-                else
-                    page_extend_buf[row][col >> 3] &= (0xff - (1 << (col & 0x07)));
-            }
+        switch (resolution) {
+        case HD_5018:
+            hmax = HD_HMAX0;
+            vmax = HD_VMAX0;
+            break;
+        case HD_5320:
+            hmax = HD_HMAX1;
+            vmax = HD_VMAX1;
+            break;
+        case SD_3016:
+        case HD_3016:
+            hmax = SD_HMAX;
+            vmax = SD_VMAX;
+            break;
+        default:;
+        }
+
+        if (row < vmax && col < hmax) {
+            osd_buf[row][col] = rx;
+            if (page_extend)
+                page_extend_buf[row][col >> 3] |= (1 << (col & 0x07));
+            else
+                page_extend_buf[row][col >> 3] &= (0xff - (1 << (col & 0x07)));
         }
     }
 }
@@ -513,7 +527,11 @@ uint8_t get_tx_data_osd(uint8_t index) // prepare osd+data to VTX
     uint8_t num = 0;
 
     if (resolution == HD_5018) {
-        hmax = HD_HMAX;
+        hmax = HD_HMAX0;
+        len_mask = 7;
+        ptr = 11;
+    } else if (resolution == HD_5320) {
+        hmax = HD_HMAX1;
         len_mask = 7;
         ptr = 11;
     } else {
@@ -674,17 +692,18 @@ void msp_send_header(uint8_t dl) {
 void msp_cmd_tx() // send 3 commands to FC
 {
     uint8_t i, j;
-    uint8_t msp_cmd[4] = {
-        0x02, // msp_fc_variant
-        0x65, // msp_status
-        0x69, // msp_rc
-        0x58  // msp_vtx_config
+    uint8_t msp_cmd[5] = {
+        MSP_CMD_FC_VARIANT,
+        MSP_CMD_STATUS_BYTE,
+        MSP_CMD_RC_BYTE,
+        MSP_CMD_GET_OSD_CANVAS,
+        MSP_CMD_VTX_CONFIG,
     };
 
     if (fc_lock & FC_VTX_CONFIG_LOCK)
-        j = 3;
-    else
         j = 4;
+    else
+        j = 5;
 
     for (i = 0; i < j; i++) {
         msp_send_header(0);
@@ -835,6 +854,10 @@ void parse_vtx_config() {
         fc_pwr_rx = 0;
 }
 
+void parse_get_osd_canvas(void) {
+    if (msp_rx_buf[0] == 53 && msp_rx_buf[1] == 20)
+        resolution = HD_5320;
+}
 void parseMspVtx_V2(uint16_t cmd_u16) {
     uint8_t nxt_ch = 0;
     uint8_t nxt_pwr = 0;

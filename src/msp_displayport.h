@@ -7,10 +7,12 @@
 #define IS_LO(x)  ((x) < 1250)
 #define IS_MID(x) ((!IS_HI(x)) && (!IS_LO(x)))
 
-#define SD_HMAX 30
-#define SD_VMAX 16
-#define HD_HMAX 50
-#define HD_VMAX 18
+#define SD_HMAX  30
+#define SD_VMAX  16
+#define HD_HMAX0 50
+#define HD_VMAX0 18
+#define HD_HMAX1 53
+#define HD_VMAX1 20
 
 #define TXBUF_SIZE 69
 
@@ -24,6 +26,7 @@
 #define MSP_CMD_STATUS_BYTE      0x65
 #define MSP_CMD_RC_BYTE          0x69
 #define MSP_CMD_DISPLAYPORT_BYTE 0xB6
+#define MSP_CMD_GET_OSD_CANVAS   0xBD
 
 #define DP_HEADER0 0x56
 #define DP_HEADER1 0x80
@@ -93,6 +96,7 @@ typedef enum {
     CUR_STATUS,
     CUR_FC_VARIANT,
     CUR_VTX_CONFIG,
+    CUR_GET_OSD_CANVAS,
     CUR_OTHERS
 } cur_cmd_e;
 
@@ -109,6 +113,7 @@ typedef enum {
     SD_3016,
     HD_5018,
     HD_3016,
+    HD_5320,
 } resolutionType_e;
 
 typedef enum {
@@ -155,7 +160,7 @@ void set_vtx_param();
 #ifdef INIT_VTX_TABLE
 void InitVtxTable();
 #endif
-extern uint8_t osd_buf[HD_VMAX][HD_HMAX];
+extern uint8_t osd_buf[HD_VMAX1][HD_HMAX1];
 extern uint8_t osd_menu_offset;
 extern uint8_t disp_mode;
 extern uint8_t msp_tx_cnt;
