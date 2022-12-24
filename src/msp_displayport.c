@@ -378,7 +378,8 @@ void clear_screen() {
 }
 
 void write_string(uint8_t rx, uint8_t row, uint8_t col, uint8_t page_extend) {
-    uint8_t hmax, vmax;
+    uint8_t hmax = SD_HMAX;
+    uint8_t vmax = SD_VMAX;
     if (disp_mode == DISPLAY_OSD) {
         switch (resolution) {
         case HD_5018:
