@@ -87,6 +87,7 @@ uint8_t crc8tab[256] = {
 uint8_t osd_menu_offset = 0;
 
 #ifdef USE_MSP
+void parse_get_osd_canvas(void);
 
 uint8_t msp_cmp_fc_variant(const char *variant) {
     uint8_t i;
