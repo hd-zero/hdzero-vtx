@@ -14,7 +14,7 @@
 #define HD_HMAX1 53
 #define HD_VMAX1 20
 
-#define TXBUF_SIZE 69
+#define TXBUF_SIZE 74
 
 #define MSP_HEADER_START_BYTE   0x24
 #define MSP_HEADER_M_BYTE       0x4D
