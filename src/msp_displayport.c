@@ -87,7 +87,8 @@ uint8_t crc8tab[256] = {
 uint8_t osd_menu_offset = 0;
 
 #ifdef USE_MSP
-void parse_get_osd_canvas(void);
+void msp_set_osd_canvas(void);
+void parse_set_osd_canvas(void);
 
 uint8_t msp_cmp_fc_variant(const char *variant) {
     uint8_t i;
@@ -258,8 +259,8 @@ uint8_t msp_read_one_frame() {
                     cur_cmd = CUR_FC_VARIANT;
                 } else if (rx == MSP_CMD_VTX_CONFIG) {
                     cur_cmd = CUR_VTX_CONFIG;
-                } else if (rx == MSP_CMD_GET_OSD_CANVAS) {
-                    cur_cmd = CUR_GET_OSD_CANVAS;
+                } else if (rx == MSP_CMD_SET_OSD_CANVAS) {
+                    cur_cmd = CUR_SET_OSD_CANVAS;
                 }
                 state = MSP_RX1;
             }
@@ -285,19 +286,20 @@ uint8_t msp_read_one_frame() {
                     parse_variant();
                 else if (cur_cmd == CUR_VTX_CONFIG)
                     parse_vtx_config();
-                else if (cur_cmd == CUR_GET_OSD_CANVAS)
-                    parse_get_osd_canvas();
+                else if (cur_cmd == CUR_SET_OSD_CANVAS)
+                    parse_set_osd_canvas();
                 else if (cur_cmd == CUR_DISPLAYPORT)
                     ret = parse_displayport(osd_len);
                 full_frame = 1;
-#ifdef INIT_VTX_TABLE
                 if ((fc_lock & FC_VTX_CONFIG_LOCK) && (fc_lock & FC_INIT_VTX_TABLE_LOCK) == 0 && (fc_lock & FC_VARIANT_LOCK)) {
                     fc_lock |= FC_INIT_VTX_TABLE_LOCK;
                     if (msp_cmp_fc_variant("BTFL") || msp_cmp_fc_variant("QUIC")) {
+#ifdef INIT_VTX_TABLE
                         InitVtxTable();
+#endif
+                        msp_set_osd_canvas();
                     }
                 }
-#endif
             }
 #ifdef _DEBUG_DISPLAYPORT
             else
@@ -694,18 +696,17 @@ void msp_send_header(uint8_t dl) {
 void msp_cmd_tx() // send 3 commands to FC
 {
     uint8_t i, j;
-    uint8_t msp_cmd[5] = {
+    uint8_t msp_cmd[4] = {
         MSP_CMD_FC_VARIANT,
         MSP_CMD_STATUS_BYTE,
         MSP_CMD_RC_BYTE,
-        MSP_CMD_GET_OSD_CANVAS,
         MSP_CMD_VTX_CONFIG,
     };
 
     if (fc_lock & FC_VTX_CONFIG_LOCK)
-        j = 4;
+        j = 3;
     else
-        j = 5;
+        j = 4;
 
     for (i = 0; i < j; i++) {
         msp_send_header(0);
@@ -856,9 +857,24 @@ void parse_vtx_config() {
         fc_pwr_rx = 0;
 }
 
-void parse_get_osd_canvas(void) {
-    if (msp_rx_buf[0] == 53 && msp_rx_buf[1] == 20)
-        resolution = HD_5320;
+void msp_set_osd_canvas(void) {
+    uint8_t crc = 0;
+    if (msp_cmp_fc_variant("BTFL")) {
+        msp_send_header(0);
+        CMS_tx(0x02);
+        crc ^= 0x02;
+        CMS_tx(MSP_CMD_SET_OSD_CANVAS);
+        crc ^= MSP_CMD_SET_OSD_CANVAS;
+        CMS_tx(50);
+        crc ^= 50;
+        CMS_tx(18);
+        crc ^= 18;
+        CMS_tx(crc);
+    }
+}
+
+void parse_set_osd_canvas(void) {
+    resolution = HD_5018;
 }
 void parseMspVtx_V2(uint16_t cmd_u16) {
     uint8_t nxt_ch = 0;
