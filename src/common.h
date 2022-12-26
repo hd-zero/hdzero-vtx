@@ -8,11 +8,11 @@
 #include "sfr_ext.h"
 #include "toolchain.h"
 
-//#define HDZERO_WHOOP
-//#define HDZERO_WHOOP_LITE
-//#define HDZERO_RACE_V1
-//#define HDZERO_RACE_V2
-//#define HDZERO_FREESTYLE
+// #define HDZERO_WHOOP
+// #define HDZERO_WHOOP_LITE
+// #define HDZERO_RACE_V1
+// #define HDZERO_RACE_V2
+// #define HDZERO_FREESTYLE
 
 #if defined HDZERO_WHOOP
 #define VTX_ID 0x54
@@ -47,25 +47,25 @@
 #define dbg_pt(a) DBG_PIN0 = a
 
 #define EXTEND_BUF
-//#define EXTEND_BUF1
+// #define EXTEND_BUF1
 
 // mode
-//#define _RF_CALIB
-//#define REV_UART
-//#define VIDEO_PAT
+// #define _RF_CALIB
+// #define REV_UART
+// #define VIDEO_PAT
 
-//#define FIX_EEP
+// #define FIX_EEP
 
 #ifndef _RF_CALIB
-//#define _DEBUG_MODE
-//#define _DEBUG_DM6300
-//#define _DEBUG_TC3587
-//#define _DEBUG_CAMERA
-//#define _DEBUG_LIFETIME
-//#define _DEBUG_SMARTAUDIO
-//#define _DEBUG_DISPLAYPORT
-//#define _DEBUG_RUNCAM
-//#define _DEBUG_SPI
+// #define _DEBUG_MODE
+// #define _DEBUG_DM6300
+// #define _DEBUG_TC3587
+// #define _DEBUG_CAMERA
+// #define _DEBUG_LIFETIME
+// #define _DEBUG_SMARTAUDIO
+// #define _DEBUG_DISPLAYPORT
+// #define _DEBUG_RUNCAM
+// #define _DEBUG_SPI
 #endif
 
 #define Raceband

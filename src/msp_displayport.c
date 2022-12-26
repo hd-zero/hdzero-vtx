@@ -245,25 +245,25 @@ uint8_t msp_read_one_frame() {
 
         case MSP_CMD:
             crc ^= rx;
-            if (length == 0) {
+            if (rx == MSP_CMD_DISPLAYPORT_BYTE) {
+                cur_cmd = CUR_DISPLAYPORT;
+            } else if (rx == MSP_CMD_RC_BYTE) {
+                cur_cmd = CUR_RC;
+            } else if (rx == MSP_CMD_STATUS_BYTE) {
+                cur_cmd = CUR_STATUS;
+            } else if (rx == MSP_CMD_FC_VARIANT) {
+                cur_cmd = CUR_FC_VARIANT;
+            } else if (rx == MSP_CMD_VTX_CONFIG) {
+                cur_cmd = CUR_VTX_CONFIG;
+            } else if (rx == MSP_CMD_SET_OSD_CANVAS) {
+                cur_cmd = CUR_SET_OSD_CANVAS;
+            } else
                 cur_cmd = CUR_OTHERS;
+
+            if (length == 0)
                 state = MSP_CRC1;
-            } else {
-                if (rx == MSP_CMD_DISPLAYPORT_BYTE) {
-                    cur_cmd = CUR_DISPLAYPORT;
-                } else if (rx == MSP_CMD_RC_BYTE) {
-                    cur_cmd = CUR_RC;
-                } else if (rx == MSP_CMD_STATUS_BYTE) {
-                    cur_cmd = CUR_STATUS;
-                } else if (rx == MSP_CMD_FC_VARIANT) {
-                    cur_cmd = CUR_FC_VARIANT;
-                } else if (rx == MSP_CMD_VTX_CONFIG) {
-                    cur_cmd = CUR_VTX_CONFIG;
-                } else if (rx == MSP_CMD_SET_OSD_CANVAS) {
-                    cur_cmd = CUR_SET_OSD_CANVAS;
-                }
+            else
                 state = MSP_RX1;
-            }
             // debugf("\r\n%x ",(uint16_t)rx);
             break;
 
@@ -870,11 +870,13 @@ void msp_set_osd_canvas(void) {
         CMS_tx(18);
         crc ^= 18;
         CMS_tx(crc);
+        // debugf("\r\nmsp_set_osd_canvas");
     }
 }
 
 void parse_set_osd_canvas(void) {
     resolution = HD_5018;
+    // debugf("\r\nparse_set_osd_canvas");
 }
 void parseMspVtx_V2(uint16_t cmd_u16) {
     uint8_t nxt_ch = 0;
