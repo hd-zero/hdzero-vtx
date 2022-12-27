@@ -118,6 +118,11 @@ void camera_mode_detect() {
             loss = 0;
             cycles--;
         }
+
+        if (cycles == 0) {
+            Set_720P60(0);
+            video_format = VDO_FMT_720P60;
+        }
     }
     camera_ratio_detect();
 #ifdef _DEBUG_MODE
