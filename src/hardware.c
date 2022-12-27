@@ -1036,8 +1036,8 @@ void Video_Detect() {
             }
             return;
         }
-
-        cameraLost = (ReadReg(0, 0x02) >> 4) & 1;
+#if (0)
+        cameraLost = (ReadReg(0, 0x02) >> 4) & 1; // some camera cannot be detected
 
         if (sec == 3) {
             sec = 0;
@@ -1051,6 +1051,7 @@ void Video_Detect() {
                 }
             }
         }
+#endif
     }
 }
 
