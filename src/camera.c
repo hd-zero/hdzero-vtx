@@ -441,9 +441,9 @@ void camera_menu_show_repower(void) {
 
 void camera_menu_cursor_update(uint8_t erase) {
     if (erase)
-        osd_buf[camMenuStatus][osd_menu_offset + 1] = ' ';
+        osd_buf[camMenuStatus][osd_menu_offset + 2] = ' ';
     else
-        osd_buf[camMenuStatus][osd_menu_offset + 1] = '>';
+        osd_buf[camMenuStatus][osd_menu_offset + 2] = '>';
 }
 void camera_menu_item_toggle(uint8_t op) {
     camera_menu_cursor_update(1);
