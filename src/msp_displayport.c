@@ -785,7 +785,7 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     CMS_tx(crc);
 
 #ifdef _DEBUG_MODE
-    debugf("\r\nmsp_set_vtx_config:F%x,P%x,M:%x", (uint16_t)RF_FREQ, (uint16_t)power, (uint16_t)PIT_MODE);
+    debugf("\r\nmsp_set_vtx_config:FRQ%x,PWR%x,PIT:%x, LP:%x, SAVE:%x", (uint16_t)RF_FREQ, (uint16_t)power, (uint16_t)PIT_MODE, (uint16_t)LP_MODE, (uint16_t)save);
 #endif
 
     if (save)
@@ -1801,7 +1801,6 @@ void InitVtxTable() {
 #endif
 
     // set band num, channel num and power level number
-    LP_MODE = fc_lp_rx;
     msp_set_vtx_config(fc_pwr_rx, 0);
 
     // set band/channel
