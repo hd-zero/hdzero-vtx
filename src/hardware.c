@@ -951,7 +951,7 @@ void Flicker_LED(uint8_t n) {
     led_status = ON;
 }
 
-void Video_Detect() {
+void video_detect(void) {
     static uint16_t last_sec = 0;
     static uint8_t sec = 0;
     static uint8_t cnt = 0;
@@ -1017,7 +1017,12 @@ void Video_Detect() {
         if (heat_protect)
             return;
 
-        if (camera_type) {
+        if (camera_type == CAMERA_TYPE_RESERVED)
+            return;
+
+        if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 ||
+            camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 ||
+            camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
             val |= I2C_Read16(ADDR_TC3587, 0x006A);
             val |= I2C_Read16(ADDR_TC3587, 0x006E);
             if (val)
@@ -1025,10 +1030,7 @@ void Video_Detect() {
             else
                 cnt++;
 
-#ifdef _DEBUG_TC3587
-            debugf("\r\nVideo_Detect:%d %d", val, (uint16_t)cnt);
-#endif
-
+            debugf("\r\nvideo_detect:%d %d", val, (uint16_t)cnt);
             if (cnt == 5)
                 cameraLost = 1;
             else {
@@ -1036,8 +1038,8 @@ void Video_Detect() {
             }
             return;
         }
-#if (0)
-        cameraLost = (ReadReg(0, 0x02) >> 4) & 1; // some camera cannot be detected
+
+        cameraLost = (ReadReg(0, 0x02) >> 4) & 1;
 
         if (sec == 3) {
             sec = 0;
@@ -1051,7 +1053,6 @@ void Video_Detect() {
                 }
             }
         }
-#endif
     }
 }
 

@@ -64,7 +64,7 @@ typedef enum {
 
 void Init_HW();
 void OnButton1();
-void Video_Detect();
+void video_detect();
 void PwrLMT();
 void TempDetect();
 
