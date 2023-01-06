@@ -76,7 +76,7 @@ void camera_mode_detect() {
             video_format = VDO_FMT_960x720P60;
         }
         I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
-    } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 && camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2) {
+    } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 || camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2) {
         Set_720P60(IS_RX);
         Init_TC3587(0);
         video_format = VDO_FMT_720P60;
