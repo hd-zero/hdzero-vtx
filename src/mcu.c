@@ -125,7 +125,7 @@ void main(void) {
 #elif defined _DEBUG_MODE
         Monitor();
 #endif
-        Video_Detect();
+        video_detect();
         if (!SA_lock)
             OnButton1();
 
