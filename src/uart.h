@@ -2,6 +2,7 @@
 #define __UART_H_
 
 #include "common.h"
+#include "isr.h"
 
 #ifdef EXTEND_BUF
 #define BUF_MAX 2048 // 30
@@ -14,13 +15,14 @@
 #define BUF1_MAX 255 // 30
 #endif
 
-#define RS_tx(c)          \
-    while (1) {           \
-        if (!RS_Xbusy) {  \
-            SBUF0 = c;    \
-            RS_Xbusy = 1; \
-            break;        \
-        }                 \
+#define RS_tx(c)                                                    \
+    timer_ms10x_lst = timer_ms10x;                                  \
+    while (1) {                                                     \
+        if ((!RS_Xbusy) || (timer_ms10x - timer_ms10x_lst > 100)) { \
+            SBUF0 = c;                                              \
+            RS_Xbusy = 1;                                           \
+            break;                                                  \
+        }                                                           \
     }
 #define RS_tx1(c)          \
     while (1) {            \

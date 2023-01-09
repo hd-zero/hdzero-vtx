@@ -14,6 +14,7 @@ BIT_TYPE timer_8hz = 0;
 BIT_TYPE timer_16hz = 0;
 BIT_TYPE RS0_ERR = 0;
 IDATA_SEG volatile uint16_t timer_ms10x = 0;
+IDATA_SEG volatile uint16_t timer_ms10x_lst = 0;
 uint16_t seconds = 0;
 
 void CPU_init(void) {
