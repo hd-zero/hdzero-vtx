@@ -245,11 +245,11 @@ uint8_t msp_read_one_frame() {
 
         case MSP_CMD:
             crc ^= rx;
-            if (rx == MSP_CMD_DISPLAYPORT_BYTE) {
+            if (rx == MSP_CMD_DISPLAYPORT) {
                 cur_cmd = CUR_DISPLAYPORT;
-            } else if (rx == MSP_CMD_RC_BYTE) {
+            } else if (rx == MSP_CMD_RC) {
                 cur_cmd = CUR_RC;
-            } else if (rx == MSP_CMD_STATUS_BYTE) {
+            } else if (rx == MSP_CMD_STATUS) {
                 cur_cmd = CUR_STATUS;
             } else if (rx == MSP_CMD_FC_VARIANT) {
                 cur_cmd = CUR_FC_VARIANT;
@@ -698,8 +698,8 @@ void msp_cmd_tx() // send 3 commands to FC
     uint8_t i, j;
     uint8_t msp_cmd[4] = {
         MSP_CMD_FC_VARIANT,
-        MSP_CMD_STATUS_BYTE,
-        MSP_CMD_RC_BYTE,
+        MSP_CMD_STATUS,
+        MSP_CMD_RC,
         MSP_CMD_VTX_CONFIG,
     };
 
@@ -740,8 +740,8 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     msp_send_header(0);
     CMS_tx(0x0f);
     crc ^= 0x0f; // len
-    CMS_tx(0x59);
-    crc ^= 0x59; // cmd
+    CMS_tx(MSP_CMD_SET_VTX_CONFIG);
+    crc ^= MSP_CMD_SET_VTX_CONFIG; // cmd
     CMS_tx(0x00);
     crc ^= 0x00; // freq_h
     CMS_tx(0x00);
@@ -862,13 +862,13 @@ void msp_set_osd_canvas(void) {
     if (msp_cmp_fc_variant("BTFL")) {
         msp_send_header(0);
         CMS_tx(0x02);
-        crc ^= 0x02;
+        crc ^= 0x02; // len
         CMS_tx(MSP_CMD_SET_OSD_CANVAS);
         crc ^= MSP_CMD_SET_OSD_CANVAS;
-        CMS_tx(50);
-        crc ^= 50;
-        CMS_tx(18);
-        crc ^= 18;
+        CMS_tx(HD_HMAX0);
+        crc ^= HD_HMAX0;
+        CMS_tx(HD_VMAX0);
+        crc ^= HD_VMAX0;
         CMS_tx(crc);
         // debugf("\r\nmsp_set_osd_canvas");
     }
