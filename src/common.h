@@ -88,19 +88,25 @@
 #define IS_RX 0
 
 // time
-#define TIMER0_1S      9588
-#define TIMER0_1SD2    (TIMER0_1S >> 1)
-#define TIMER0_1SD16   (TIMER0_1S >> 4)
-#define I2C_BIT_DLY    40
-#define MS_DLY         (237)
-#define MS_DLY_SDCC    (2746)
-#define PRESS_L        3
-#define PRESS_LL       8
-#define PWR_LMT_SEC    10
+#define TIMER0_1S    9588
+#define TIMER0_1SD2  (TIMER0_1S >> 1)
+#define TIMER0_1SD16 (TIMER0_1S >> 4)
+#define I2C_BIT_DLY  40
+#define MS_DLY       (237)
+#define MS_DLY_SDCC  (2746)
+#define PRESS_L      3
+#define PRESS_LL     8
+#define PWR_LMT_SEC  10
+
+#ifdef USE_SMARTAUDIO
 #define WAIT_SA_CONFIG 9
-#define CFG_TO_SEC     10
-#define CAM_DET_DLY    1000
-#define DISPF_TIME     3 // 3/8s
+#else
+#define WAIT_SA_CONFIG 0
+#endif
+
+#define CFG_TO_SEC  10
+#define CAM_DET_DLY 1000
+#define DISPF_TIME  3 // 3/8s
 
 // gpio
 #define SCL     P0_0

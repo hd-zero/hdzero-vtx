@@ -944,9 +944,9 @@ void Flicker_LED(uint8_t n) {
     uint8_t i;
     for (i = 0; i < n; i++) {
         LED_BLUE_OFF;
-        WAIT(120);
+        WAIT(50);
         LED_BLUE_ON;
-        WAIT(120);
+        WAIT(50);
     }
     led_status = ON;
 }

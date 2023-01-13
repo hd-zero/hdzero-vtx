@@ -1081,7 +1081,7 @@ uint8_t parse_displayport(uint8_t len) {
                 _outchar(' ');
 #endif
                 if (!(fc_lock & FC_OSD_LOCK)) {
-                    Flicker_LED(8);
+                    Flicker_LED(3);
                     fc_lock |= FC_OSD_LOCK;
                 }
                 return 1;
