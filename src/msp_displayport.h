@@ -16,17 +16,18 @@
 
 #define TXBUF_SIZE 74
 
-#define MSP_HEADER_START_BYTE   0x24
-#define MSP_HEADER_M_BYTE       0x4D
-#define MSP_HEADER_M2_BYTE      0x58
-#define MSP_PACKAGE_REPLAY_BYTE 0x3E
+#define MSP_HEADER_START_BYTE   0x24 // $
+#define MSP_HEADER_M_BYTE       0x4D // M
+#define MSP_HEADER_M2_BYTE      0x58 // X
+#define MSP_PACKAGE_REPLAY_BYTE 0x3E // >
 
-#define MSP_CMD_FC_VARIANT       0x02
-#define MSP_CMD_VTX_CONFIG       0x58
-#define MSP_CMD_STATUS_BYTE      0x65
-#define MSP_CMD_RC_BYTE          0x69
-#define MSP_CMD_DISPLAYPORT_BYTE 0xB6
-#define MSP_CMD_SET_OSD_CANVAS   0xBC
+#define MSP_CMD_FC_VARIANT_BYTE     0x02 // 2   //out message
+#define MSP_CMD_VTX_CONFIG_BYTE     0x58 // 88  //out message
+#define MSP_CMD_SET_VTX_CONFIG_BYTE 0x59 // 89  // in message
+#define MSP_CMD_STATUS_BYTE         0x65 // 101 //out message
+#define MSP_CMD_RC_BYTE             0x69 // 105 //out message
+#define MSP_CMD_DISPLAYPORT_BYTE    0xB6 // 182 // in message
+#define MSP_CMD_SET_OSD_CANVAS_BYTE 0xBC // 188 // in message
 
 #define DP_HEADER0 0x56
 #define DP_HEADER1 0x80
