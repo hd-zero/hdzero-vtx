@@ -44,6 +44,17 @@ uint8_t RS_rx(void) {
     return ret;
 }
 
+void RS_tx(uint8_t c) {
+    timer_ms10x_lst = timer_ms10x;
+    while (1) {
+        if ((!RS_Xbusy) || (timer_ms10x - timer_ms10x_lst > 100)) {
+            SBUF0 = c;
+            RS_Xbusy = 1;
+            break;
+        }
+    }
+}
+
 #ifdef EXTEND_BUF
 uint16_t RS_rx_len(void)
 #else
@@ -72,6 +83,17 @@ uint8_t RS_rx1(void) {
         RS_out1 = 0;
 
     return ret;
+}
+
+void RS_tx1(uint8_t c) {
+    timer_ms10x_lst = timer_ms10x;
+    while (1) {
+        if ((!RS_Xbusy1) || (timer_ms10x - timer_ms10x_lst > 100)) {
+            SBUF1 = c;
+            RS_Xbusy1 = 1;
+            break;
+        }
+    }
 }
 
 /*

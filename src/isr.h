@@ -11,6 +11,7 @@ extern BIT_TYPE pwr_tflg;
 extern BIT_TYPE cfg_tflg;
 extern uint16_t seconds;
 extern IDATA_SEG volatile uint16_t timer_ms10x;
+extern IDATA_SEG volatile uint16_t timer_ms10x_lst;
 extern BIT_TYPE timer_2hz;
 extern BIT_TYPE timer_4hz;
 extern BIT_TYPE timer_8hz;

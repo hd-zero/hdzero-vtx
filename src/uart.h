@@ -2,6 +2,7 @@
 #define __UART_H_
 
 #include "common.h"
+#include "isr.h"
 
 #ifdef EXTEND_BUF
 #define BUF_MAX 2048 // 30
@@ -14,34 +15,15 @@
 #define BUF1_MAX 255 // 30
 #endif
 
-#define RS_tx(c)          \
-    while (1) {           \
-        if (!RS_Xbusy) {  \
-            SBUF0 = c;    \
-            RS_Xbusy = 1; \
-            break;        \
-        }                 \
-    }
-#define RS_tx1(c)          \
-    while (1) {            \
-        if (!RS_Xbusy1) {  \
-            SBUF1 = c;     \
-            RS_Xbusy1 = 1; \
-            break;         \
-        }                  \
-    }
-
-uint8_t RS_ready(void);
-
+void RS_tx(uint8_t c);
 uint8_t RS_rx(void);
+uint8_t RS_ready(void);
 
 #ifdef EXTEND_BUF
 uint16_t RS_rx_len(void);
 #else
 uint8_t RS_rx_len(void);
 #endif
-
-uint8_t RS_ready1(void);
 
 /*
 #ifdef EXTEND_BUF1
@@ -51,7 +33,9 @@ uint8_t RS_rx1_len(void);
 #endif
 */
 
+void RS_tx1(uint8_t c);
 uint8_t RS_rx1(void);
+uint8_t RS_ready1(void);
 
 extern volatile BIT_TYPE RS_Xbusy;
 extern XDATA_SEG uint8_t RS_buf[BUF_MAX];
