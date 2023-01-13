@@ -102,6 +102,7 @@
 #define WAIT_SA_LOCK   4
 #define WAIT_SA_CONFIG 9
 #else
+#define WAIT_SA_LOCK   0
 #define WAIT_SA_CONFIG 0
 #endif
 
