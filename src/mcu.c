@@ -184,9 +184,14 @@ void RF_Delay_Init() {
     }
 
     // init_rf
-    if (seconds < WAIT_SA_CONFIG)
-        return;
-    else if (rf_delay_init_done)
+    if (seconds < WAIT_SA_CONFIG) { // wait for SA config vtx
+        if (seconds < WAIT_SA_LOCK)
+            return;
+        else if (SA_lock)
+            return;
+        else
+            seconds = WAIT_SA_CONFIG;
+    } else if (rf_delay_init_done)
         return;
     else if (dm6300_init_done)
         return;

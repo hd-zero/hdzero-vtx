@@ -99,6 +99,7 @@
 #define PWR_LMT_SEC  10
 
 #ifdef USE_SMARTAUDIO
+#define WAIT_SA_LOCK   4
 #define WAIT_SA_CONFIG 9
 #else
 #define WAIT_SA_CONFIG 0
