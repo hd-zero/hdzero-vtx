@@ -389,7 +389,9 @@ void runcam_shutter(uint8_t val) {
         dat = (uint32_t)(val)*25;
 
     RUNCAM_Write(camera_device, 0x00006c, dat);
+    WAIT(50);
     RUNCAM_Write(camera_device, 0x000044, 0x80009629);
+    WAIT(50);
 #ifdef _DEBUG_RUNCAM
     debugf("\r\nRUNCAM shutter:%02x", (uint16_t)val);
 #endif
