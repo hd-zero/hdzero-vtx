@@ -27,7 +27,9 @@ void camera_type_detect(void) {
     camera_type = CAMERA_TYPE_UNKNOW;
 
     runcam_type_detect();
-    if (camera_type) {
+    if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 ||
+        camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 ||
+        camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
         camera_mfr = CAMERA_MFR_RUNCAM;
 #ifdef _DEBUG_CAMERA
         debugf("\r\ncamera mfr : RUNCAM");
@@ -209,7 +211,9 @@ void camera_setting_read(void) {
     uint8_t camera_type_last;
     uint8_t i;
 
-    if (camera_type == CAMERA_TYPE_UNKNOW)
+    if (camera_type == CAMERA_TYPE_UNKNOW ||
+        camera_type == CAMERA_TYPE_OUTDATED ||
+        camera_type == CAMERA_TYPE_RESERVED)
         return;
 
     camera_type_last = camera_reg_read_eep(EEP_ADDR_CAM_TYPE);
@@ -430,7 +434,8 @@ void camera_menu_init(void) {
 
     memset(osd_buf, 0x20, sizeof(osd_buf));
     disp_mode = DISPLAY_CMS;
-    if (camera_type == 0)
+    if (camera_type == CAMERA_TYPE_UNKNOW ||
+        camera_type == CAMERA_TYPE_OUTDATED)
         camera_button_enter;
     else {
         for (i = 0; i <= 15; i++) {
@@ -592,7 +597,8 @@ uint8_t camera_status_update(uint8_t op) {
     if (op >= BTN_INVALID)
         return ret;
 
-    if (camera_type == 0) {
+    if (camera_type == CAMERA_TYPE_UNKNOW ||
+        camera_type == CAMERA_TYPE_OUTDATED) {
         camera_button_op(op);
         return ret;
     }
