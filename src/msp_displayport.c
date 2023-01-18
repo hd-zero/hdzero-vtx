@@ -380,27 +380,8 @@ void clear_screen() {
 }
 
 void write_string(uint8_t rx, uint8_t row, uint8_t col, uint8_t page_extend) {
-    uint8_t hmax = SD_HMAX;
-    uint8_t vmax = SD_VMAX;
     if (disp_mode == DISPLAY_OSD) {
-        switch (resolution) {
-        case HD_5018:
-            hmax = HD_HMAX0;
-            vmax = HD_VMAX0;
-            break;
-        case HD_5320:
-            hmax = HD_HMAX1;
-            vmax = HD_VMAX1;
-            break;
-        case SD_3016:
-        case HD_3016:
-            hmax = SD_HMAX;
-            vmax = SD_VMAX;
-            break;
-        default:;
-        }
-
-        if (row < vmax && col < hmax) {
+        if (row < HD_VMAX1 && col < HD_HMAX1) {
             osd_buf[row][col] = rx;
             if (page_extend)
                 page_extend_buf[row][col >> 3] |= (1 << (col & 0x07));
