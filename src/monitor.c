@@ -230,7 +230,7 @@ void Monitor(void) {
     else if (!stricmp(argv[0], "rf4"))
         DM6300_init4();
     else if (!stricmp(argv[0], "rf5"))
-        DM6300_init5();
+        DM6300_init5(0);
     else if (!stricmp(argv[0], "rf6"))
         DM6300_init6(0);
     else if (!stricmp(argv[0], "rf7"))

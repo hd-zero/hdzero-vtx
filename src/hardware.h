@@ -13,7 +13,7 @@ typedef enum {
 
 typedef enum {
     BW_27M,
-    BW_20M
+    BW_17M
 } BWType_e;
 
 #define PWR_DEFAULT 2
@@ -81,9 +81,13 @@ void Set_540P90(uint8_t page);
 void Set_540P90_crop(uint8_t page);
 void Set_960x720P60(uint8_t page);
 void Set_720P30(uint8_t page, uint8_t is_43);
+void Set_540P60(uint8_t page);
+void Set_1080P30(uint8_t page);
 
 void Flicker_LED(uint8_t n);
 void LED_Task();
+
+uint8_t RF_BW_check(void);
 
 #ifdef HDZERO_FREESTYLE
 extern uint8_t powerLock;
@@ -96,6 +100,7 @@ extern uint8_t OFFSET_25MW;
 extern uint8_t KEYBOARD_ON;
 extern uint8_t EE_VALID;
 extern uint8_t RF_BW;
+extern uint8_t RF_BW_last;
 
 extern uint8_t pwr_offset;
 extern uint8_t heat_protect;

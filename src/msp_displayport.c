@@ -409,11 +409,6 @@ void fc_init() {
     clear_screen();
     init_tx_buf();
     // vtx_menu_init();
-
-    if (resolution == HD_5018)
-        osd_menu_offset = 8;
-    else
-        osd_menu_offset = 0;
 }
 
 uint8_t get_tx_data_5680() // prepare data to VRX
@@ -603,10 +598,10 @@ void DP_SEND_27M(uint8_t c) {
 
     DP_tx(c);
 }
-void DP_SEND_20M(uint8_t c) {
+void DP_SEND_17M(uint8_t c) {
     // found by trial and error, are on the conservative side
     // could use refinement down the line
-    uint16_t __ticks = 450;
+    uint16_t __ticks = 800;
     do {
         __ticks--;
     } while (__ticks);
@@ -637,8 +632,8 @@ void DP_tx_task() {
     for (i = 0; i < 32; i++) {
         if (dptx_wptr != dptx_rptr) {
 #if (1)
-            if (RF_BW == BW_20M) {
-                DP_SEND_20M(dptxbuf[dptx_rptr++]);
+            if (RF_BW == BW_17M) {
+                DP_SEND_17M(dptxbuf[dptx_rptr++]);
             } else {
                 DP_SEND_27M(dptxbuf[dptx_rptr++]);
             }
@@ -858,6 +853,7 @@ void msp_set_osd_canvas(void) {
 void parse_set_osd_canvas(void) {
     resolution = HD_5018;
     // debugf("\r\nparse_set_osd_canvas");
+    osd_menu_offset = 8;
 }
 void parseMspVtx_V2(uint16_t cmd_u16) {
     uint8_t nxt_ch = 0;
@@ -1069,6 +1065,11 @@ uint8_t parse_displayport(uint8_t len) {
             } else if (msp_rx_buf[0] == SUBCMD_CONFIG) {
                 fontType = msp_rx_buf[1];
                 resolution = msp_rx_buf[2];
+
+                if (resolution == HD_5018)
+                    osd_menu_offset = 8;
+                else
+                    osd_menu_offset = 0;
 
                 if (resolution != resolution_last)
                     fc_init();
