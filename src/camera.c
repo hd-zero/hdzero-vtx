@@ -72,8 +72,8 @@ void camera_mode_detect(uint8_t init) {
             Set_540P90_crop(0);
             video_format = VDO_FMT_540P90_CROP;
         } else if (camera_setting_reg_set[11] == 2) {
-            ; // Set_540P90(0);
-            ; // video_format = VDO_FMT_540P60;
+            Set_540P60(0);
+            video_format = VDO_FMT_540P60;
         } else if (camera_setting_reg_set[11] == 3) {
             Set_960x720P60(0);
             video_format = VDO_FMT_960x720P60;
