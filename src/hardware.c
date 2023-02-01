@@ -1471,6 +1471,7 @@ uint8_t RF_BW_check(void) {
         RF_BW = BW_27M;
 
     if (RF_BW != RF_BW_last) {
+        RF_BW_last = RF_BW;
         ret = 1;
     }
 #ifdef _DEBUG_MODE
