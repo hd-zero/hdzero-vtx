@@ -867,6 +867,13 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
     static uint8_t last_pwr = 255;
     static uint8_t last_lp = 255;
     static uint8_t last_pit = 255;
+    uint8_t boot_0mW = 0;
+
+    if (boot_0mW == 0) {
+        msp_set_vtx_config(POWER_MAX + 1, 0);
+        boot_0mW = 1;
+        return;
+    }
 
     if (cmd_u16 != MSP_CMD_VTX_CONFIG_BYTE)
         return;
