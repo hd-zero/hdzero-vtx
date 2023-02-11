@@ -41,6 +41,7 @@ uint8_t RF_FREQ = 0;
 uint8_t LP_MODE = 0;
 uint8_t PIT_MODE = 0;
 uint8_t OFFSET_25MW = 0; // 0~10 -> 0~10    11~20 -> -1~-10
+uint8_t BOOT_0MW = 0;
 
 BWType_e RF_BW = BW_27M;
 
@@ -245,6 +246,7 @@ void Setting_Save() {
         rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
         rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
         rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
+        rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BOOT_0MW, BOOT_0MW);
 #ifdef _DEBUG_MODE
         if (!rcv)
             debugf("\r\nEEPROM write success");
@@ -263,6 +265,7 @@ void CFG_Back() {
     LP_MODE = (LP_MODE > 2) ? 0 : LP_MODE;
     PIT_MODE = (PIT_MODE > PIT_0MW) ? PIT_OFF : PIT_MODE;
     OFFSET_25MW = (OFFSET_25MW > 20) ? 0 : OFFSET_25MW;
+    BOOT_0MW = (BOOT_0MW > 1) ? 0 : BOOT_0MW;
 }
 
 void GetVtxParameter() {
@@ -339,14 +342,16 @@ void GetVtxParameter() {
         LP_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_LPMODE);
         PIT_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_PITMODE);
         OFFSET_25MW = I2C_Read8(ADDR_EEPROM, EEP_ADDR_25MW);
+        BOOT_0MW = I2C_Read8(ADDR_EEPROM, EEP_ADDR_BOOT_0MW);
 
-        if (RF_FREQ == 0xff || RF_POWER == 0xff || LP_MODE == 0xff || PIT_MODE == 0xff || OFFSET_25MW == 0xff) {
+        if (RF_FREQ == 0xff || RF_POWER == 0xff || LP_MODE == 0xff || PIT_MODE == 0xff || OFFSET_25MW == 0xff || BOOT_0MW == 0xff) {
             CFG_Back();
             I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
             I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
             I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
             I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
             I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
+            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BOOT_0MW, BOOT_0MW);
 #ifdef _DEBUG_MODE
             debugf("\r\nEEPROM is NOT initialized. USE CAM for VTX setting.");
 #endif
