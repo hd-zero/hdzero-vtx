@@ -1072,8 +1072,25 @@ void Imp_RF_Param() {
 }
 
 void Button1_SP() {
+#ifdef _DEBUG_MODE
     debugf("\r\nButton1_SP.");
+#endif
+
     cfg_to_cnt = 0;
+
+    // exit 0mW
+    if (vtx_pit_save == PIT_0MW) {
+#ifdef _DEBUG_MODE
+        debugf("\n\rDM6300 init");
+#endif
+        Init_6300RF(RF_FREQ, RF_POWER);
+        DM6300_AUXADC_Calib();
+        cur_pwr = RF_POWER;
+        // reset pitmode
+        vtx_pit_save = PIT_OFF;
+        PIT_MODE = PIT_OFF;
+    }
+
     switch (cfg_step) {
     case 0:
         cfg_step = 1;
@@ -1081,33 +1098,8 @@ void Button1_SP() {
             dispF_cnt = 0;
         CFG_Back();
 
-        // exit 0mW
-        if (vtx_pit_save == PIT_0MW) {
-#ifdef _DEBUG_MODE
-            debugf("\n\rcfg_step(0),DM6300 init");
-#endif
-            Init_6300RF(RF_FREQ, RF_POWER);
-            DM6300_AUXADC_Calib();
-            cur_pwr = RF_POWER;
-        }
-        // reset pitmode
-        vtx_pit_save = PIT_OFF;
-        PIT_MODE = PIT_OFF;
         break;
     case 1:
-        // exit 0mW
-        if (vtx_pit_save == PIT_0MW) {
-#ifdef _DEBUG_MODE
-            debugf("\n\rcfg_step(1),DM6300 init");
-#endif
-            Init_6300RF(RF_FREQ, RF_POWER);
-            DM6300_AUXADC_Calib();
-            cur_pwr = RF_POWER;
-        }
-        // reset pitmode
-        vtx_pit_save = PIT_OFF;
-        PIT_MODE = PIT_OFF;
-
         if (RF_FREQ >= FREQ_MAX_EXT)
             RF_FREQ = 0;
         else
@@ -1128,19 +1120,6 @@ void Button1_SP() {
         }
         break;
     case 2:
-        if (vtx_pit_save == PIT_0MW) {
-// exit 0mW
-#ifdef _DEBUG_MODE
-            debugf("\n\rcfg_step(2),DM6300 init");
-#endif
-            Init_6300RF(RF_FREQ, RF_POWER);
-            DM6300_AUXADC_Calib();
-            cur_pwr = RF_POWER;
-        }
-        // reset pitmode
-        vtx_pit_save = PIT_OFF;
-        PIT_MODE = PIT_OFF;
-
         if (RF_POWER >= POWER_MAX)
             RF_POWER = 0;
         else
@@ -1171,19 +1150,6 @@ void Button1_SP() {
         }
         break;
     case 3:
-        if (vtx_pit_save == PIT_0MW) {
-// exit 0mW
-#ifdef _DEBUG_MODE
-            debugf("\n\rcfg_step(3),DM6300 init");
-#endif
-            Init_6300RF(RF_FREQ, RF_POWER);
-            DM6300_AUXADC_Calib();
-            cur_pwr = RF_POWER;
-        }
-        // reset pitmode
-        vtx_pit_save = PIT_OFF;
-        PIT_MODE = PIT_OFF;
-
         LP_MODE++;
         if (LP_MODE > 2)
             LP_MODE = 0;
