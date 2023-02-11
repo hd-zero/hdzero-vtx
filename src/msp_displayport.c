@@ -867,13 +867,7 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
     static uint8_t last_pwr = 255;
     static uint8_t last_lp = 255;
     static uint8_t last_pit = 255;
-    uint8_t boot_0mW = 0;
-
-    if (boot_0mW == 0) {
-        msp_set_vtx_config(POWER_MAX + 1, 0);
-        boot_0mW = 1;
-        return;
-    }
+    static uint8_t boot_0mW = 0;
 
     if (cmd_u16 != MSP_CMD_VTX_CONFIG_BYTE)
         return;
@@ -888,6 +882,7 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
     fc_lp_rx = msp_rx_buf[8];
 
     pwr_lmt_done = 1;
+    mspVtxLock |= 1;
 
 #ifdef _DEBUG_MODE
     debugf("\r\nparseMspVtx_V2");
@@ -906,7 +901,15 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
     if (SA_lock)
         return;
 
-    mspVtxLock |= 1;
+    if (boot_0mW == 0) {
+        msp_set_vtx_config(POWER_MAX + 1, 0);
+        dm6300_init_done = 0;
+        cur_pwr = POWER_MAX + 2;
+        vtx_pit_save = PIT_0MW;
+        vtx_pit = PIT_0MW;
+        boot_0mW = 1;
+        return;
+    }
 
     // update LP_MODE
     if (fc_lp_rx != last_lp) {
@@ -963,6 +966,7 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
                 dm6300_init_done = 0;
                 cur_pwr = POWER_MAX + 2;
                 vtx_pit_save = PIT_0MW;
+                vtx_pit = PIT_0MW;
                 temp_err = 1;
             } else {
                 DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
@@ -1783,13 +1787,17 @@ void InitVtxTable() {
     uint8_t i, j;
     uint8_t crc;
     uint8_t const *power_table[5];
+    uint8_t boot_0mW = 1;
 
 #ifdef _DEBUG_MODE
     debugf("\r\nInitVtxTable");
 #endif
 
     // set band num, channel num and power level number
-    msp_set_vtx_config(fc_pwr_rx, 0);
+    if (boot_0mW)
+        msp_set_vtx_config(POWER_MAX + 1, 0);
+    else
+        msp_set_vtx_config(fc_pwr_rx, 0);
 
     // set band/channel
     for (i = 0; i < 6; i++) {

@@ -1029,8 +1029,9 @@ void video_detect(void) {
                 cnt = 0;
             else
                 cnt++;
-
+#ifdef _DEBUG_CAMERA
             debugf("\r\nvideo_detect:%d %d", val, (uint16_t)cnt);
+#endif
             if (cnt == 5)
                 cameraLost = 1;
             else {
