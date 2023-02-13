@@ -903,16 +903,6 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
     if (SA_lock)
         return;
 
-    if ((boot_0mw_done == 0) && BOOT_0MW) {
-        msp_set_vtx_config(POWER_MAX + 1, 0);
-        dm6300_init_done = 0;
-        cur_pwr = POWER_MAX + 2;
-        vtx_pit_save = PIT_0MW;
-        vtx_pit = PIT_0MW;
-        boot_0mw_done = 1;
-        return;
-    }
-
     // update LP_MODE
     if (fc_lp_rx != last_lp) {
         last_lp = fc_lp_rx;
@@ -936,6 +926,16 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
         if (dm6300_init_done)
             DM6300_SetChannel(RF_FREQ);
         needSaveEEP = 1;
+    }
+
+    if ((boot_0mw_done == 0) && BOOT_0MW) {
+        msp_set_vtx_config(POWER_MAX + 1, 0);
+        dm6300_init_done = 0;
+        cur_pwr = POWER_MAX + 2;
+        vtx_pit_save = PIT_0MW;
+        vtx_pit = PIT_0MW;
+        boot_0mw_done = 1;
+        return;
     }
 
     // update pit
