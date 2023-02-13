@@ -33,6 +33,8 @@ uint8_t RS_rx1_len(void);
 #endif
 */
 
+void uart_set_baudrate(uint8_t baudIndex);
+
 void RS_tx1(uint8_t c);
 uint8_t RS_rx1(void);
 uint8_t RS_ready1(void);

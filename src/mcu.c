@@ -135,6 +135,7 @@ void main(void) {
             PwrLMT();     // RF power ctrl
             msp_task();   // msp displayport process
             Update_EEP_LifeTime();
+            uart_baudrate_detect();
         }
 
         RF_Delay_Init();
