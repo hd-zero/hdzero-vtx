@@ -386,7 +386,7 @@ void runcam_shutter(uint8_t val) {
     if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1) {
         RUNCAM_Write(camera_device, 0x00006c, 0x000004a6);
         WAIT(50);
-        RUNCAM_Write(camera_device, 0x000044, 0x00019229);
+        RUNCAM_Write(camera_device, 0x000044, 0x80019229);
         WAIT(50);
         return;
     } else {
@@ -400,7 +400,7 @@ void runcam_shutter(uint8_t val) {
 
         RUNCAM_Write(camera_device, 0x00006c, dat);
         WAIT(50);
-        RUNCAM_Write(camera_device, 0x000044, 0x00009629);
+        RUNCAM_Write(camera_device, 0x000044, 0x80009629);
         WAIT(50);
     }
 }
