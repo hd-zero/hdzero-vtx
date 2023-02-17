@@ -61,7 +61,7 @@ const uint8_t runcam_micro_v2_attribute[CAMERA_SETTING_NUM][4] = {
     // led mode
     {1, 0x00, 0x01, 0x00},
     // video fmt
-    {1, 0x00, 0x02, 0x00},
+    {1, 0x00, 0x03, 0x00},
 
     {0, 0x00, 0x00, 0x00},
     {0, 0x00, 0x00, 0x00},
@@ -342,6 +342,7 @@ void runcam_video_format(uint8_t val) {
         0: 1280x720@60 4:3
         1: 1280x720@60 16:9 crop
         2: 1280x720@60 16:9 full
+        3: 1920x1080@30
 
     RUNCAM_NANO_90:
         0: 720x540@90 4:3
@@ -358,8 +359,16 @@ void runcam_video_format(uint8_t val) {
             RUNCAM_Write(camera_device, 0x000008, 0x0008910B);
         else if (val == 1)
             RUNCAM_Write(camera_device, 0x000008, 0x00089102);
-        else // if (val == 2)
+        else if (val == 2)
             RUNCAM_Write(camera_device, 0x000008, 0x00089110);
+        else if (val == 3) // 1080p30
+            RUNCAM_Write(camera_device, 0x000008, 0x81089106);
+
+        if (val == 3) // 1080p30
+            RUNCAM_Write(camera_device, 0x000034, 0x00014441);
+        else
+            RUNCAM_Write(camera_device, 0x000034, 0x00012941);
+
     } else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
         if (val == 0)
             RUNCAM_Write(camera_device, 0x000008, 0x8008811d);

@@ -81,6 +81,8 @@ void Set_540P90(uint8_t page);
 void Set_540P90_crop(uint8_t page);
 void Set_960x720P60(uint8_t page);
 void Set_720P30(uint8_t page, uint8_t is_43);
+void Set_540P60(uint8_t page);
+void Set_1080P30(uint8_t page);
 
 void Flicker_LED(uint8_t n);
 void LED_Task();

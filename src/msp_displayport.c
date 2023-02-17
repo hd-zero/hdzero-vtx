@@ -445,6 +445,8 @@ uint8_t get_tx_data_5680() // prepare data to VRX
         tx_buf[4] = 0x33;
     else if (video_format == VDO_FMT_960x720P60)
         tx_buf[4] = 0x55;
+    else if (video_format == VDO_FMT_1080P30)
+        tx_buf[4] = 0x77;
     else
         tx_buf[4] = 0x99;
 

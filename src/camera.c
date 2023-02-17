@@ -71,17 +71,27 @@ void camera_mode_detect() {
             Set_540P90_crop(0);
             video_format = VDO_FMT_540P90_CROP;
         } else if (camera_setting_reg_set[11] == 2) {
-            ; // Set_540P90(0);
-            ; // video_format = VDO_FMT_540P60;
+            Set_540P60(0);
+            video_format = VDO_FMT_540P60;
         } else if (camera_setting_reg_set[11] == 3) {
             Set_960x720P60(0);
             video_format = VDO_FMT_960x720P60;
         }
         I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
-    } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 || camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2) {
+    } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1) {
         Set_720P60(IS_RX);
         Init_TC3587(0);
         video_format = VDO_FMT_720P60;
+        I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
+    } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2) {
+        if (camera_setting_reg_set[11] == 3) {
+            Set_1080P30(IS_RX);
+            video_format = VDO_FMT_1080P30;
+        } else {
+            Set_720P60(IS_RX);
+            video_format = VDO_FMT_720P60;
+        }
+        Init_TC3587(0);
         I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
     } else {
         while (cycles) {
@@ -318,7 +328,7 @@ void camera_menu_draw_bracket(void) {
 void camera_menu_draw_value(void) {
     const char *wb_mode_str[] = {"   AUTO", " MANUAL"};
     const char *switch_str[] = {"    OFF", "     ON"};
-    const char *resolution_runcam_micro_v2[] = {"       4:3", "  16:9CROP", "  16:9FULL"};
+    const char *resolution_runcam_micro_v2[] = {"      4:3 ", " 16:9CROP ", " 16:9FULL ", "  1080@30 "};
     const char *resolution_runcam_nano_90[] = {"   540P@90", "540@90CROP", "   540P@60", "960X720@60"};
 
     uint8_t str[4];
@@ -680,9 +690,6 @@ uint8_t camera_status_update(uint8_t op) {
         camera_menu_item_toggle(op);
 
         if (op == BTN_RIGHT) {
-            // 540@60 do not work for now
-            if (camera_mfr == CAMERA_MFR_RUNCAM && camera_type == CAMERA_TYPE_RUNCAM_NANO_90 && camera_setting_reg_menu[11] == 2)
-                break;
             camera_profile_eep = camera_profile_menu;
             camera_profile_write();
             reset_isp_need |= camera_set(camera_setting_reg_menu, 1);

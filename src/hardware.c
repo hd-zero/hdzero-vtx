@@ -228,6 +228,49 @@ void Set_540P90_crop(uint8_t page) {
     WriteReg(page, 0x06, 0x01);
 }
 
+void Set_540P60(uint8_t page) {
+    WriteReg(page, 0x21, 0x32);
+
+    WriteReg(page, 0x40, 0xD0);
+    WriteReg(page, 0x41, 0x22);
+    WriteReg(page, 0x42, 0x18);
+
+    // WriteReg(page, 0x43, 0xD0); //pat
+    // WriteReg(page, 0x44, 0x47);
+
+    WriteReg(page, 0x43, 0x50); // cam
+    WriteReg(page, 0x44, 0x46);
+
+    WriteReg(page, 0x45, 0x6B);
+    WriteReg(page, 0x49, 0x04);
+    WriteReg(page, 0x4c, 0x08);
+    WriteReg(page, 0x4f, 0x00);
+    WriteReg(page, 0x52, 0x04);
+    WriteReg(page, 0x53, 0x02);
+    WriteReg(page, 0x54, 0x3C);
+
+    WriteReg(page, 0x06, 0x01);
+}
+
+void Set_1080P30(uint8_t page) {
+    WriteReg(page, 0x21, 0x1B);
+
+    WriteReg(page, 0x40, 0x80);
+    WriteReg(page, 0x41, 0x47);
+    WriteReg(page, 0x42, 0x38);
+    WriteReg(page, 0x43, 0x98);
+    WriteReg(page, 0x44, 0x88);
+    WriteReg(page, 0x45, 0x65);
+    WriteReg(page, 0x49, 0x04);
+    WriteReg(page, 0x4c, 0x29);
+    WriteReg(page, 0x4f, 0x00);
+    WriteReg(page, 0x52, 0x04);
+    WriteReg(page, 0x53, 0x00);
+    WriteReg(page, 0x54, 0x5A);
+
+    WriteReg(page, 0x06, 0x01);
+}
+
 void Setting_Save() {
     uint8_t rcv = 0;
 
