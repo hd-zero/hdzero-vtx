@@ -42,7 +42,8 @@ uint8_t LP_MODE = 0;
 uint8_t PIT_MODE = 0;
 uint8_t OFFSET_25MW = 0; // 0~10 -> 0~10    11~20 -> -1~-10
 
-BWType_e RF_BW = BW_27M;
+uint8_t RF_BW = BW_27M;
+uint8_t RF_BW_last = BW_27M;
 
 uint8_t g_IS_ARMED = 0;
 uint8_t g_IS_PARALYZE = 0;
@@ -229,7 +230,7 @@ void Set_540P90_crop(uint8_t page) {
 }
 
 void Set_540P60(uint8_t page) {
-    WriteReg(page, 0x21, 0x32);
+    WriteReg(page, 0x21, 0x1F);
 
     WriteReg(page, 0x40, 0xD0);
     WriteReg(page, 0x41, 0x22);
@@ -1459,4 +1460,22 @@ void LED_Task() {
         LED_BLUE_ON;
         led_status = ON;
     }
+}
+
+uint8_t RF_BW_check(void) {
+    uint8_t ret = 0;
+
+    if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90 && camera_setting_reg_set[11] == 2)
+        RF_BW = BW_17M;
+    else
+        RF_BW = BW_27M;
+
+    if (RF_BW != RF_BW_last) {
+        RF_BW_last = RF_BW;
+        ret = 1;
+    }
+#ifdef _DEBUG_MODE
+    debugf("\r\ncamera_type:%x, video_mode:%x, RF_BW:%x, RF_BW_last:%x ret=%x", (uint16_t)camera_type, (uint16_t)camera_setting_reg_set[11], (uint16_t)RF_BW, (uint16_t)RF_BW_last, (uint16_t)ret);
+#endif
+    return ret;
 }
