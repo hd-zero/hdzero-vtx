@@ -377,24 +377,32 @@ void runcam_video_format(uint8_t val) {
 
 void runcam_shutter(uint8_t val) {
     uint32_t dat = 0;
-    camera_setting_reg_set[4] = val;
-    if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1)
-        dat = 0x4a6;
-    else if (val == 0) { // auto
-        if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2)
-            dat = 0x460;
-        else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90)
-            dat = 0x447;
-    } else // manual
-        dat = (uint32_t)(val)*25;
 
-    RUNCAM_Write(camera_device, 0x00006c, dat);
-    WAIT(50);
-    RUNCAM_Write(camera_device, 0x000044, 0x80009629);
-    WAIT(50);
 #ifdef _DEBUG_RUNCAM
     debugf("\r\nRUNCAM shutter:%02x", (uint16_t)val);
 #endif
+
+    camera_setting_reg_set[4] = val;
+    if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1) {
+        RUNCAM_Write(camera_device, 0x00006c, 0x000004a6);
+        WAIT(50);
+        RUNCAM_Write(camera_device, 0x000044, 0x80019229);
+        WAIT(50);
+        return;
+    } else {
+        if (val == 0) { // auto
+            if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2)
+                dat = 0x460;
+            else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90)
+                dat = 0x447;
+        } else // manual
+            dat = (uint32_t)(val)*25;
+
+        RUNCAM_Write(camera_device, 0x00006c, dat);
+        WAIT(50);
+        RUNCAM_Write(camera_device, 0x000044, 0x80009629);
+        WAIT(50);
+    }
 }
 
 uint8_t runcam_setting_update_need(uint8_t *setting_p, uint8_t start, uint8_t stop) {
