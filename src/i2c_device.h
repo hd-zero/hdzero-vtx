@@ -12,7 +12,7 @@
 #define ADDR_TEMPADC 0x48
 #define ADDR_RUNCAM  0x21
 
-void Set_MAX7315(uint32_t val);
+void set_segment(uint32_t val);
 #ifdef HDZERO_FREESTYLE
 void LED_TC3587_Init();
 #endif

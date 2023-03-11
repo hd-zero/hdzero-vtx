@@ -46,7 +46,7 @@
 uint8_t USE_MAX7315 = 0;
 uint8_t USE_PCA9554 = 0;
 
-void Set_MAX7315(uint32_t val) {
+void set_segment(uint32_t val) {
     uint16_t d;
 
     // Rev3
