@@ -48,17 +48,18 @@ uint8_t USE_PCA9554 = 0;
 
 void Set_MAX7315(uint32_t val) {
     uint16_t d;
-    if (USE_MAX7315) {
-        d = val;
-        d <<= 8;
-        d |= val;
-        I2C_Write16(ADDR_KEYBOARD, 0x02, d);
-        I2C_Write16(ADDR_KEYBOARD, 0x06, 0);
-    } else {
-        I2C_Write8(ADDR_KEYBOARD, 0x01, val);  // set blink phase 0
-        I2C_Write8(ADDR_KEYBOARD, 0x0F, 0x01); // use phase 0
-        I2C_Write8(ADDR_KEYBOARD, 0x03, 0x00); // set MAX7315 data pin output
-    }
+
+    // Rev3
+    d = val;
+    d <<= 8;
+    d |= val;
+    I2C_Write16_a8(ADDR_KEYBOARD, 0x02, d);
+    I2C_Write16_a8(ADDR_KEYBOARD, 0x06, 0);
+
+    // Rev1 & Rev2
+    I2C_Write8(ADDR_KEYBOARD, 0x01, val);  // set blink phase 0
+    I2C_Write8(ADDR_KEYBOARD, 0x0F, 0x01); // use phase 0
+    I2C_Write8(ADDR_KEYBOARD, 0x03, 0x00); // set MAX7315 data pin output
 }
 
 /////////////////////////////////////////////////////////////////

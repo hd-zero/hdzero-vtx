@@ -160,6 +160,36 @@ uint8_t I2C_Write16(uint8_t slave_addr, uint16_t reg_addr, uint16_t val) {
     return 0;
 }
 
+uint8_t I2C_Write16_a8(uint8_t slave_addr, uint8_t reg_addr, uint16_t val) {
+    uint8_t slave, value;
+    uint16_t rdat;
+
+    slave = slave_addr << 1;
+
+    I2C_start();
+
+    value = I2C_write_byte(slave);
+    if (value) {
+        I2C_stop();
+        return 1;
+    }
+
+    // reg addr
+    I2C_write_byte(reg_addr);
+
+    // data
+    value = val >> 8;
+    I2C_write_byte(value);
+
+    value = val;
+    I2C_write_byte(value);
+
+    I2C_stop();
+
+    rdat = I2C_Read16(slave_addr, reg_addr);
+    // debugf("\r\n0x%4x, 0x%4x", reg_addr, (uint16_t)val);
+    return 0;
+}
 uint8_t I2C_read_byte(uint8_t no_ack) {
     uint8_t i;
     uint8_t val = 0;
@@ -253,6 +283,33 @@ uint16_t I2C_Read16(uint8_t slave_addr, uint16_t reg_addr) {
     return value;
 }
 
+uint16_t I2C_Read16_a8(uint8_t slave_addr, uint8_t reg_addr) {
+    uint8_t slave = slave_addr << 1;
+    uint8_t val;
+    uint16_t value = 0;
+
+    I2C_start();
+
+    I2C_write_byte(slave);
+
+    // reg addr
+    I2C_write_byte(reg_addr);
+
+    I2C_start();
+
+    I2C_write_byte(slave | 0x01);
+
+    // data
+    val = I2C_read_byte(0);
+    value = (value << 8) | val;
+
+    val = I2C_read_byte(1);
+    value = (value << 8) | val;
+
+    I2C_stop();
+
+    return value;
+}
 /////////////////////////////////////////////////////////////////
 // runcam I2C
 uint8_t RUNCAM_Write(uint8_t cam_id, uint32_t addr, uint32_t val) {
