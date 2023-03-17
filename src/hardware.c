@@ -1027,11 +1027,11 @@ void video_detect(void) {
             val |= I2C_Read16(ADDR_TC3587, 0x006E);
             if (val)
                 cnt = 0;
-            else
+            else if (cnt != 0xff)
                 cnt++;
 
             debugf("\r\nvideo_detect:%d %d", val, (uint16_t)cnt);
-            if (cnt == 5)
+            if (cnt >= 5)
                 cameraLost = 1;
             else {
                 cameraLost = 0;
