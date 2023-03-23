@@ -42,6 +42,7 @@ uint8_t LP_MODE = 0;
 uint8_t PIT_MODE = 0;
 uint8_t OFFSET_25MW = 0; // 0~10 -> 0~10    11~20 -> -1~-10
 uint8_t BOOT_0MW = 0;
+uint8_t BAUDRATE = 0;
 
 BWType_e RF_BW = BW_27M;
 
@@ -230,25 +231,17 @@ void Set_540P90_crop(uint8_t page) {
 }
 
 void Setting_Save() {
-    uint8_t rcv = 0;
-
-#if (0)
-    if (camera_type == 0) {
-        CAM_WriteCFG(0, RF_FREQ, RF_POWER, MODE);
-        CAM_WriteCFG(0, RF_FREQ, RF_POWER, MODE);
-        CAM_WriteCFG(0, RF_FREQ, RF_POWER, MODE);
-    }
-#endif
+    uint8_t err = 0;
 
     if (EE_VALID) {
-        rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
-        rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
-        rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
-        rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
-        rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
-        rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BOOT_0MW, BOOT_0MW);
+        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
+        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
+        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
+        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
+        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
+        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
 #ifdef _DEBUG_MODE
-        if (!rcv)
+        if (!err)
             debugf("\r\nEEPROM write success");
 #endif
     }
@@ -266,6 +259,7 @@ void CFG_Back() {
     PIT_MODE = (PIT_MODE > PIT_0MW) ? PIT_OFF : PIT_MODE;
     OFFSET_25MW = (OFFSET_25MW > 20) ? 0 : OFFSET_25MW;
     BOOT_0MW = (BOOT_0MW > 1) ? 0 : BOOT_0MW;
+    BAUDRATE = (BAUDRATE > 1) ? 0 : BAUDRATE;
 }
 
 void GetVtxParameter() {
@@ -343,24 +337,12 @@ void GetVtxParameter() {
         PIT_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_PITMODE);
         OFFSET_25MW = I2C_Read8(ADDR_EEPROM, EEP_ADDR_25MW);
         BOOT_0MW = I2C_Read8(ADDR_EEPROM, EEP_ADDR_BOOT_0MW);
+        BAUDRATE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_BAUDRATE);
 
-        if (RF_FREQ == 0xff || RF_POWER == 0xff || LP_MODE == 0xff || PIT_MODE == 0xff || OFFSET_25MW == 0xff || BOOT_0MW == 0xff) {
-            CFG_Back();
-            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
-            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
-            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
-            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
-            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
-            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BOOT_0MW, BOOT_0MW);
+        CFG_Back();
 #ifdef _DEBUG_MODE
-            debugf("\r\nEEPROM is NOT initialized. USE CAM for VTX setting.");
+        debugf("\r\nUSE EEPROM for VTX setting:RF_FREQ=%d, RF_POWER=%d, LPMODE=%d PIT_MODE=%d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
 #endif
-        } else {
-            CFG_Back();
-#ifdef _DEBUG_MODE
-            debugf("\r\nUSE EEPROM for VTX setting:RF_FREQ=%d, RF_POWER=%d, LPMODE=%d PIT_MODE=%d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
-#endif
-        }
 
 // last_SA_lock
 #ifdef USE_SMARTAUDIO
@@ -472,6 +454,7 @@ void Init_HW() {
     GetVtxParameter();
     Get_EEP_LifeTime();
     camera_init();
+    uart_set_baudrate(BAUDRATE);
 //--------- dm6300 --------------------
 // move to RF_Delay_Init()
 #endif
@@ -1187,18 +1170,18 @@ void Button1_LP() {
     case 0:
         cfg_step = 2;
         CFG_Back();
-        Set_MAX7315(0xFF);
+        set_segment(0xFF);
         break;
     case 1:
         cfg_step = 2;
-        Set_MAX7315(0xFF);
+        set_segment(0xFF);
         break;
     case 2:
     case 3:
         cfg_step = 0;
-        Set_MAX7315(0x00);
+        set_segment(0x00);
         WAIT(100);
-        Set_MAX7315(0xFF);
+        set_segment(0xFF);
         break;
     }
     // debugf("\r\nShort Press: cfg_step=%d, FREQ_CFG=%d, POWER_CFG=%d", (uint16_t)cfg_step, (uint16_t)FREQ_CFG, (uint16_t)POWER_CFG);
@@ -1212,19 +1195,19 @@ void Button1_LLP() {
     if (cfg_step == 0) {
         cfg_step = 3;
         CFG_Back();
-        Set_MAX7315(0xFF);
+        set_segment(0xFF);
     }
 }
 
 void Flicker_MAX(uint8_t ch, uint8_t cnt) {
     uint8_t i;
     for (i = 0; i < cnt; i++) {
-        Set_MAX7315(0xFF);
+        set_segment(0xFF);
         WAIT(90);
-        Set_MAX7315(ch);
+        set_segment(ch);
         WAIT(120);
     }
-    Set_MAX7315(0xFF);
+    set_segment(0xFF);
 }
 
 void BlinkPhase() {
@@ -1232,12 +1215,12 @@ void BlinkPhase() {
 
     if (cfg_step == 1 && (dispF_cnt < DISPF_TIME)) { // display 'F' band
         bp = BPLED[14];
-        Set_MAX7315(bp);
+        set_segment(bp);
     } else {
         switch (cfg_step) {
 #if 0 // Clear the compiler warning
         case 0:
-            // Set_MAX7315(0xFF);
+            // set_segment(0xFF);
             break;
 #endif
 
@@ -1248,17 +1231,17 @@ void BlinkPhase() {
                 bp = BPLED[2];
             else if (RF_FREQ == 9) // F4
                 bp = BPLED[4];
-            Set_MAX7315(bp);
+            set_segment(bp);
             break;
 
         case 2:
             bp = BPLED[RF_POWER + 1] & 0x7F;
-            Set_MAX7315(bp);
+            set_segment(bp);
             break;
 
         case 3:
             bp = BPLED[LP_MODE + 1];
-            Set_MAX7315(bp);
+            set_segment(bp);
             break;
         }
     }
@@ -1273,7 +1256,7 @@ void CFGTimeout() {
                 CFG_Back();
                 cfg_step = 0;
 
-                Set_MAX7315(0xFF);
+                set_segment(0xFF);
 #ifdef _DEBUG_MODE
                 debugf("\r\nCFG Timeout.");
 #endif
@@ -1298,7 +1281,7 @@ void OnButton1() {
 
         KEYBOARD_ON = USE_MAX7315 | USE_PCA9554;
         if (KEYBOARD_ON && (last_keyon == 0))
-            Set_MAX7315(0xFF);
+            set_segment(0xFF);
         last_keyon = KEYBOARD_ON;
     }
 
@@ -1387,5 +1370,15 @@ void LED_Task() {
     } else if (led_status == OFF) {
         LED_BLUE_ON;
         led_status = ON;
+    }
+}
+
+void uart_baudrate_detect(void) {
+    if (seconds - msp_lst_rcv_sec >= 5) {
+        msp_lst_rcv_sec = seconds;
+        BAUDRATE++;
+        CFG_Back();
+        uart_set_baudrate(BAUDRATE);
+        Setting_Save();
     }
 }

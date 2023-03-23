@@ -14,6 +14,7 @@
 // #define HDZERO_RACE_V2
 // #define HDZERO_FREESTYLE
 
+/* define VTX ID start */
 #if defined HDZERO_WHOOP
 #define VTX_ID 0x54
 #elif defined HDZERO_WHOOP_LITE
@@ -27,6 +28,7 @@
 #else
 #define VTX_ID 0x00
 #endif
+/* define VTX ID end */
 
 #if defined HDZERO_WHOOP
 #define VTX_NAME "HDZ WHOOP"

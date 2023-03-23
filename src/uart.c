@@ -1,8 +1,9 @@
 #include "uart.h"
-
 #include "common.h"
+#include "hardware.h"
 #include "print.h"
 #include "smartaudio_protocol.h"
+#include <stdint.h>
 
 XDATA_SEG uint8_t RS_buf[BUF_MAX];
 #ifdef EXTEND_BUF
@@ -25,6 +26,20 @@ XDATA_SEG volatile uint8_t RS_in1 = 0;
 XDATA_SEG volatile uint8_t RS_out1 = 0;
 volatile BIT_TYPE RS_Xbusy1 = 0;
 #endif
+
+void uart_set_baudrate(uint8_t baudIndex) {
+    switch (baudIndex) {
+    case 0: // 115200
+        TH1 = 0xEC;
+        break;
+    case 1:
+        TH1 = 0xF6;
+        break;
+    }
+#ifdef _DEBUG_MODE
+    debugf("\r\nSet uart baudrate to %bx", baudIndex);
+#endif
+}
 
 uint8_t RS_ready(void) {
     if (RS_in == RS_out)

@@ -86,6 +86,7 @@ uint8_t crc8tab[256] = {
     0x84, 0x51, 0xFB, 0x2E, 0x7A, 0xAF, 0x05, 0xD0, 0xAD, 0x78, 0xD2, 0x07, 0x53, 0x86, 0x2C, 0xF9};
 
 uint8_t osd_menu_offset = 0;
+uint32_t msp_lst_rcv_sec = 0;
 
 uint8_t boot_0mw_done = 0;
 
@@ -281,6 +282,7 @@ uint8_t msp_read_one_frame() {
 
         case MSP_CRC1:
             if (rx == crc) {
+                msp_lst_rcv_sec = seconds;
                 if (cur_cmd == CUR_STATUS)
                     parse_status();
                 else if (cur_cmd == CUR_RC)

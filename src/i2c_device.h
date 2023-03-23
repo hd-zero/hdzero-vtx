@@ -3,8 +3,8 @@
 
 #include "common.h"
 
-#define ADDR_MAX7315 0x20
-#define ADDR_PCA9554 0x38
+#define ADDR_MAX7315 0x20 // Rev1 Rev3
+#define ADDR_PCA9554 0x38 // Rev2
 
 #define ADDR_TP2825  0x44
 #define ADDR_TC3587  0x0E
@@ -12,7 +12,7 @@
 #define ADDR_TEMPADC 0x48
 #define ADDR_RUNCAM  0x21
 
-void Set_MAX7315(uint32_t val);
+void set_segment(uint32_t val);
 #ifdef HDZERO_FREESTYLE
 void LED_TC3587_Init();
 #endif

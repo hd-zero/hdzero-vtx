@@ -168,4 +168,5 @@ extern uint8_t msp_tx_cnt;
 extern uint8_t resolution;
 extern uint8_t first_arm;
 extern uint8_t mspVtxLock;
+extern uint32_t msp_lst_rcv_sec;
 #endif /* __MSP_DISPLAYPORT_H_ */

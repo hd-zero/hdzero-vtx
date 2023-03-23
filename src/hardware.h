@@ -36,6 +36,7 @@ typedef enum {
 #define EEP_ADDR_SA_LOCK    0x88
 #define EEP_ADDR_POWER_LOCK 0x89
 #define EEP_ADDR_VTX_CONFIG 0x8A
+#define EEP_ADDR_BAUDRATE   0x8B
 #define EEP_ADDR_DCOC_EN    0xC0
 #define EEP_ADDR_DCOC_IH    0xC1
 #define EEP_ADDR_DCOC_IL    0xC2
@@ -86,6 +87,8 @@ void Set_720P30(uint8_t page, uint8_t is_43);
 void Flicker_LED(uint8_t n);
 void LED_Task();
 
+void uart_baudrate_detect(void);
+
 #ifdef HDZERO_FREESTYLE
 extern uint8_t powerLock;
 #endif
@@ -98,6 +101,7 @@ extern uint8_t BOOT_0MW;
 extern uint8_t KEYBOARD_ON;
 extern uint8_t EE_VALID;
 extern uint8_t RF_BW;
+extern uint8_t BAUDRATE;
 
 extern uint8_t pwr_offset;
 extern uint8_t heat_protect;
