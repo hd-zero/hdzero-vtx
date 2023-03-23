@@ -240,6 +240,7 @@ void Setting_Save() {
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
+        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BOOT_0MW, BOOT_0MW);
 #ifdef _DEBUG_MODE
         if (!err)
             debugf("\r\nEEPROM write success");
