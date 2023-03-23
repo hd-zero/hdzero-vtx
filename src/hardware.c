@@ -41,6 +41,7 @@ uint8_t RF_FREQ = 0;
 uint8_t LP_MODE = 0;
 uint8_t PIT_MODE = 0;
 uint8_t OFFSET_25MW = 0; // 0~10 -> 0~10    11~20 -> -1~-10
+uint8_t BOOT_0MW = 0;
 uint8_t BAUDRATE = 0;
 
 BWType_e RF_BW = BW_27M;
@@ -239,6 +240,7 @@ void Setting_Save() {
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
+        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BOOT_0MW, BOOT_0MW);
 #ifdef _DEBUG_MODE
         if (!err)
             debugf("\r\nEEPROM write success");
@@ -257,6 +259,7 @@ void CFG_Back() {
     LP_MODE = (LP_MODE > 2) ? 0 : LP_MODE;
     PIT_MODE = (PIT_MODE > PIT_0MW) ? PIT_OFF : PIT_MODE;
     OFFSET_25MW = (OFFSET_25MW > 20) ? 0 : OFFSET_25MW;
+    BOOT_0MW = (BOOT_0MW > 1) ? 0 : BOOT_0MW;
     BAUDRATE = (BAUDRATE > 1) ? 0 : BAUDRATE;
 }
 
@@ -334,6 +337,7 @@ void GetVtxParameter() {
         LP_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_LPMODE);
         PIT_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_PITMODE);
         OFFSET_25MW = I2C_Read8(ADDR_EEPROM, EEP_ADDR_25MW);
+        BOOT_0MW = I2C_Read8(ADDR_EEPROM, EEP_ADDR_BOOT_0MW);
         BAUDRATE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_BAUDRATE);
 
         CFG_Back();
@@ -1014,8 +1018,9 @@ void video_detect(void) {
                 cnt = 0;
             else
                 cnt++;
-
+#ifdef _DEBUG_CAMERA
             debugf("\r\nvideo_detect:%d %d", val, (uint16_t)cnt);
+#endif
             if (cnt == 5)
                 cameraLost = 1;
             else {
@@ -1057,8 +1062,25 @@ void Imp_RF_Param() {
 }
 
 void Button1_SP() {
+#ifdef _DEBUG_MODE
     debugf("\r\nButton1_SP.");
+#endif
+
     cfg_to_cnt = 0;
+
+    // exit 0mW
+    if (vtx_pit_save == PIT_0MW) {
+#ifdef _DEBUG_MODE
+        debugf("\n\rDM6300 init");
+#endif
+        Init_6300RF(RF_FREQ, RF_POWER);
+        DM6300_AUXADC_Calib();
+        cur_pwr = RF_POWER;
+        // reset pitmode
+        vtx_pit_save = PIT_OFF;
+        PIT_MODE = PIT_OFF;
+    }
+
     switch (cfg_step) {
     case 0:
         cfg_step = 1;
@@ -1066,33 +1088,8 @@ void Button1_SP() {
             dispF_cnt = 0;
         CFG_Back();
 
-        // exit 0mW
-        if (vtx_pit_save == PIT_0MW) {
-#ifdef _DEBUG_MODE
-            debugf("\n\rcfg_step(0),DM6300 init");
-#endif
-            Init_6300RF(RF_FREQ, RF_POWER);
-            DM6300_AUXADC_Calib();
-            cur_pwr = RF_POWER;
-        }
-        // reset pitmode
-        vtx_pit_save = PIT_OFF;
-        PIT_MODE = PIT_OFF;
         break;
     case 1:
-        // exit 0mW
-        if (vtx_pit_save == PIT_0MW) {
-#ifdef _DEBUG_MODE
-            debugf("\n\rcfg_step(1),DM6300 init");
-#endif
-            Init_6300RF(RF_FREQ, RF_POWER);
-            DM6300_AUXADC_Calib();
-            cur_pwr = RF_POWER;
-        }
-        // reset pitmode
-        vtx_pit_save = PIT_OFF;
-        PIT_MODE = PIT_OFF;
-
         if (RF_FREQ >= FREQ_MAX_EXT)
             RF_FREQ = 0;
         else
@@ -1113,19 +1110,6 @@ void Button1_SP() {
         }
         break;
     case 2:
-        if (vtx_pit_save == PIT_0MW) {
-// exit 0mW
-#ifdef _DEBUG_MODE
-            debugf("\n\rcfg_step(2),DM6300 init");
-#endif
-            Init_6300RF(RF_FREQ, RF_POWER);
-            DM6300_AUXADC_Calib();
-            cur_pwr = RF_POWER;
-        }
-        // reset pitmode
-        vtx_pit_save = PIT_OFF;
-        PIT_MODE = PIT_OFF;
-
         if (RF_POWER >= POWER_MAX)
             RF_POWER = 0;
         else
@@ -1156,19 +1140,6 @@ void Button1_SP() {
         }
         break;
     case 3:
-        if (vtx_pit_save == PIT_0MW) {
-// exit 0mW
-#ifdef _DEBUG_MODE
-            debugf("\n\rcfg_step(3),DM6300 init");
-#endif
-            Init_6300RF(RF_FREQ, RF_POWER);
-            DM6300_AUXADC_Calib();
-            cur_pwr = RF_POWER;
-        }
-        // reset pitmode
-        vtx_pit_save = PIT_OFF;
-        PIT_MODE = PIT_OFF;
-
         LP_MODE++;
         if (LP_MODE > 2)
             LP_MODE = 0;
