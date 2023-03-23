@@ -40,6 +40,7 @@ uint8_t vtx_lp;
 uint8_t vtx_pit;
 uint8_t vtx_pit_save = PIT_OFF;
 uint8_t vtx_offset = 0;
+uint8_t vtx_boot_0mw = 0;
 uint8_t first_arm = 0;
 
 uint8_t fc_band_rx = 0;
@@ -85,6 +86,9 @@ uint8_t crc8tab[256] = {
     0x84, 0x51, 0xFB, 0x2E, 0x7A, 0xAF, 0x05, 0xD0, 0xAD, 0x78, 0xD2, 0x07, 0x53, 0x86, 0x2C, 0xF9};
 
 uint8_t osd_menu_offset = 0;
+uint32_t msp_lst_rcv_sec = 0;
+
+uint8_t boot_0mw_done = 0;
 
 #ifdef USE_MSP
 void msp_set_osd_canvas(void);
@@ -278,6 +282,7 @@ uint8_t msp_read_one_frame() {
 
         case MSP_CRC1:
             if (rx == crc) {
+                msp_lst_rcv_sec = seconds;
                 if (cur_cmd == CUR_STATUS)
                     parse_status();
                 else if (cur_cmd == CUR_RC)
@@ -879,6 +884,7 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
     fc_lp_rx = msp_rx_buf[8];
 
     pwr_lmt_done = 1;
+    mspVtxLock |= 1;
 
 #ifdef _DEBUG_MODE
     debugf("\r\nparseMspVtx_V2");
@@ -896,8 +902,6 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
 
     if (SA_lock)
         return;
-
-    mspVtxLock |= 1;
 
     // update LP_MODE
     if (fc_lp_rx != last_lp) {
@@ -922,6 +926,16 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
         if (dm6300_init_done)
             DM6300_SetChannel(RF_FREQ);
         needSaveEEP = 1;
+    }
+
+    if ((boot_0mw_done == 0) && BOOT_0MW) {
+        msp_set_vtx_config(POWER_MAX + 1, 0);
+        dm6300_init_done = 0;
+        cur_pwr = POWER_MAX + 2;
+        vtx_pit_save = PIT_0MW;
+        vtx_pit = PIT_0MW;
+        boot_0mw_done = 1;
+        return;
     }
 
     // update pit
@@ -954,6 +968,7 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
                 dm6300_init_done = 0;
                 cur_pwr = POWER_MAX + 2;
                 vtx_pit_save = PIT_0MW;
+                vtx_pit = PIT_0MW;
                 temp_err = 1;
             } else {
                 DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
@@ -1278,7 +1293,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     if (VirtualBtn == BTN_DOWN)
                         vtx_state = 1;
                     else if (VirtualBtn == BTN_UP)
-                        vtx_state = 6;
+                        vtx_state = 7;
                     else if (VirtualBtn == BTN_RIGHT) {
                         if (SA_lock == 0) {
                             vtx_channel++;
@@ -1399,13 +1414,25 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     update_vtx_menu_param(vtx_state);
                     break;
 
-                // exit
+                // 0mw_boot
                 case 5:
-                    if (VirtualBtn == BTN_DOWN) {
+                    if (VirtualBtn == BTN_DOWN)
                         vtx_state = 6;
+                    else if (VirtualBtn == BTN_UP)
+                        vtx_state = 4;
+                    else if (VirtualBtn == BTN_LEFT || VirtualBtn == BTN_RIGHT) {
+                        vtx_boot_0mw = 1 - vtx_boot_0mw;
+                    }
+                    update_vtx_menu_param(vtx_state);
+                    break;
+
+                // exit
+                case 6:
+                    if (VirtualBtn == BTN_DOWN) {
+                        vtx_state = 7;
                         update_vtx_menu_param(vtx_state);
                     } else if (VirtualBtn == BTN_UP) {
-                        vtx_state = 4;
+                        vtx_state = 5;
                         update_vtx_menu_param(vtx_state);
                     } else if (VirtualBtn == BTN_RIGHT) {
                         vtx_state = 0;
@@ -1416,12 +1443,12 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     break;
 
                 // save&exit
-                case 6:
+                case 7:
                     if (VirtualBtn == BTN_DOWN) {
                         vtx_state = 0;
                         update_vtx_menu_param(vtx_state);
                     } else if (VirtualBtn == BTN_UP) {
-                        vtx_state = 5;
+                        vtx_state = 6;
                         update_vtx_menu_param(vtx_state);
                     } else if (VirtualBtn == BTN_RIGHT) {
                         vtx_state = 0;
@@ -1501,38 +1528,45 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
 void vtx_menu_init() {
     uint8_t i;
 
+    if (resolution == HD_5018)
+        osd_menu_offset = 8;
+    else
+        osd_menu_offset = 0;
+
     disp_mode = DISPLAY_CMS;
     clear_screen();
 
     strcpy(osd_buf[0] + osd_menu_offset + 2, "----VTX_MENU----");
     strcpy(osd_buf[2] + osd_menu_offset + 2, ">CHANNEL");
-    strcpy(osd_buf[3] + osd_menu_offset + 3, "POWER");
-    strcpy(osd_buf[4] + osd_menu_offset + 3, "LP_MODE");
-    strcpy(osd_buf[5] + osd_menu_offset + 3, "PIT_MODE");
-    strcpy(osd_buf[6] + osd_menu_offset + 3, "OFFSET_25MW");
-    strcpy(osd_buf[7] + osd_menu_offset + 3, "EXIT");
-    strcpy(osd_buf[8] + osd_menu_offset + 3, "SAVE&EXIT");
-    strcpy(osd_buf[9] + osd_menu_offset + 2, "------INFO------");
-    strcpy(osd_buf[10] + osd_menu_offset + 3, "VTX");
-    strcpy(osd_buf[11] + osd_menu_offset + 3, "VER");
-    strcpy(osd_buf[12] + osd_menu_offset + 3, "LIFETIME");
+    strcpy(osd_buf[3] + osd_menu_offset + 2, " POWER");
+    strcpy(osd_buf[4] + osd_menu_offset + 2, " LP_MODE");
+    strcpy(osd_buf[5] + osd_menu_offset + 2, " PIT_MODE");
+    strcpy(osd_buf[6] + osd_menu_offset + 2, " OFFSET_25MW");
+    strcpy(osd_buf[7] + osd_menu_offset + 2, " 0MW BOOT");
+    strcpy(osd_buf[8] + osd_menu_offset + 2, " EXIT  ");
+    strcpy(osd_buf[9] + osd_menu_offset + 2, " SAVE&EXIT");
+    strcpy(osd_buf[10] + osd_menu_offset + 2, "------INFO------");
+    strcpy(osd_buf[11] + osd_menu_offset + 2, " VTX");
+    strcpy(osd_buf[12] + osd_menu_offset + 2, " VER");
+    strcpy(osd_buf[13] + osd_menu_offset + 2, " LIFETIME");
 
-    for (i = 0; i < 5; i++) {
-        osd_buf[2 + i][osd_menu_offset + 19] = '<';
-        osd_buf[2 + i][osd_menu_offset + 26] = '>';
+    for (i = 2; i < 8; i++) {
+        osd_buf[i][osd_menu_offset + 19] = '<';
+        osd_buf[i][osd_menu_offset + 26] = '>';
     }
 
     // draw variant
-    strcpy(osd_buf[10] + osd_menu_offset + 13, VTX_NAME);
+    strcpy(osd_buf[11] + osd_menu_offset + 13, VTX_NAME);
 
     // draw version
-    strcpy(osd_buf[11] + osd_menu_offset + 13, VTX_VERSION_STRING);
+    strcpy(osd_buf[12] + osd_menu_offset + 13, VTX_VERSION_STRING);
 
     vtx_channel = RF_FREQ;
     vtx_power = RF_POWER;
     vtx_lp = LP_MODE;
     vtx_pit = PIT_MODE;
     vtx_offset = OFFSET_25MW;
+    vtx_boot_0mw = BOOT_0MW;
     update_vtx_menu_param(0);
 }
 
@@ -1540,13 +1574,18 @@ void update_vtx_menu_param(uint8_t vtx_state) {
     uint8_t i;
     uint8_t hourString[4];
     uint8_t minuteString[2];
+    const char *powerString[] = {"   25", "  200", "  500", "  MAX"};
+    const char *lowPowerString[] = {"  OFF", "   ON", "  1ST"};
+    const char *pitString[] = {"  OFF", " P1MW", "  0MW"};
+    const char *boot0mwString[] = {"  OFF", "  ON"};
 
-    // state
-    for (i = 0; i < 7; i++) {
+    // cursor
+    vtx_state += 2;
+    for (i = 2; i < 10; i++) {
         if (i == vtx_state)
-            osd_buf[i + 2][osd_menu_offset + 2] = '>';
+            osd_buf[i][osd_menu_offset + 2] = '>';
         else
-            osd_buf[i + 2][osd_menu_offset + 2] = ' ';
+            osd_buf[i][osd_menu_offset + 2] = ' ';
     }
 
     // channel display
@@ -1561,38 +1600,9 @@ void update_vtx_menu_param(uint8_t vtx_state) {
             osd_buf[2][osd_menu_offset + 24] = '4';
     }
 
-    // power display
-    switch (vtx_power) {
-    case 0:
-        strcpy(osd_buf[3] + osd_menu_offset + 20, "   25");
-        break;
-    case 1:
-        strcpy(osd_buf[3] + osd_menu_offset + 20, "  200");
-        break;
-    case 2:
-        strcpy(osd_buf[3] + osd_menu_offset + 20, "  500");
-        break;
-    case 3:
-        strcpy(osd_buf[3] + osd_menu_offset + 20, "  MAX");
-        break;
-    default:
-        strcpy(osd_buf[3] + osd_menu_offset + 20, "     ");
-        break;
-    }
-
-    if (vtx_lp == 0)
-        strcpy(osd_buf[4] + osd_menu_offset + 20, "  OFF");
-    else if (vtx_lp == 1)
-        strcpy(osd_buf[4] + osd_menu_offset + 20, "   ON");
-    else if (vtx_lp == 2)
-        strcpy(osd_buf[4] + osd_menu_offset + 20, "  1ST");
-
-    if (vtx_pit == PIT_P1MW)
-        strcpy(osd_buf[5] + osd_menu_offset + 20, " P1MW");
-    else if (vtx_pit == PIT_0MW)
-        strcpy(osd_buf[5] + osd_menu_offset + 20, "  0MW");
-    else if (vtx_pit == PIT_OFF)
-        strcpy(osd_buf[5] + osd_menu_offset + 20, "  OFF");
+    strcpy(osd_buf[3] + osd_menu_offset + 20, powerString[vtx_power]);
+    strcpy(osd_buf[4] + osd_menu_offset + 20, lowPowerString[vtx_lp]);
+    strcpy(osd_buf[5] + osd_menu_offset + 20, pitString[vtx_pit]);
 
     if (vtx_offset < 10) {
         strcpy(osd_buf[6] + osd_menu_offset + 20, "     ");
@@ -1605,15 +1615,17 @@ void update_vtx_menu_param(uint8_t vtx_state) {
     } else if (vtx_offset == 20)
         strcpy(osd_buf[6] + osd_menu_offset + 20, "  -10");
 
+    strcpy(osd_buf[7] + osd_menu_offset + 20, boot0mwString[vtx_boot_0mw]);
+
     ParseLifeTime(hourString, minuteString);
-    osd_buf[12][osd_menu_offset + 16] = hourString[0];
-    osd_buf[12][osd_menu_offset + 17] = hourString[1];
-    osd_buf[12][osd_menu_offset + 18] = hourString[2];
-    osd_buf[12][osd_menu_offset + 19] = hourString[3];
-    osd_buf[12][osd_menu_offset + 20] = 'H';
-    osd_buf[12][osd_menu_offset + 21] = minuteString[0];
-    osd_buf[12][osd_menu_offset + 22] = minuteString[1];
-    osd_buf[12][osd_menu_offset + 23] = 'M';
+    osd_buf[13][osd_menu_offset + 16] = hourString[0];
+    osd_buf[13][osd_menu_offset + 17] = hourString[1];
+    osd_buf[13][osd_menu_offset + 18] = hourString[2];
+    osd_buf[13][osd_menu_offset + 19] = hourString[3];
+    osd_buf[13][osd_menu_offset + 20] = 'H';
+    osd_buf[13][osd_menu_offset + 21] = minuteString[0];
+    osd_buf[13][osd_menu_offset + 22] = minuteString[1];
+    osd_buf[13][osd_menu_offset + 23] = 'M';
 }
 
 void save_vtx_param() {
@@ -1623,6 +1635,7 @@ void save_vtx_param() {
     PIT_MODE = vtx_pit;
     vtx_pit_save = vtx_pit;
     OFFSET_25MW = vtx_offset;
+    BOOT_0MW = vtx_boot_0mw;
     CFG_Back();
     Setting_Save();
     Imp_RF_Param();
@@ -1631,6 +1644,9 @@ void save_vtx_param() {
     pit_mode_cfg_done = 0;
     lp_mode_cfg_done = 0;
     first_arm = 0;
+
+    if (BOOT_0MW)
+        boot_0mw_done = 1;
 
     if (!SA_lock) {
         if (vtx_pit == PIT_0MW)
@@ -1785,7 +1801,10 @@ void InitVtxTable() {
 #endif
 
     // set band num, channel num and power level number
-    msp_set_vtx_config(fc_pwr_rx, 0);
+    if (BOOT_0MW)
+        msp_set_vtx_config(POWER_MAX + 1, 0);
+    else
+        msp_set_vtx_config(fc_pwr_rx, 0);
 
     // set band/channel
     for (i = 0; i < 6; i++) {
