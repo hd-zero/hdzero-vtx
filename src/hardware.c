@@ -41,6 +41,7 @@ uint8_t RF_FREQ = 0;
 uint8_t LP_MODE = 0;
 uint8_t PIT_MODE = 0;
 uint8_t OFFSET_25MW = 0; // 0~10 -> 0~10    11~20 -> -1~-10
+uint8_t BAUDRATE = 0;
 
 BWType_e RF_BW = BW_27M;
 
@@ -229,24 +230,17 @@ void Set_540P90_crop(uint8_t page) {
 }
 
 void Setting_Save() {
-    uint8_t rcv = 0;
-
-#if (0)
-    if (camera_type == 0) {
-        CAM_WriteCFG(0, RF_FREQ, RF_POWER, MODE);
-        CAM_WriteCFG(0, RF_FREQ, RF_POWER, MODE);
-        CAM_WriteCFG(0, RF_FREQ, RF_POWER, MODE);
-    }
-#endif
+    uint8_t err = 0;
 
     if (EE_VALID) {
-        rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
-        rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
-        rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
-        rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
-        rcv |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
+        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
+        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
+        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
+        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
+        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
+        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
 #ifdef _DEBUG_MODE
-        if (!rcv)
+        if (!err)
             debugf("\r\nEEPROM write success");
 #endif
     }
@@ -263,6 +257,7 @@ void CFG_Back() {
     LP_MODE = (LP_MODE > 2) ? 0 : LP_MODE;
     PIT_MODE = (PIT_MODE > PIT_0MW) ? PIT_OFF : PIT_MODE;
     OFFSET_25MW = (OFFSET_25MW > 20) ? 0 : OFFSET_25MW;
+    BAUDRATE = (BAUDRATE > 1) ? 0 : BAUDRATE;
 }
 
 void GetVtxParameter() {
@@ -339,23 +334,12 @@ void GetVtxParameter() {
         LP_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_LPMODE);
         PIT_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_PITMODE);
         OFFSET_25MW = I2C_Read8(ADDR_EEPROM, EEP_ADDR_25MW);
+        BAUDRATE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_BAUDRATE);
 
-        if (RF_FREQ == 0xff || RF_POWER == 0xff || LP_MODE == 0xff || PIT_MODE == 0xff || OFFSET_25MW == 0xff) {
-            CFG_Back();
-            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
-            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
-            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
-            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
-            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
+        CFG_Back();
 #ifdef _DEBUG_MODE
-            debugf("\r\nEEPROM is NOT initialized. USE CAM for VTX setting.");
+        debugf("\r\nUSE EEPROM for VTX setting:RF_FREQ=%d, RF_POWER=%d, LPMODE=%d PIT_MODE=%d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
 #endif
-        } else {
-            CFG_Back();
-#ifdef _DEBUG_MODE
-            debugf("\r\nUSE EEPROM for VTX setting:RF_FREQ=%d, RF_POWER=%d, LPMODE=%d PIT_MODE=%d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
-#endif
-        }
 
 // last_SA_lock
 #ifdef USE_SMARTAUDIO
@@ -467,6 +451,7 @@ void Init_HW() {
     GetVtxParameter();
     Get_EEP_LifeTime();
     camera_init();
+    uart_set_baudrate(BAUDRATE);
 //--------- dm6300 --------------------
 // move to RF_Delay_Init()
 #endif
@@ -1415,5 +1400,15 @@ void LED_Task() {
     } else if (led_status == OFF) {
         LED_BLUE_ON;
         led_status = ON;
+    }
+}
+
+void uart_baudrate_detect(void) {
+    if (seconds - msp_lst_rcv_sec >= 5) {
+        msp_lst_rcv_sec = seconds;
+        BAUDRATE++;
+        CFG_Back();
+        uart_set_baudrate(BAUDRATE);
+        Setting_Save();
     }
 }
