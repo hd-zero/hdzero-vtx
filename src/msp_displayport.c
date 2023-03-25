@@ -1710,13 +1710,15 @@ void set_vtx_param() {
         // Power_Auto
         if (vtx_pit_save == PIT_0MW) {
             if (BOOT_0MW)
-                break;
-            // exit 0mW
-            Init_6300RF(RF_FREQ, RF_POWER);
-            DM6300_AUXADC_Calib();
-            cur_pwr = RF_POWER;
-            vtx_pit = PIT_OFF;
-            vtx_pit_save = PIT_OFF;
+                ;
+            else {
+                // exit 0mW
+                Init_6300RF(RF_FREQ, RF_POWER);
+                DM6300_AUXADC_Calib();
+                cur_pwr = RF_POWER;
+                vtx_pit = PIT_OFF;
+                vtx_pit_save = PIT_OFF;
+            }
         } else if (PIT_MODE || LP_MODE) {
 // exit pitmode or lp_mode
 #ifdef _DEBUG_MDOE
