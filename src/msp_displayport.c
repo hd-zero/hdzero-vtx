@@ -1709,6 +1709,8 @@ void set_vtx_param() {
     if (g_IS_ARMED && !g_IS_ARMED_last) {
         // Power_Auto
         if (vtx_pit_save == PIT_0MW) {
+            if (BOOT_0MW)
+                break;
             // exit 0mW
             Init_6300RF(RF_FREQ, RF_POWER);
             DM6300_AUXADC_Calib();
