@@ -1370,6 +1370,10 @@ void LED_Task() {
     } else if (heat_protect) {
         if (timer_2hz)
             LED_Flip();
+    } else if (cur_pwr == POWER_MAX + 2) {
+        if (timer_8hz) {
+            LED_Flip();
+        }
     } else if (PIT_MODE != PIT_OFF) {
         if (timer_4hz) {
             LED_Flip();
