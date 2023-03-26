@@ -1247,6 +1247,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
             vtx_lp = LP_MODE;
             vtx_pit = PIT_OFF;
             vtx_offset = OFFSET_25MW;
+            vtx_boot_0mw = BOOT_0MW;
             if (SA_lock) {
                 // PIT_MODE = 2;
                 vtx_pit = PIT_P1MW;
@@ -1753,7 +1754,8 @@ void set_vtx_param() {
         first_arm = 1;
         PIT_MODE = PIT_OFF;
         Setting_Save();
-        msp_set_vtx_config(RF_POWER, 1);
+        if (!BOOT_0MW)
+            msp_set_vtx_config(RF_POWER, 1);
     } else if (!g_IS_ARMED && g_IS_ARMED_last) {
         if (LP_MODE == 1) {
             DM6300_SetPower(0, RF_FREQ, 0); // limit power to 25mW during disarmed
