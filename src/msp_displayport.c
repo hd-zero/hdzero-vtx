@@ -66,6 +66,7 @@ uint16_t msp_rcv_tick_8hz = 0;
 uint8_t msp_rbuf[64];
 
 uint8_t mspVtxLock = 0;
+uint8_t init_table_done = 0;
 
 uint8_t crc8tab[256] = {
     0x00, 0xD5, 0x7F, 0xAA, 0xFE, 0x2B, 0x81, 0x54, 0x29, 0xFC, 0x56, 0x83, 0xD7, 0x02, 0xA8, 0x7D,
@@ -905,7 +906,7 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
     debugf("\r\n    fc_powerLevels %x", (uint16_t)msp_rx_buf[14]);
 #endif
 
-    if (SA_lock)
+    if (SA_lock || (init_table_done == 0))
         return;
 
     // update LP_MODE
@@ -1860,6 +1861,7 @@ void InitVtxTable() {
     }
 
     msp_eeprom_write();
+    init_table_done = 1;
 }
 #endif
 
