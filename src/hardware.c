@@ -1385,7 +1385,7 @@ void LED_Task() {
 }
 
 void uart_baudrate_detect(void) {
-    if (seconds - msp_lst_rcv_sec >= 5) {
+    if (seconds - msp_lst_rcv_sec >= 20) {
         msp_lst_rcv_sec = seconds;
         BAUDRATE++;
         CFG_Back();
