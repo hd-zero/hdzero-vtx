@@ -268,7 +268,7 @@ uint8_t msp_read_one_frame() {
                 state = MSP_CRC1;
             else
                 state = MSP_RX1;
-            // debugf("\r\n%x ",(uint16_t)rx);
+            // debugf("\r\ncmd:%x ", (uint16_t)rx);
             break;
 
         case MSP_RX1:
@@ -365,8 +365,11 @@ uint8_t msp_read_one_frame() {
             break;
 
         case MSP_CRC2:
-            if (crc == rx)
+            if (crc == rx) {
+                full_frame = 1;
                 parseMspVtx_V2(cmd_u16);
+                msp_lst_rcv_sec = seconds;
+            }
             state = MSP_HEADER_START;
             break;
 
@@ -930,18 +933,21 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
         needSaveEEP = 1;
     }
 
-    if ((boot_0mw_done == 0) && BOOT_0MW) {
-        msp_set_vtx_config(POWER_MAX + 1, 0);
-        dm6300_init_done = 0;
-        cur_pwr = POWER_MAX + 2;
-        vtx_pit_save = PIT_0MW;
-        vtx_pit = PIT_0MW;
-        boot_0mw_done = 1;
-        return;
-    }
-
     // update pit
     nxt_pwr = fc_pwr_rx - 1;
+
+    if ((boot_0mw_done == 0) && BOOT_0MW) {
+        msp_set_vtx_config(POWER_MAX + 1, 0);
+        // sometimes FC delay to receive 0mW, so check fc reply power and resend 0mW.
+        if (nxt_pwr == POWER_MAX + 1) {
+            dm6300_init_done = 0;
+            cur_pwr = POWER_MAX + 2;
+            vtx_pit_save = PIT_0MW;
+            vtx_pit = PIT_0MW;
+            boot_0mw_done = 1;
+        }
+        return;
+    }
 
     if ((nxt_pwr != POWER_MAX + 1) && (!dm6300_init_done)) {
         Init_6300RF(RF_FREQ, RF_POWER);
