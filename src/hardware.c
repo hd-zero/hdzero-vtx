@@ -44,7 +44,8 @@ uint8_t OFFSET_25MW = 0; // 0~10 -> 0~10    11~20 -> -1~-10
 uint8_t BOOT_0MW = 0;
 uint8_t BAUDRATE = 0;
 
-BWType_e RF_BW = BW_27M;
+uint8_t RF_BW = BW_27M;
+uint8_t RF_BW_last = BW_27M;
 
 uint8_t g_IS_ARMED = 0;
 uint8_t g_IS_PARALYZE = 0;
@@ -226,6 +227,49 @@ void Set_540P90_crop(uint8_t page) {
     WriteReg(page, 0x52, 0x04);
     WriteReg(page, 0x53, 0x02);
     WriteReg(page, 0x54, 0x3C);
+
+    WriteReg(page, 0x06, 0x01);
+}
+
+void Set_540P60(uint8_t page) {
+    WriteReg(page, 0x21, 0x1F);
+
+    WriteReg(page, 0x40, 0xD0);
+    WriteReg(page, 0x41, 0x22);
+    WriteReg(page, 0x42, 0x18);
+
+    // WriteReg(page, 0x43, 0xD0); //pat
+    // WriteReg(page, 0x44, 0x47);
+
+    WriteReg(page, 0x43, 0x50); // cam
+    WriteReg(page, 0x44, 0x46);
+
+    WriteReg(page, 0x45, 0x6B);
+    WriteReg(page, 0x49, 0x04);
+    WriteReg(page, 0x4c, 0x08);
+    WriteReg(page, 0x4f, 0x00);
+    WriteReg(page, 0x52, 0x04);
+    WriteReg(page, 0x53, 0x02);
+    WriteReg(page, 0x54, 0x3C);
+
+    WriteReg(page, 0x06, 0x01);
+}
+
+void Set_1080P30(uint8_t page) {
+    WriteReg(page, 0x21, 0x1B);
+
+    WriteReg(page, 0x40, 0x80);
+    WriteReg(page, 0x41, 0x47);
+    WriteReg(page, 0x42, 0x38);
+    WriteReg(page, 0x43, 0x98);
+    WriteReg(page, 0x44, 0x88);
+    WriteReg(page, 0x45, 0x65);
+    WriteReg(page, 0x49, 0x04);
+    WriteReg(page, 0x4c, 0x29);
+    WriteReg(page, 0x4f, 0x00);
+    WriteReg(page, 0x52, 0x04);
+    WriteReg(page, 0x53, 0x00);
+    WriteReg(page, 0x54, 0x5A);
 
     WriteReg(page, 0x06, 0x01);
 }
@@ -1382,6 +1426,26 @@ void LED_Task() {
         LED_BLUE_ON;
         led_status = ON;
     }
+}
+
+uint8_t RF_BW_check(void) {
+    uint8_t ret = 0;
+#if (0)
+    // disbale 540P60, fix me.
+    if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90 && camera_setting_reg_set[11] == 2)
+        RF_BW = BW_17M;
+    else
+#endif
+        RF_BW = BW_27M;
+
+    if (RF_BW != RF_BW_last) {
+        RF_BW_last = RF_BW;
+        ret = 1;
+    }
+#ifdef _DEBUG_MODE
+    debugf("\r\ncamera_type:%x, video_mode:%x, RF_BW:%x, RF_BW_last:%x ret=%x", (uint16_t)camera_type, (uint16_t)camera_setting_reg_set[11], (uint16_t)RF_BW, (uint16_t)RF_BW_last, (uint16_t)ret);
+#endif
+    return ret;
 }
 
 void uart_baudrate_detect(void) {

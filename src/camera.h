@@ -44,16 +44,9 @@ typedef enum {
     VDO_FMT_540P90,
     VDO_FMT_540P90_CROP,
     VDO_FMT_540P60,
-    VDO_FMT_960x720P60
+    VDO_FMT_960x720P60,
+    VDO_FMT_1080P30,
 } video_format_e;
-
-typedef enum {
-    VDO_720P60_16_9,
-    VDO_720P60_4_3,
-    VDO_720P30_16_9,
-    VDO_720P30_4_3,
-    VDO_TYPE_MAX,
-} VdoFormatType_e;
 
 typedef enum {
     CAM_SETTING_ITEM_ENBALE,

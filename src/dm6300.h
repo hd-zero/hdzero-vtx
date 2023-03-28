@@ -23,7 +23,7 @@ void DM6300_init1();
 void DM6300_init2(uint8_t sel);
 void DM6300_init3(uint8_t ch);
 void DM6300_init4();
-void DM6300_init5();
+void DM6300_init5(uint8_t sel);
 void DM6300_init6(uint8_t sel);
 void DM6300_init7(uint8_t sel);
 void DM6300_RFTest();

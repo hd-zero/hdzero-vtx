@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "dm6300.h"
 #include "global.h"
 #include "hardware.h"
 #include "i2c.h"
@@ -53,7 +54,7 @@ void camera_ratio_detect(void) {
         camRatio = 0;
 }
 
-void camera_mode_detect() {
+void camera_mode_detect(uint8_t init) {
     uint8_t cycles = 4;
     uint8_t loss = 0;
     uint8_t detect_tries = 0;
@@ -71,17 +72,30 @@ void camera_mode_detect() {
             Set_540P90_crop(0);
             video_format = VDO_FMT_540P90_CROP;
         } else if (camera_setting_reg_set[11] == 2) {
-            ; // Set_540P90(0);
-            ; // video_format = VDO_FMT_540P60;
+#if (0)
+            // disbale 540P60, fix me.
+            Set_540P60(0);
+            video_format = VDO_FMT_540P60;
+#endif
         } else if (camera_setting_reg_set[11] == 3) {
             Set_960x720P60(0);
             video_format = VDO_FMT_960x720P60;
         }
         I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
-    } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 || camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2) {
+    } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1) {
         Set_720P60(IS_RX);
         Init_TC3587(0);
         video_format = VDO_FMT_720P60;
+        I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
+    } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2) {
+        if (camera_setting_reg_set[11] == 3) {
+            Set_1080P30(IS_RX);
+            video_format = VDO_FMT_1080P30;
+        } else {
+            Set_720P60(IS_RX);
+            video_format = VDO_FMT_720P60;
+        }
+        Init_TC3587(0);
         I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
     } else {
         while (cycles) {
@@ -130,8 +144,23 @@ void camera_mode_detect() {
         }
     }
     camera_ratio_detect();
+
+    if (init) {
+#if (0)
+        // disable 540P60, fix me.
+        if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90 && camera_setting_reg_set[11] == 2)
+            RF_BW = BW_17M;
+        else
+#endif
+            RF_BW = BW_27M;
+        RF_BW_last = RF_BW;
+    }
 #ifdef _DEBUG_MODE
-    debugf("\r\ncameraID: %x", (uint16_t)camera_type);
+    debugf("\r\ncameraID: %x, bw: ", (uint16_t)camera_type);
+    if (RF_BW == BW_17M)
+        debugf("17M");
+    else
+        debugf("27M");
 #endif
 }
 
@@ -277,7 +306,7 @@ void camera_init(void) {
     if (camera_mfr == CAMERA_MFR_RUNCAM)
         runcam_reset_isp();
 
-    camera_mode_detect();
+    camera_mode_detect(1);
 
     camera_button_init();
 }
@@ -318,7 +347,7 @@ void camera_menu_draw_bracket(void) {
 void camera_menu_draw_value(void) {
     const char *wb_mode_str[] = {"   AUTO", " MANUAL"};
     const char *switch_str[] = {"    OFF", "     ON"};
-    const char *resolution_runcam_micro_v2[] = {"       4:3", "  16:9CROP", "  16:9FULL"};
+    const char *resolution_runcam_micro_v2[] = {"      4:3 ", " 16:9CROP ", " 16:9FULL ", "  1080@30 "};
     const char *resolution_runcam_nano_90[] = {"   540P@90", "540@90CROP", "   540P@60", "960X720@60"};
 
     uint8_t str[4];
@@ -448,8 +477,10 @@ void camera_menu_init(void) {
 }
 void camera_menu_show_repower(void) {
     memset(osd_buf, 0x20, sizeof(osd_buf));
-    strcpy(osd_buf[1] + osd_menu_offset + 3, "VIDEO MODE IS CHANGED");
-    strcpy(osd_buf[2] + osd_menu_offset + 3, "NEED TO REPOWER VTX");
+    strcpy(osd_buf[1] + osd_menu_offset + 3, "BANDWIDTH IS CHANGED");
+    strcpy(osd_buf[2] + osd_menu_offset + 3, "NEED TO RECONFIG VTX(PRESS OK)");
+    strcpy(osd_buf[3] + osd_menu_offset + 3, "NEED TO RESCAN ON GOGGLE");
+    strcpy(osd_buf[4] + osd_menu_offset + 3, "> OK");
 }
 
 void camera_menu_cursor_update(uint8_t erase) {
@@ -680,8 +711,8 @@ uint8_t camera_status_update(uint8_t op) {
         camera_menu_item_toggle(op);
 
         if (op == BTN_RIGHT) {
-            // 540@60 do not work for now
-            if (camera_mfr == CAMERA_MFR_RUNCAM && camera_type == CAMERA_TYPE_RUNCAM_NANO_90 && camera_setting_reg_menu[11] == 2)
+            // disbale 540P60, fix me.
+            if ((camera_type == CAMERA_TYPE_RUNCAM_NANO_90) && (camera_setting_reg_menu[11] == 2))
                 break;
             camera_profile_eep = camera_profile_menu;
             camera_profile_write();
@@ -692,15 +723,41 @@ uint8_t camera_status_update(uint8_t op) {
             if (reset_isp_need) {
                 if (camera_mfr == CAMERA_MFR_RUNCAM) {
                     runcam_reset_isp();
-                    camera_mode_detect();
+                    camera_mode_detect(0);
                 }
             }
+            if (RF_BW_check()) {
+                camMenuStatus = CAM_STATUS_REPOWER;
+                ret = 0;
+            } else {
+                camMenuStatus = CAM_STATUS_IDLE;
+                ret = 1;
+            }
+        }
+        break;
+    case CAM_STATUS_REPOWER:
+        camera_menu_show_repower();
+        if (op == BTN_RIGHT) {
+#ifdef _DEBUG_MODE
+            debugf("\r\nRF_Delay_Init: None");
+#endif
+            if (PIT_MODE != PIT_OFF) {
+                Init_6300RF(RF_FREQ, POWER_MAX + 1);
+                vtx_pit = PIT_P1MW;
+            } else {
+                WriteReg(0, 0x8F, 0x00);
+                WriteReg(0, 0x8F, 0x01);
+                DM6300_Init(RF_FREQ, RF_BW);
+                DM6300_SetChannel(RF_FREQ);
+                DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+                cur_pwr = RF_POWER;
+                WriteReg(0, 0x8F, 0x11);
+            }
+            DM6300_AUXADC_Calib();
             camMenuStatus = CAM_STATUS_IDLE;
             ret = 1;
         }
         break;
-        // case CAM_STATUS_REPOWER:
-        //     break;
 
     default:
         break;
