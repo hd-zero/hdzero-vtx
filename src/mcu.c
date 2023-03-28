@@ -72,9 +72,11 @@ void UART1_isr() INTERRUPT(6) {
 
     if (RI1) { // RX int
         RI1 = 0;
+#if (1)
         RS_buf1[RS_in1++] = SBUF1;
         if (RS_in1 >= BUF1_MAX)
             RS_in1 = 0;
+#endif
     }
 
     if (TI1) { // TX int

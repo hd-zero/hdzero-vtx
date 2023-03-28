@@ -248,8 +248,14 @@ void Setting_Save() {
     }
 
 #ifdef _DEBUG_MODE
-    debugf("\r\nSetting Save:  RF_FREQ=%d, RF_POWER=%d, LP_MODE=%d, PIT_MODE=%d",
-           (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
+    debugf("\r\nSetting Save\r\n");
+    debugf("    RF_FREQ=%d\r\n", (uint16_t)RF_FREQ);
+    debugf("    RF_POWER=%d\r\n", (uint16_t)RF_POWER);
+    debugf("    LP_MODE=%d\r\n", (uint16_t)LP_MODE);
+    debugf("    PIT_MODE=%d\r\n", (uint16_t)PIT_MODE);
+    debugf("    OFFSET_25MW=%d\r\n", (uint16_t)OFFSET_25MW);
+    debugf("    BAUDRATE=%d\r\n", (uint16_t)BAUDRATE);
+    debugf("    BOOT_0MW=%d\r\n", (uint16_t)BOOT_0MW);
 #endif
 }
 
@@ -1364,6 +1370,10 @@ void LED_Task() {
     } else if (heat_protect) {
         if (timer_2hz)
             LED_Flip();
+    } else if (cur_pwr == POWER_MAX + 2) {
+        if (timer_8hz) {
+            LED_Flip();
+        }
     } else if (PIT_MODE != PIT_OFF) {
         if (timer_4hz) {
             LED_Flip();
@@ -1375,7 +1385,7 @@ void LED_Task() {
 }
 
 void uart_baudrate_detect(void) {
-    if (seconds - msp_lst_rcv_sec >= 5) {
+    if (seconds - msp_lst_rcv_sec >= 20) {
         msp_lst_rcv_sec = seconds;
         BAUDRATE++;
         CFG_Back();

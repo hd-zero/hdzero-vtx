@@ -66,6 +66,7 @@ uint16_t msp_rcv_tick_8hz = 0;
 uint8_t msp_rbuf[64];
 
 uint8_t mspVtxLock = 0;
+uint8_t init_table_done = 0;
 
 uint8_t crc8tab[256] = {
     0x00, 0xD5, 0x7F, 0xAA, 0xFE, 0x2B, 0x81, 0x54, 0x29, 0xFC, 0x56, 0x83, 0xD7, 0x02, 0xA8, 0x7D,
@@ -268,7 +269,7 @@ uint8_t msp_read_one_frame() {
                 state = MSP_CRC1;
             else
                 state = MSP_RX1;
-            // debugf("\r\n%x ",(uint16_t)rx);
+            // debugf("\r\ncmd:%x ", (uint16_t)rx);
             break;
 
         case MSP_RX1:
@@ -365,8 +366,11 @@ uint8_t msp_read_one_frame() {
             break;
 
         case MSP_CRC2:
-            if (crc == rx)
+            if (crc == rx) {
+                full_frame = 1;
                 parseMspVtx_V2(cmd_u16);
+                msp_lst_rcv_sec = seconds;
+            }
             state = MSP_HEADER_START;
             break;
 
@@ -902,7 +906,7 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
     debugf("\r\n    fc_powerLevels %x", (uint16_t)msp_rx_buf[14]);
 #endif
 
-    if (SA_lock)
+    if (SA_lock || (init_table_done == 0))
         return;
 
     // update LP_MODE
@@ -930,18 +934,21 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
         needSaveEEP = 1;
     }
 
-    if ((boot_0mw_done == 0) && BOOT_0MW) {
-        msp_set_vtx_config(POWER_MAX + 1, 0);
-        dm6300_init_done = 0;
-        cur_pwr = POWER_MAX + 2;
-        vtx_pit_save = PIT_0MW;
-        vtx_pit = PIT_0MW;
-        boot_0mw_done = 1;
-        return;
-    }
-
     // update pit
     nxt_pwr = fc_pwr_rx - 1;
+
+    if ((boot_0mw_done == 0) && BOOT_0MW) {
+        msp_set_vtx_config(POWER_MAX + 1, 0);
+        // sometimes FC delay to receive 0mW, so check fc reply power and resend 0mW.
+        if (nxt_pwr == POWER_MAX + 1) {
+            dm6300_init_done = 0;
+            cur_pwr = POWER_MAX + 2;
+            vtx_pit_save = PIT_0MW;
+            vtx_pit = PIT_0MW;
+            boot_0mw_done = 1;
+        }
+        return;
+    }
 
     if ((nxt_pwr != POWER_MAX + 1) && (!dm6300_init_done)) {
         Init_6300RF(RF_FREQ, RF_POWER);
@@ -1247,6 +1254,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
             vtx_lp = LP_MODE;
             vtx_pit = PIT_OFF;
             vtx_offset = OFFSET_25MW;
+            vtx_boot_0mw = BOOT_0MW;
             if (SA_lock) {
                 // PIT_MODE = 2;
                 vtx_pit = PIT_P1MW;
@@ -1574,7 +1582,7 @@ void update_vtx_menu_param(uint8_t vtx_state) {
     const char *powerString[] = {"   25", "  200", "  500", "  MAX"};
     const char *lowPowerString[] = {"  OFF", "   ON", "  1ST"};
     const char *pitString[] = {"  OFF", " P1MW", "  0MW"};
-    const char *boot0mwString[] = {"  OFF", "  ON"};
+    const char *boot0mwString[] = {"  OFF", "   ON"};
 
     // cursor
     vtx_state += 2;
@@ -1709,12 +1717,16 @@ void set_vtx_param() {
     if (g_IS_ARMED && !g_IS_ARMED_last) {
         // Power_Auto
         if (vtx_pit_save == PIT_0MW) {
-            // exit 0mW
-            Init_6300RF(RF_FREQ, RF_POWER);
-            DM6300_AUXADC_Calib();
-            cur_pwr = RF_POWER;
-            vtx_pit = PIT_OFF;
-            vtx_pit_save = PIT_OFF;
+            if (BOOT_0MW)
+                ;
+            else {
+                // exit 0mW
+                Init_6300RF(RF_FREQ, RF_POWER);
+                DM6300_AUXADC_Calib();
+                cur_pwr = RF_POWER;
+                vtx_pit = PIT_OFF;
+                vtx_pit_save = PIT_OFF;
+            }
         } else if (PIT_MODE || LP_MODE) {
 // exit pitmode or lp_mode
 #ifdef _DEBUG_MDOE
@@ -1749,7 +1761,8 @@ void set_vtx_param() {
         first_arm = 1;
         PIT_MODE = PIT_OFF;
         Setting_Save();
-        msp_set_vtx_config(RF_POWER, 1);
+        if (!BOOT_0MW)
+            msp_set_vtx_config(RF_POWER, 1);
     } else if (!g_IS_ARMED && g_IS_ARMED_last) {
         if (LP_MODE == 1) {
             DM6300_SetPower(0, RF_FREQ, 0); // limit power to 25mW during disarmed
@@ -1848,6 +1861,7 @@ void InitVtxTable() {
     }
 
     msp_eeprom_write();
+    init_table_done = 1;
 }
 #endif
 
