@@ -1582,7 +1582,7 @@ void update_vtx_menu_param(uint8_t vtx_state) {
     const char *powerString[] = {"   25", "  200", "  500", "  MAX"};
     const char *lowPowerString[] = {"  OFF", "   ON", "  1ST"};
     const char *pitString[] = {"  OFF", " P1MW", "  0MW"};
-    const char *boot0mwString[] = {"  OFF", "  ON"};
+    const char *boot0mwString[] = {"  OFF", "   ON"};
 
     // cursor
     vtx_state += 2;
