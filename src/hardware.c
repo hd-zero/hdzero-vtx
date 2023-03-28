@@ -1420,10 +1420,12 @@ void LED_Task() {
 
 uint8_t RF_BW_check(void) {
     uint8_t ret = 0;
-
+#if (0)
+    // disbale 540P60, fix me.
     if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90 && camera_setting_reg_set[11] == 2)
         RF_BW = BW_17M;
     else
+#endif
         RF_BW = BW_27M;
 
     if (RF_BW != RF_BW_last) {

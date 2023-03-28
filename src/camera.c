@@ -72,8 +72,11 @@ void camera_mode_detect(uint8_t init) {
             Set_540P90_crop(0);
             video_format = VDO_FMT_540P90_CROP;
         } else if (camera_setting_reg_set[11] == 2) {
+#if (0)
+            // disbale 540P60, fix me.
             Set_540P60(0);
             video_format = VDO_FMT_540P60;
+#endif
         } else if (camera_setting_reg_set[11] == 3) {
             Set_960x720P60(0);
             video_format = VDO_FMT_960x720P60;
@@ -143,9 +146,12 @@ void camera_mode_detect(uint8_t init) {
     camera_ratio_detect();
 
     if (init) {
+#if (0)
+        // disable 540P60, fix me.
         if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90 && camera_setting_reg_set[11] == 2)
             RF_BW = BW_17M;
         else
+#endif
             RF_BW = BW_27M;
         RF_BW_last = RF_BW;
     }
@@ -705,6 +711,9 @@ uint8_t camera_status_update(uint8_t op) {
         camera_menu_item_toggle(op);
 
         if (op == BTN_RIGHT) {
+            // disbale 540P60, fix me.
+            if ((camera_type == CAMERA_TYPE_RUNCAM_NANO_90) && (camera_setting_reg_menu[11] == 2))
+                break;
             camera_profile_eep = camera_profile_menu;
             camera_profile_write();
             reset_isp_need |= camera_set(camera_setting_reg_menu, 1);
@@ -729,10 +738,6 @@ uint8_t camera_status_update(uint8_t op) {
     case CAM_STATUS_REPOWER:
         camera_menu_show_repower();
         if (op == BTN_RIGHT) {
-#if (0)
-            __asm__(
-                "LJMP 0x0000");
-#else
 #ifdef _DEBUG_MODE
             debugf("\r\nRF_Delay_Init: None");
 #endif
@@ -749,7 +754,6 @@ uint8_t camera_status_update(uint8_t op) {
                 WriteReg(0, 0x8F, 0x11);
             }
             DM6300_AUXADC_Calib();
-#endif
             camMenuStatus = CAM_STATUS_IDLE;
             ret = 1;
         }
