@@ -48,6 +48,7 @@ uint8_t RF_BW = BW_27M;
 uint8_t RF_BW_last = BW_27M;
 
 uint8_t g_IS_ARMED = 0;
+uint8_t g_IS_FAILSAFE = 0;
 uint8_t g_IS_PARALYZE = 0;
 
 uint8_t cfg_step = 0; // 0:idle, 1:freq, 2:power, 3:LP_MODE

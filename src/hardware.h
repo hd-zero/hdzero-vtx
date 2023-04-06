@@ -111,8 +111,8 @@ extern uint8_t pwr_offset;
 extern uint8_t heat_protect;
 
 extern uint8_t g_IS_ARMED;
-extern uint8_t g_IS_ARMED_last;
 extern uint8_t g_IS_PARALYZE;
+extern uint8_t g_IS_FAILSAFE;
 extern uint8_t fc_lock;
 extern uint8_t vtx_pit;
 extern uint8_t vtx_pit_save;
