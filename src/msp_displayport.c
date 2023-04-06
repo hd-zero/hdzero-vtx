@@ -790,6 +790,15 @@ void parse_status() {
     g_IS_PARALYZE = (msp_rx_buf[9] & 0x80);
     disarmed = !g_IS_ARMED;
 
+    if (g_IS_PARALYZE) {
+        // Sleep until repower
+        WriteReg(0, 0x8F, 0x00);
+        while (1) {
+            LED_Flip();
+            WAIT(50);
+        }
+    }
+
     if (BOOT_0MW) {
         if (g_IS_FAILSAFE && !g_IS_FAILSAFE_last) {
             WriteReg(0, 0x8F, 0x10);
