@@ -92,6 +92,7 @@ void LED_Task();
 
 uint8_t RF_BW_check(void);
 void uart_baudrate_detect(void);
+void vtx_paralized(void);
 
 #ifdef HDZERO_FREESTYLE
 extern uint8_t powerLock;

@@ -1454,3 +1454,15 @@ void uart_baudrate_detect(void) {
         Setting_Save();
     }
 }
+
+void vtx_paralized(void) {
+    // Sleep until repower
+    WriteReg(0, 0x8F, 0x00);
+#ifdef _DEBUG_MODE
+    debugf("\r\nvtx paralized");
+#endif
+    while (1) {
+        LED_Flip();
+        WAIT(50);
+    }
+}

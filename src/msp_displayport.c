@@ -89,6 +89,7 @@ uint8_t crc8tab[256] = {
 
 uint8_t osd_menu_offset = 0;
 uint32_t msp_lst_rcv_sec = 0;
+uint32_t fc_lst_rcv_sec = 0;
 
 uint8_t boot_0mw_done = 0;
 
@@ -178,6 +179,7 @@ void msp_task() {
 
     // send param to FC -- 8HZ
     // send param to VRX -- 8HZ
+    // detect fc lost
     if (timer_8hz) {
         len = get_tx_data_5680();
         insert_tx_buf(len);
@@ -188,6 +190,11 @@ void msp_task() {
             msp_tx_cnt++;
         else
             msp_cmd_tx();
+
+        if (seconds - fc_lst_rcv_sec > 2) {
+            if (BOOT_0MW)
+                vtx_paralized();
+        }
     }
 
     // set_vtx
@@ -211,6 +218,9 @@ uint8_t msp_read_one_frame() {
         if ((!CMS_ready()) || full_frame)
             return ret;
         rx = CMS_rx();
+
+        if (BOOT_0MW)
+            fc_lst_rcv_sec = seconds;
 
         switch (state) {
         case MSP_HEADER_START:
@@ -791,12 +801,7 @@ void parse_status() {
     g_IS_PARALYZE = (msp_rx_buf[9] & 0x80);
 
     if (g_IS_PARALYZE) {
-        // Sleep until repower
-        WriteReg(0, 0x8F, 0x00);
-        while (1) {
-            LED_Flip();
-            WAIT(50);
-        }
+        vtx_paralized();
     }
 
     if (BOOT_0MW) {

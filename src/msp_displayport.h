@@ -169,6 +169,7 @@ extern uint8_t resolution;
 extern uint8_t first_arm;
 extern uint8_t mspVtxLock;
 extern uint32_t msp_lst_rcv_sec;
+extern uint32_t fc_lst_rcv_sec;
 extern uint8_t g_IS_ARMED;
 extern uint8_t g_IS_PARALYZE;
 extern uint8_t g_IS_FAILSAFE;
