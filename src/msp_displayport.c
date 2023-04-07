@@ -1,5 +1,4 @@
 #include "msp_displayport.h"
-
 #include "camera.h"
 #include "common.h"
 #include "dm6300.h"
@@ -32,7 +31,6 @@ uint8_t resolution = SD_3016;
 uint8_t resolution_last = HD_5018;
 
 uint8_t msp_rx_buf[64]; // from FC responding status|variant|rc commands
-uint8_t disarmed = 1;
 
 uint8_t vtx_channel;
 uint8_t vtx_power;
@@ -49,9 +47,12 @@ uint8_t fc_pwr_rx = 0;
 uint8_t fc_pit_rx = 0;
 uint8_t fc_lp_rx = 0;
 
+uint8_t g_IS_ARMED = 0;
+uint8_t g_IS_FAILSAFE = 0;
+uint8_t g_IS_PARALYZE = 0;
+
 uint8_t pit_mode_cfg_done = 0;
 uint8_t lp_mode_cfg_done = 0;
-uint8_t g_IS_ARMED_last = 0;
 
 uint8_t lq_cnt = 0;
 
@@ -788,7 +789,6 @@ void parse_status() {
     g_IS_ARMED = (msp_rx_buf[6] & 0x01);
     g_IS_FAILSAFE = (msp_rx_buf[6] & 0x40);
     g_IS_PARALYZE = (msp_rx_buf[9] & 0x80);
-    disarmed = !g_IS_ARMED;
 
     if (g_IS_PARALYZE) {
         // Sleep until repower
@@ -1203,7 +1203,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
     uint8_t IS_LO_roll = IS_LO(roll);
     uint8_t IS_MID_roll = IS_MID(roll);
 
-    if (!disarmed && (cms_state != CMS_OSD)) {
+    if (g_IS_ARMED && (cms_state != CMS_OSD)) {
         fc_init();
         cms_state = CMS_OSD;
     }
@@ -1232,7 +1232,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
 
     switch (cms_state) {
     case CMS_OSD:
-        if (disarmed) {
+        if (!g_IS_ARMED) {
             if (IS_HI_yaw && IS_LO_throttle && IS_LO_roll && IS_LO_pitch) {
                 if (cur_pwr == POWER_MAX + 2) {
                     cms_state = CMS_EXIT_0MW;
@@ -1329,7 +1329,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
     }
 
     case CMS_VTX_MENU: {
-        if (disarmed) {
+        if (!g_IS_ARMED) {
             if (last_mid) {
                 switch (vtx_state) {
                 // channel
@@ -1701,6 +1701,7 @@ void save_vtx_param() {
 }
 
 void set_vtx_param() {
+    static uint8_t g_IS_ARMED_last = 0;
     // If fc is lost, auto armed
     /*
     if(seconds >= PWR_LMT_SEC){

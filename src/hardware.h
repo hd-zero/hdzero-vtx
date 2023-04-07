@@ -87,6 +87,7 @@ void Set_540P60(uint8_t page);
 void Set_1080P30(uint8_t page);
 
 void Flicker_LED(uint8_t n);
+void LED_Flip();
 void LED_Task();
 
 uint8_t RF_BW_check(void);
@@ -110,9 +111,6 @@ extern uint8_t BAUDRATE;
 extern uint8_t pwr_offset;
 extern uint8_t heat_protect;
 
-extern uint8_t g_IS_ARMED;
-extern uint8_t g_IS_PARALYZE;
-extern uint8_t g_IS_FAILSAFE;
 extern uint8_t fc_lock;
 extern uint8_t vtx_pit;
 extern uint8_t vtx_pit_save;
