@@ -38,7 +38,7 @@ uint8_t vtx_lp;
 uint8_t vtx_pit;
 uint8_t vtx_pit_save = PIT_OFF;
 uint8_t vtx_offset = 0;
-uint8_t vtx_boot_0mw = 0;
+uint8_t vtx_team_race = 0;
 uint8_t first_arm = 0;
 
 uint8_t fc_band_rx = 0;
@@ -191,7 +191,7 @@ void msp_task() {
             msp_cmd_tx();
 
         if (seconds - fc_lst_rcv_sec > 2) {
-            if (BOOT_0MW)
+            if (TEAM_RACE)
                 vtx_paralized();
         }
     }
@@ -218,7 +218,7 @@ uint8_t msp_read_one_frame() {
             return ret;
         rx = CMS_rx();
 
-        if (BOOT_0MW)
+        if (TEAM_RACE)
             fc_lst_rcv_sec = seconds;
 
         switch (state) {
@@ -945,7 +945,7 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
     // update pit
     nxt_pwr = fc_pwr_rx - 1;
 
-    if ((boot_0mw_done == 0) && BOOT_0MW) {
+    if ((boot_0mw_done == 0) && TEAM_RACE) {
         msp_set_vtx_config(POWER_MAX + 1, 0);
         // sometimes FC delay to receive 0mW, so check fc reply power and resend 0mW.
         if (nxt_pwr == POWER_MAX + 1) {
@@ -1267,7 +1267,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
             vtx_lp = LP_MODE;
             vtx_pit = PIT_OFF;
             vtx_offset = OFFSET_25MW;
-            vtx_boot_0mw = BOOT_0MW;
+            vtx_team_race = TEAM_RACE;
             if (SA_lock) {
                 // PIT_MODE = 2;
                 vtx_pit = PIT_P1MW;
@@ -1439,7 +1439,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_state = 4;
                     else if (VirtualBtn == BTN_LEFT || VirtualBtn == BTN_RIGHT) {
-                        vtx_boot_0mw = 1 - vtx_boot_0mw;
+                        vtx_team_race = 1 - vtx_team_race;
                     }
                     update_vtx_menu_param(vtx_state);
                     break;
@@ -1560,7 +1560,7 @@ void vtx_menu_init() {
     strcpy(osd_buf[4] + osd_menu_offset + 2, " LP_MODE");
     strcpy(osd_buf[5] + osd_menu_offset + 2, " PIT_MODE");
     strcpy(osd_buf[6] + osd_menu_offset + 2, " OFFSET_25MW");
-    strcpy(osd_buf[7] + osd_menu_offset + 2, " 0MW BOOT");
+    strcpy(osd_buf[7] + osd_menu_offset + 2, " TEAM_RACE");
     strcpy(osd_buf[8] + osd_menu_offset + 2, " EXIT  ");
     strcpy(osd_buf[9] + osd_menu_offset + 2, " SAVE&EXIT");
     strcpy(osd_buf[10] + osd_menu_offset + 2, "------INFO------");
@@ -1584,7 +1584,7 @@ void vtx_menu_init() {
     vtx_lp = LP_MODE;
     vtx_pit = PIT_MODE;
     vtx_offset = OFFSET_25MW;
-    vtx_boot_0mw = BOOT_0MW;
+    vtx_team_race = TEAM_RACE;
     update_vtx_menu_param(0);
 }
 
@@ -1595,7 +1595,7 @@ void update_vtx_menu_param(uint8_t vtx_state) {
     const char *powerString[] = {"   25", "  200", "  500", "  MAX"};
     const char *lowPowerString[] = {"  OFF", "   ON", "  1ST"};
     const char *pitString[] = {"  OFF", " P1MW", "  0MW"};
-    const char *boot0mwString[] = {"  OFF", "   ON"};
+    const char *treamRaceString[] = {"  OFF", "   ON"};
 
     // cursor
     vtx_state += 2;
@@ -1633,7 +1633,7 @@ void update_vtx_menu_param(uint8_t vtx_state) {
     } else if (vtx_offset == 20)
         strcpy(osd_buf[6] + osd_menu_offset + 20, "  -10");
 
-    strcpy(osd_buf[7] + osd_menu_offset + 20, boot0mwString[vtx_boot_0mw]);
+    strcpy(osd_buf[7] + osd_menu_offset + 20, treamRaceString[vtx_team_race]);
 
     ParseLifeTime(hourString, minuteString);
     osd_buf[13][osd_menu_offset + 16] = hourString[0];
@@ -1653,7 +1653,7 @@ void save_vtx_param() {
     PIT_MODE = vtx_pit;
     vtx_pit_save = vtx_pit;
     OFFSET_25MW = vtx_offset;
-    BOOT_0MW = vtx_boot_0mw;
+    TEAM_RACE = vtx_team_race;
     CFG_Back();
     Setting_Save();
     Imp_RF_Param();
@@ -1663,7 +1663,7 @@ void save_vtx_param() {
     lp_mode_cfg_done = 0;
     first_arm = 0;
 
-    if (BOOT_0MW)
+    if (TEAM_RACE)
         boot_0mw_done = 1;
 
     if (!SA_lock) {
@@ -1731,7 +1731,7 @@ void set_vtx_param() {
     if (g_IS_ARMED && !g_IS_ARMED_last) {
         // Power_Auto
         if (vtx_pit_save == PIT_0MW) {
-            if (BOOT_0MW)
+            if (TEAM_RACE)
                 ;
             else {
                 // exit 0mW
@@ -1775,7 +1775,7 @@ void set_vtx_param() {
         first_arm = 1;
         PIT_MODE = PIT_OFF;
         Setting_Save();
-        if (!BOOT_0MW)
+        if (!TEAM_RACE)
             msp_set_vtx_config(RF_POWER, 1);
     } else if (!g_IS_ARMED && g_IS_ARMED_last) {
         if (LP_MODE == 1) {
@@ -1825,7 +1825,7 @@ void InitVtxTable() {
 #endif
 
     // set band num, channel num and power level number
-    if (BOOT_0MW)
+    if (TEAM_RACE)
         msp_set_vtx_config(POWER_MAX + 1, 0);
     else
         msp_set_vtx_config(fc_pwr_rx, 0);

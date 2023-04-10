@@ -32,7 +32,7 @@ typedef enum {
 #define EEP_ADDR_LPMODE     0x82
 #define EEP_ADDR_PITMODE    0x83
 #define EEP_ADDR_25MW       0x84
-#define EEP_ADDR_BOOT_0MW   0x85
+#define EEP_ADDR_TEAM_RACE  0x85
 #define EEP_ADDR_SA_LOCK    0x88
 #define EEP_ADDR_POWER_LOCK 0x89
 #define EEP_ADDR_VTX_CONFIG 0x8A
@@ -102,7 +102,7 @@ extern uint8_t RF_POWER;
 extern uint8_t LP_MODE;
 extern uint8_t PIT_MODE;
 extern uint8_t OFFSET_25MW;
-extern uint8_t BOOT_0MW;
+extern uint8_t TEAM_RACE;
 extern uint8_t KEYBOARD_ON;
 extern uint8_t EE_VALID;
 extern uint8_t RF_BW;

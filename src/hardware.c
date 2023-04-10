@@ -41,7 +41,7 @@ uint8_t RF_FREQ = 0;
 uint8_t LP_MODE = 0;
 uint8_t PIT_MODE = 0;
 uint8_t OFFSET_25MW = 0; // 0~10 -> 0~10    11~20 -> -1~-10
-uint8_t BOOT_0MW = 0;
+uint8_t TEAM_RACE = 0;
 uint8_t BAUDRATE = 0;
 
 uint8_t RF_BW = BW_27M;
@@ -281,7 +281,7 @@ void Setting_Save() {
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
-        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BOOT_0MW, BOOT_0MW);
+        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_TEAM_RACE, TEAM_RACE);
 #ifdef _DEBUG_MODE
         if (!err)
             debugf("\r\nEEPROM write success");
@@ -296,7 +296,7 @@ void Setting_Save() {
     debugf("    PIT_MODE=%d\r\n", (uint16_t)PIT_MODE);
     debugf("    OFFSET_25MW=%d\r\n", (uint16_t)OFFSET_25MW);
     debugf("    BAUDRATE=%d\r\n", (uint16_t)BAUDRATE);
-    debugf("    BOOT_0MW=%d\r\n", (uint16_t)BOOT_0MW);
+    debugf("    TEAM_RACE=%d\r\n", (uint16_t)TEAM_RACE);
 #endif
 }
 
@@ -306,7 +306,7 @@ void CFG_Back() {
     LP_MODE = (LP_MODE > 2) ? 0 : LP_MODE;
     PIT_MODE = (PIT_MODE > PIT_0MW) ? PIT_OFF : PIT_MODE;
     OFFSET_25MW = (OFFSET_25MW > 20) ? 0 : OFFSET_25MW;
-    BOOT_0MW = (BOOT_0MW > 1) ? 0 : BOOT_0MW;
+    TEAM_RACE = (TEAM_RACE > 1) ? 0 : TEAM_RACE;
     BAUDRATE = (BAUDRATE > 1) ? 0 : BAUDRATE;
 }
 
@@ -384,7 +384,7 @@ void GetVtxParameter() {
         LP_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_LPMODE);
         PIT_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_PITMODE);
         OFFSET_25MW = I2C_Read8(ADDR_EEPROM, EEP_ADDR_25MW);
-        BOOT_0MW = I2C_Read8(ADDR_EEPROM, EEP_ADDR_BOOT_0MW);
+        TEAM_RACE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_TEAM_RACE);
         BAUDRATE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_BAUDRATE);
 
         CFG_Back();

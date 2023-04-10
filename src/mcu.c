@@ -228,7 +228,7 @@ void RF_Delay_Init() {
         debugf("\r\nRF_Delay_Init: None");
 #endif
         if (!fc_lst_rcv_sec) {
-            if (BOOT_0MW)
+            if (TEAM_RACE)
                 vtx_paralized();
         }
 #if (0)
