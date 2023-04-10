@@ -48,7 +48,6 @@ uint8_t fc_pit_rx = 0;
 uint8_t fc_lp_rx = 0;
 
 uint8_t g_IS_ARMED = 0;
-uint8_t g_IS_FAILSAFE = 0;
 uint8_t g_IS_PARALYZE = 0;
 
 uint8_t pit_mode_cfg_done = 0;
@@ -791,41 +790,16 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
 }
 
 void parse_status() {
-    static uint8_t g_IS_FAILSAFE_last = 0;
-    static uint8_t lst_pwr = 0; // used for boot_0mW
 
     if (!(fc_lock & FC_STATUS_LOCK))
         fc_lock |= FC_STATUS_LOCK;
 
     g_IS_ARMED = (msp_rx_buf[6] & 0x01);
-    g_IS_FAILSAFE = (msp_rx_buf[6] & 0x40);
     g_IS_PARALYZE = (msp_rx_buf[9] & 0x80);
 
     if (g_IS_PARALYZE) {
         vtx_paralized();
     }
-
-    if (BOOT_0MW) {
-        if (g_IS_FAILSAFE && !g_IS_FAILSAFE_last) {
-            lst_pwr = cur_pwr;
-            WriteReg(0, 0x8F, 0x10);
-            dm6300_init_done = 0;
-            cur_pwr = POWER_MAX + 2;
-            vtx_pit_save = PIT_0MW;
-            vtx_pit = PIT_0MW;
-            temp_err = 1;
-            msp_set_vtx_config(POWER_MAX + 1, 0);
-        } else if (!g_IS_FAILSAFE && g_IS_FAILSAFE_last) {
-            if (lst_pwr <= POWER_MAX) {
-                RF_POWER = lst_pwr;
-                Init_6300RF(RF_FREQ, RF_POWER);
-                DM6300_AUXADC_Calib();
-                msp_set_vtx_config(RF_POWER, 1);
-            }
-        }
-    }
-
-    g_IS_FAILSAFE_last = g_IS_FAILSAFE;
 
 #if (0)
     debugf("\n\rstatus:%x %x %x %x", (uint16_t)msp_rx_buf[6], (uint16_t)msp_rx_buf[7], (uint16_t)msp_rx_buf[8], (uint16_t)msp_rx_buf[9]);
@@ -844,10 +818,6 @@ void parse_variant() {
 
 void parse_rc() {
     uint16_t roll, pitch, yaw, throttle;
-    // static uint16_t roll_d,pitch_d,yaw_d,throttle_d;
-
-    if (BOOT_0MW && g_IS_FAILSAFE)
-        return;
 
     if (!(fc_lock & FC_RC_LOCK))
         fc_lock |= FC_RC_LOCK;
@@ -858,12 +828,6 @@ void parse_rc() {
     throttle = (msp_rx_buf[7] << 8) | msp_rx_buf[6];
 
     update_cms_menu(roll, pitch, yaw, throttle);
-    /*
-    roll_d = roll;
-    pitch_d = pitch;
-    yaw_d = yaw;
-    throttle_d = throttle;
-    */
 }
 void parse_vtx_config() {
     uint8_t nxt_ch = 0;
@@ -925,9 +889,6 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
         return;
 
     if (!(fc_lock & FC_VTX_CONFIG_LOCK))
-        return;
-
-    if (BOOT_0MW && g_IS_FAILSAFE)
         return;
 
     fc_band_rx = msp_rx_buf[1];
