@@ -792,6 +792,7 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
 
 void parse_status() {
     static uint8_t g_IS_FAILSAFE_last = 0;
+    static uint8_t lst_pwr = 0; // used for boot_0mW
 
     if (!(fc_lock & FC_STATUS_LOCK))
         fc_lock |= FC_STATUS_LOCK;
@@ -806,6 +807,7 @@ void parse_status() {
 
     if (BOOT_0MW) {
         if (g_IS_FAILSAFE && !g_IS_FAILSAFE_last) {
+            lst_pwr = cur_pwr;
             WriteReg(0, 0x8F, 0x10);
             dm6300_init_done = 0;
             cur_pwr = POWER_MAX + 2;
@@ -813,8 +815,14 @@ void parse_status() {
             vtx_pit = PIT_0MW;
             temp_err = 1;
             msp_set_vtx_config(POWER_MAX + 1, 0);
-        } else if (!g_IS_FAILSAFE && g_IS_FAILSAFE_last)
-            msp_set_vtx_config(RF_POWER, 1);
+        } else if (!g_IS_FAILSAFE && g_IS_FAILSAFE_last) {
+            if (lst_pwr <= POWER_MAX) {
+                RF_POWER = lst_pwr;
+                Init_6300RF(RF_FREQ, RF_POWER);
+                DM6300_AUXADC_Calib();
+                msp_set_vtx_config(RF_POWER, 1);
+            }
+        }
     }
 
     g_IS_FAILSAFE_last = g_IS_FAILSAFE;
