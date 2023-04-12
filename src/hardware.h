@@ -56,7 +56,7 @@ typedef enum {
 #define POWER_MAX 1
 #endif
 
-#ifdef HDZERO_FREESTYLE
+#ifdef USE_TC3587_LED
 #define LED_BLUE_ON  I2C_Write16(ADDR_TC3587, 0x0014, 0x0000)
 #define LED_BLUE_OFF I2C_Write16(ADDR_TC3587, 0x0014, 0x8000)
 #else

@@ -396,7 +396,7 @@ void GetVtxParameter() {
 #endif
 
 // last_SA_lock
-#ifdef USE_SMARTAUDIO
+#if defined USE_SMARTAUDIO_SW || defined USE_SMARTAUDIO_HW
         last_SA_lock = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK);
         WAIT(10);
         if (last_SA_lock == 0xff) {
@@ -499,7 +499,7 @@ void Init_HW() {
     Init_6300RF(RF_FREQ, RF_POWER);
     DM6300_AUXADC_Calib();
 #else
-#ifdef HDZERO_FREESTYLE
+#ifdef USE_TC3587_LED
     LED_TC3587_Init();
 #endif
     GetVtxParameter();
@@ -1323,6 +1323,9 @@ void OnButton1() {
     static uint8_t leave_respond = 0;
     static uint16_t cur_sec = 0;
     static uint8_t last_keyon = 0;
+
+    if (SA_lock)
+        return;
 
     if (cur_sec != seconds) {
         cur_sec = seconds;

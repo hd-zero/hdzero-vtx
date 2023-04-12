@@ -1,5 +1,4 @@
 #include "smartaudio_protocol.h"
-
 #include "common.h"
 #include "dm6300.h"
 #include "global.h"
@@ -14,14 +13,14 @@
 #include "uart.h"
 
 uint8_t SA_lock = 0;
-uint8_t SA_config = 0;
-uint8_t SA_is_0 = 1; // detect pre hreder 0x00
 
 uint8_t pwr_init = 0; // 0:POWER_MAX+2
 uint8_t ch_init = 0;  // 0~9
 uint8_t ch_bf = 0;
 
-#ifdef USE_SMARTAUDIO
+#if defined USE_SMARTAUDIO_SW || defined USE_SMARTAUDIO_HW
+uint8_t SA_is_0 = 1; // detect pre hreder 0x00
+uint8_t SA_config = 0;
 
 uint8_t sa_rbuf[8];
 uint8_t SA_dbm = 14;
@@ -43,6 +42,9 @@ uint8_t mode_p = 0x05;
 uint8_t freq_new_h = 0x16;
 uint8_t freq_new_l = 0x1a;
 uint16_t freq = 0x161a;
+
+uint8_t sa_status = SA_ST_IDLE;
+uint32_t sa_start_ms = 0;
 
 uint8_t dbm_to_pwr(uint8_t dbm) {
     if (dbm == 0)
@@ -403,19 +405,18 @@ void SA_Update(uint8_t cmd) {
 #endif
         break;
     }
-    //_outchar('_');
 }
+#if defined USE_SMARTAUDIO_SW
+uint8_t SA_task(void) {
+    static uint8_t st = 0, SA = 0xFF;
 
-uint8_t SA_task() {
-    static uint8_t SA_state = 0, SA = 0xFF;
-
-    if (SA_state == 0) { // monitor SA pin
+    if (st == 0) { // monitor SA pin
         SA = (SA << 1) | SUART_PORT;
         if (SA == 0xfe) {
             SA_config = 1;
             SA_is_0 = 1;
             IE = 0xC2; // UART1 & Timer0 enabled, UART0 disabled
-            SA_state = 1;
+            st = 1;
 #ifdef _DEBUG_SMARTAUDIO
             _outchar('\n');
             _outchar('\r');
@@ -426,19 +427,32 @@ uint8_t SA_task() {
         if (SA_Process()) {
             SA_config = 0;
             IE = 0xD2; // UART1 & Timer0 enabled, UART0 0 enable
-            SA_state = 0;
+            st = 0;
             SA = 0xFF;
 #ifdef _DEBUG_SMARTAUDIO
             _outchar('>');
 #endif
         }
     }
-    return SA_state;
+    return st;
 }
+#elif defined USE_SMARTAUDIO_HW
+uint8_t SA_task(void) {
+    return 1 - SA_Process();
+}
+uint8_t SA_timeout(void) {
+    if (timer_ms10x - sa_start_ms > 5000) {
+        uart_set_baudrate(BAUDRATE);
+        sa_status = SA_ST_IDLE;
+        return 1;
+    }
+    return 0;
+}
+#endif
 
 uint8_t SA_Process() {
     static uint8_t rx = 0;
-    static uint8_t sa_status = SA_HEADER0;
+    static uint8_t status = SA_HEADER0;
     static uint8_t cmd = 0;
     static uint8_t crc = 0;
     static uint8_t len = 0;
@@ -447,15 +461,18 @@ uint8_t SA_Process() {
 
     if (SUART_ready()) {
         rx = SUART_rx();
+#if (1)
+        CMS_tx(rx);
+#endif
 #ifdef _DEBUG_SMARTAUDIO
 // debugf("%x ", (uint16_t)rx);
 #endif
-        switch (sa_status) {
+        switch (status) {
         case SA_HEADER0:
             if (rx == SA_HEADER0_BYTE) {
                 crc = crc8tab[rx]; // 0 ^ rx = rx
                 index = 0;
-                sa_status = SA_HEADER1;
+                status = SA_HEADER1;
             } else {
                 ret = 1;
             }
@@ -464,9 +481,9 @@ uint8_t SA_Process() {
         case SA_HEADER1:
             if (rx == SA_HEADER1_BYTE) {
                 crc = crc8tab[crc ^ rx];
-                sa_status = SA_CMD;
+                status = SA_CMD;
             } else {
-                sa_status = SA_HEADER0;
+                status = SA_HEADER0;
                 ret = 1;
             }
             break;
@@ -475,9 +492,9 @@ uint8_t SA_Process() {
             if (rx & 1) {
                 cmd = rx >> 1;
                 crc = crc8tab[crc ^ rx];
-                sa_status = SA_LENGTH;
+                status = SA_LENGTH;
             } else {
-                sa_status = SA_HEADER0;
+                status = SA_HEADER0;
                 ret = 1;
             }
             break;
@@ -485,14 +502,14 @@ uint8_t SA_Process() {
         case SA_LENGTH:
             len = rx;
             if (len > 16) {
-                sa_status = SA_HEADER0;
+                status = SA_HEADER0;
                 ret = 1;
             } else {
                 crc = crc8tab[crc ^ rx];
                 if (len == 0)
-                    sa_status = SA_CRC;
+                    status = SA_CRC;
                 else {
-                    sa_status = SA_PAYLOAD;
+                    status = SA_PAYLOAD;
                     index = 0;
                 }
             }
@@ -503,7 +520,7 @@ uint8_t SA_Process() {
             sa_rbuf[index++] = rx;
             len--;
             if (len == 0)
-                sa_status = SA_CRC;
+                status = SA_CRC;
             break;
 
         case SA_CRC:
@@ -517,12 +534,12 @@ uint8_t SA_Process() {
 #endif
             }
             ret = 1;
-            sa_status = SA_HEADER0;
+            status = SA_HEADER0;
             break;
 
         default:
             ret = 1;
-            sa_status = SA_HEADER0;
+            status = SA_HEADER0;
             break;
         }
     } else {

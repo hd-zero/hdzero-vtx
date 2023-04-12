@@ -44,7 +44,7 @@ void CPU_init(void) {
                 //	               f(clk)
                 //  BaudRate = --------------  (M=16 or 32, decided by PCON double rate flag)
                 //             N*(256-TH1)*M   (N=4 or 12, decided by CKCON [4])
-                // 19200  - 0x87
+                // 19200  - 0x87    256 - 148.5M/64/19200 = 0x87
                 // 115200 - 0xEC    256 - 148.5M/64/115200 = 0xEC  0.7%
                 // 230400 - 0xF6    256 - 148.5M/64/230400 = 0xF6  0.7%
                 // 250000 - 0xF7    256 - 148.5M/64/250000 = 0xF7  3.125%
