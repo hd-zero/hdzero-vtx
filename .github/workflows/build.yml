@@ -9,7 +9,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - id: set-targets
-        run: echo "targets=[$(grep -r "\[env:" platformio.ini | sed 's/.*:\(.*\)].*/"\1"/' | tr '\n' ',')]" >> $GITHUB_OUTPUT
+        run: echo "targets=[$(grep -r "\[env:" targets/*.ini | sed 's/.*:\(.*\)].*/"\1"/' | tr '\n' ',')]" >> $GITHUB_OUTPUT
 
   build:
     needs: targets
