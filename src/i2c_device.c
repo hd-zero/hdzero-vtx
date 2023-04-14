@@ -64,7 +64,7 @@ void set_segment(uint32_t val) {
 
 /////////////////////////////////////////////////////////////////
 // TC3587
-#ifdef HDZERO_FREESTYLE
+#ifdef USE_TC3587_LED
 void LED_TC3587_Init() {
     I2C_Write16(ADDR_TC3587, 0x0002, 0x0001);
     I2C_Write16(ADDR_TC3587, 0x0002, 0x0000); // srst

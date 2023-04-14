@@ -1,5 +1,6 @@
 #include "uart.h"
 #include "common.h"
+#include "global.h"
 #include "hardware.h"
 #include "print.h"
 #include "smartaudio_protocol.h"
@@ -30,9 +31,11 @@ volatile BIT_TYPE RS_Xbusy1 = 0;
 void uart_set_baudrate(uint8_t baudIndex) {
     switch (baudIndex) {
     case 0: // 115200
+        CKCON = 0x1F;
         TH1 = 0xEC;
         break;
-    case 1:
+    case 1: // 230400
+        CKCON = 0x1F;
         TH1 = 0xF6;
         break;
     }
@@ -82,6 +85,7 @@ uint8_t RS_rx_len(void)
         return RS_out - RS_in;
 }
 
+#ifdef USE_SMARTAUDIO_HW
 uint8_t RS_ready1(void) {
     if (RS_in1 == RS_out1)
         return 0;
@@ -92,7 +96,6 @@ uint8_t RS_ready1(void) {
 uint8_t RS_rx1(void) {
     uint8_t ret;
     ret = RS_buf1[RS_out1];
-
     RS_out1++;
     if (RS_out1 >= BUF1_MAX)
         RS_out1 = 0;
@@ -111,6 +114,35 @@ void RS_tx1(uint8_t c) {
     }
 }
 
+#else
+uint8_t RS_ready1(void) {
+    if (RS_in1 == RS_out1)
+        return 0;
+    else
+        return 1;
+}
+
+uint8_t RS_rx1(void) {
+    uint8_t ret;
+    ret = RS_buf1[RS_out1];
+    RS_out1++;
+    if (RS_out1 >= BUF1_MAX)
+        RS_out1 = 0;
+
+    return ret;
+}
+
+void RS_tx1(uint8_t c) {
+    timer_ms10x_lst = timer_ms10x;
+    while (1) {
+        if ((!RS_Xbusy1) || (timer_ms10x - timer_ms10x_lst > 100)) {
+            SBUF1 = c;
+            RS_Xbusy1 = 1;
+            break;
+        }
+    }
+}
+#endif
 /*
 #ifdef EXTEND_BUF
 uint16_t RS_rx1_len(void)
@@ -126,7 +158,7 @@ uint8_t RS_rx1_len(void)
 
 ////////////////////////////////////////////////////////////////////////////
 // SUART TX
-#ifdef USE_SMARTAUDIO
+#ifdef USE_SMARTAUDIO_SW
 XDATA_SEG uint8_t SUART_rbuf[SUART_BUF_MAX];
 XDATA_SEG uint8_t SUART_rin = 0, SUART_rout = 0, SUART_rERR = 0;
 
@@ -236,5 +268,22 @@ void SUART_tx(uint8_t *tbuf, uint8_t len) {
         while (suart_tx_en)
             ;
     }
+}
+#elif defined USE_SMARTAUDIO_HW
+uint8_t SUART_ready() {
+    return RS_ready1();
+}
+uint8_t SUART_rx() {
+    return RS_rx1();
+}
+void SUART_tx(uint8_t *tbuf, uint8_t len) {
+    uint8_t i;
+    sa_status = SA_ST_TX;
+    for (i = 0; i < len; i++) {
+        RS_tx1(tbuf[i]);
+        WAIT(2); // extern 1 stop bits
+    }
+    sa_status = SA_ST_IDLE;
+    uart_set_baudrate(BAUDRATE);
 }
 #endif

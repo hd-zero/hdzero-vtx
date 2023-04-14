@@ -583,11 +583,14 @@ uint8_t get_tx_data_osd(uint8_t index) // prepare osd+data to VTX
             }
         }
         return (uint8_t)(ptr + 1);
-    } else {
+    }
+#if (0)
+    else {
         // blank line
         tx_buf[3] = 0;
         return 5;
     }
+#endif
 }
 
 void insert_tx_byte(uint8_t c) {
