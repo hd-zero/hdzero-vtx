@@ -795,11 +795,13 @@ void parse_status() {
         fc_lock |= FC_STATUS_LOCK;
 
     g_IS_ARMED = (msp_rx_buf[6] & 0x01);
+#if (0)
     g_IS_PARALYZE = (msp_rx_buf[9] & 0x80);
 
     if (g_IS_PARALYZE) {
         vtx_paralized();
     }
+#endif
 
 #if (0)
     debugf("\n\rstatus:%x %x %x %x", (uint16_t)msp_rx_buf[6], (uint16_t)msp_rx_buf[7], (uint16_t)msp_rx_buf[8], (uint16_t)msp_rx_buf[9]);
