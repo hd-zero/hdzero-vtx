@@ -1637,10 +1637,11 @@ void update_vtx_menu_param(uint8_t vtx_state) {
     osd_buf[13][osd_menu_offset + 21] = minuteString[0];
     osd_buf[13][osd_menu_offset + 22] = minuteString[1];
     osd_buf[13][osd_menu_offset + 23] = 'M';
-
+#ifdef USE_TEMPERATURE_SENSOR
     osd_buf[14][osd_menu_offset + 16] = (temperature >> 2) / 100 + '0';
     osd_buf[14][osd_menu_offset + 17] = ((temperature >> 2) % 100) / 10 + '0';
     osd_buf[14][osd_menu_offset + 18] = ((temperature >> 2) % 10) + '0';
+#endif
 }
 
 void save_vtx_param() {
