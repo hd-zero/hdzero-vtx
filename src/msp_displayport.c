@@ -191,7 +191,7 @@ void msp_task() {
             msp_cmd_tx();
 
         if (seconds - fc_lst_rcv_sec > 2) {
-            if (TEAM_RACE)
+            if (TEAM_RACE == 0x01)
                 vtx_paralized();
         }
     }
@@ -1438,8 +1438,14 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                         vtx_state = 6;
                     else if (VirtualBtn == BTN_UP)
                         vtx_state = 4;
-                    else if (VirtualBtn == BTN_LEFT || VirtualBtn == BTN_RIGHT) {
-                        vtx_team_race = 1 - vtx_team_race;
+                    else if (VirtualBtn == BTN_LEFT) {
+                        vtx_team_race--;
+                        if (vtx_team_race > 2)
+                            vtx_team_race = 2;
+                    } else if (VirtualBtn == BTN_RIGHT) {
+                        vtx_team_race++;
+                        if (vtx_team_race > 2)
+                            vtx_team_race = 0;
                     }
                     update_vtx_menu_param(vtx_state);
                     break;
@@ -1595,7 +1601,7 @@ void update_vtx_menu_param(uint8_t vtx_state) {
     const char *powerString[] = {"   25", "  200", "  500", "  MAX"};
     const char *lowPowerString[] = {"  OFF", "   ON", "  1ST"};
     const char *pitString[] = {"  OFF", " P1MW", "  0MW"};
-    const char *treamRaceString[] = {"  OFF", "   ON"};
+    const char *treamRaceString[] = {"  OFF", "MODE1", "MODE2"};
 
     // cursor
     vtx_state += 2;
