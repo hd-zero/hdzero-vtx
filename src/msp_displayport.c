@@ -1557,7 +1557,9 @@ void vtx_menu_init() {
     strcpy(osd_buf[11] + osd_menu_offset + 2, " VTX");
     strcpy(osd_buf[12] + osd_menu_offset + 2, " VER");
     strcpy(osd_buf[13] + osd_menu_offset + 2, " LIFETIME");
+#ifdef USE_TEMPERATURE_SENSOR
     strcpy(osd_buf[14] + osd_menu_offset + 2, " TEMPERATURE");
+#endif
 
     for (i = 2; i < 8; i++) {
         osd_buf[i][osd_menu_offset + 19] = '<';
