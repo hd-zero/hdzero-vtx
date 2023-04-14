@@ -576,8 +576,58 @@ void TempDetect() {
 #endif
 
 #ifdef USE_TEMPERATURE_SENSOR
+uint8_t temperature_level(void) {
+    int16_t ret;
+    ret = temperature >> 2;
+
+    if (ret < 25)
+        ret = 0;
+    else if (ret < 30)
+        ret = 1;
+    else if (ret < 35)
+        ret = 2;
+    else if (ret < 38)
+        ret = 3;
+    else if (ret < 40)
+        ret = 4;
+    else if (ret < 43)
+        ret = 5;
+    else if (ret < 45)
+        ret = 6;
+    else if (ret < 48)
+        ret = 7;
+    else if (ret < 50)
+        ret = 8;
+    else if (ret < 53)
+        ret = 9;
+    else if (ret < 55)
+        ret = 10;
+    else if (ret < 58)
+        ret = 11;
+    else if (ret < 60)
+        ret = 12;
+    else if (ret < 63)
+        ret = 13;
+    else if (ret < 65)
+        ret = 14;
+    else if (ret < 68)
+        ret = 15;
+    else if (ret < 70)
+        ret = 16;
+    else if (ret < 73)
+        ret = 17;
+    else if (ret < 75)
+        ret = 18;
+    else if (ret < 78)
+        ret = 19;
+    else if (ret < 80)
+        ret = 20;
+    else
+        ret = 20;
+
+    return (uint8_t)ret;
+}
 void PowerAutoSwitch() {
-    int16_t temp;
     static uint8_t last_ofs = 0;
 
     if (pwr_sflg)
@@ -585,53 +635,8 @@ void PowerAutoSwitch() {
     else
         return;
 
-    temp = temperature >> 2; // ADC temp
     last_ofs = pwr_offset;
-
-    if (temp < 25)
-        pwr_offset = 0;
-    else if (temp < 30)
-        pwr_offset = 1;
-    else if (temp < 35)
-        pwr_offset = 2;
-    else if (temp < 38)
-        pwr_offset = 3;
-    else if (temp < 40)
-        pwr_offset = 4;
-    else if (temp < 43)
-        pwr_offset = 5;
-    else if (temp < 45)
-        pwr_offset = 6;
-    else if (temp < 48)
-        pwr_offset = 7;
-    else if (temp < 50)
-        pwr_offset = 8;
-    else if (temp < 53)
-        pwr_offset = 9;
-    else if (temp < 55)
-        pwr_offset = 10;
-    else if (temp < 58)
-        pwr_offset = 11;
-    else if (temp < 60)
-        pwr_offset = 12;
-    else if (temp < 63)
-        pwr_offset = 13;
-    else if (temp < 65)
-        pwr_offset = 14;
-    else if (temp < 68)
-        pwr_offset = 15;
-    else if (temp < 70)
-        pwr_offset = 16;
-    else if (temp < 73)
-        pwr_offset = 17;
-    else if (temp < 75)
-        pwr_offset = 18;
-    else if (temp < 78)
-        pwr_offset = 19;
-    else if (temp < 80)
-        pwr_offset = 20;
-    else
-        pwr_offset = 20;
+    pwr_offset = temperature_level();
 
 #ifdef HDZERO_WHOOP_LITE
     pwr_offset >>= 1;
@@ -642,7 +647,7 @@ void PowerAutoSwitch() {
     else {
         DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
 #ifdef _DEBUG_MODE
-        verbosef("\r\nPowerAutoSwitch: temp = %x%x, ", (uint16_t)(temp >> 8), (uint16_t)(temp & 0xff));
+        verbosef("\r\nPowerAutoSwitch: temp = %x%x, ", (uint16_t)(temperature >> 10), (uint16_t)((temperature >> 2) & 0xff));
         verbosef("pwr_offset = %d", (uint16_t)pwr_offset);
 #endif
         cur_pwr = RF_POWER;

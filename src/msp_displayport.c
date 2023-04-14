@@ -465,7 +465,7 @@ uint8_t get_tx_data_5680() // prepare data to VRX
 
 // VTX temp and overhot
 #ifdef USE_TEMPERATURE_SENSOR
-    temp = pwr_offset >> 1;
+    temp = temperature_level() >> 1;
     if (temp > 8)
         temp = 8;
     tx_buf[10] = 0x80 | (heat_protect << 6) | temp;
