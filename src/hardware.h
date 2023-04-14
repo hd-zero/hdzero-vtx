@@ -131,4 +131,6 @@ extern uint8_t led_status;
 extern uint8_t dispF_cnt;
 extern uint8_t temp_err;
 extern uint8_t rf_delay_init_done;
+
+extern int16_t temperature;
 #endif /* __HARDWARE_H_ */
