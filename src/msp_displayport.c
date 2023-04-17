@@ -475,7 +475,7 @@ uint8_t get_tx_data_5680() // prepare data to VRX
 
 // VTX temp and overhot
 #ifdef USE_TEMPERATURE_SENSOR
-    temp = pwr_offset >> 1;
+    temp = temperature_level() >> 1;
     if (temp > 8)
         temp = 8;
     tx_buf[10] = 0x80 | (heat_protect << 6) | temp;
@@ -1578,6 +1578,9 @@ void vtx_menu_init() {
     strcpy(osd_buf[11] + osd_menu_offset + 2, " VTX");
     strcpy(osd_buf[12] + osd_menu_offset + 2, " VER");
     strcpy(osd_buf[13] + osd_menu_offset + 2, " LIFETIME");
+#ifdef USE_TEMPERATURE_SENSOR
+    strcpy(osd_buf[14] + osd_menu_offset + 2, " TEMPERATURE");
+#endif
 
     for (i = 2; i < 8; i++) {
         osd_buf[i][osd_menu_offset + 19] = '<';
@@ -1655,6 +1658,11 @@ void update_vtx_menu_param(uint8_t vtx_state) {
     osd_buf[13][osd_menu_offset + 21] = minuteString[0];
     osd_buf[13][osd_menu_offset + 22] = minuteString[1];
     osd_buf[13][osd_menu_offset + 23] = 'M';
+#ifdef USE_TEMPERATURE_SENSOR
+    osd_buf[14][osd_menu_offset + 16] = (temperature >> 2) / 100 + '0';
+    osd_buf[14][osd_menu_offset + 17] = ((temperature >> 2) % 100) / 10 + '0';
+    osd_buf[14][osd_menu_offset + 18] = ((temperature >> 2) % 10) + '0';
+#endif
 }
 
 void save_vtx_param() {
