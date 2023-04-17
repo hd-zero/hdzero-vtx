@@ -255,6 +255,8 @@ void RF_Delay_Init() {
 #ifdef _DEBUG_MODE
         debugf("\r\nRF_Delay_Init: None");
 #endif
+        if (TEAM_RACE == 0x01)
+            vtx_paralized();
 #if (0)
         if (PIT_MODE == PIT_0MW) {
             pwr_lmt_done = 1;
