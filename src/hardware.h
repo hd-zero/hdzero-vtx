@@ -32,7 +32,7 @@ typedef enum {
 #define EEP_ADDR_LPMODE     0x82
 #define EEP_ADDR_PITMODE    0x83
 #define EEP_ADDR_25MW       0x84
-#define EEP_ADDR_BOOT_0MW   0x85
+#define EEP_ADDR_TEAM_RACE  0x85
 #define EEP_ADDR_SA_LOCK    0x88
 #define EEP_ADDR_POWER_LOCK 0x89
 #define EEP_ADDR_VTX_CONFIG 0x8A
@@ -56,7 +56,7 @@ typedef enum {
 #define POWER_MAX 1
 #endif
 
-#ifdef HDZERO_FREESTYLE
+#ifdef USE_TC3587_LED
 #define LED_BLUE_ON  I2C_Write16(ADDR_TC3587, 0x0014, 0x0000)
 #define LED_BLUE_OFF I2C_Write16(ADDR_TC3587, 0x0014, 0x8000)
 #else
@@ -87,11 +87,13 @@ void Set_540P60(uint8_t page);
 void Set_1080P30(uint8_t page);
 
 void Flicker_LED(uint8_t n);
+void LED_Flip();
 void LED_Task();
 
 uint8_t RF_BW_check(void);
 void uart_baudrate_detect(void);
 uint8_t temperature_level(void);
+void vtx_paralized(void);
 
 #ifdef HDZERO_FREESTYLE
 extern uint8_t powerLock;
@@ -101,7 +103,7 @@ extern uint8_t RF_POWER;
 extern uint8_t LP_MODE;
 extern uint8_t PIT_MODE;
 extern uint8_t OFFSET_25MW;
-extern uint8_t BOOT_0MW;
+extern uint8_t TEAM_RACE;
 extern uint8_t KEYBOARD_ON;
 extern uint8_t EE_VALID;
 extern uint8_t RF_BW;
@@ -111,9 +113,6 @@ extern uint8_t BAUDRATE;
 extern uint8_t pwr_offset;
 extern uint8_t heat_protect;
 
-extern uint8_t g_IS_ARMED;
-extern uint8_t g_IS_ARMED_last;
-extern uint8_t g_IS_PARALYZE;
 extern uint8_t fc_lock;
 extern uint8_t vtx_pit;
 extern uint8_t vtx_pit_save;

@@ -41,14 +41,11 @@ uint8_t RF_FREQ = 0;
 uint8_t LP_MODE = 0;
 uint8_t PIT_MODE = 0;
 uint8_t OFFSET_25MW = 0; // 0~10 -> 0~10    11~20 -> -1~-10
-uint8_t BOOT_0MW = 0;
+uint8_t TEAM_RACE = 0;
 uint8_t BAUDRATE = 0;
 
 uint8_t RF_BW = BW_27M;
 uint8_t RF_BW_last = BW_27M;
-
-uint8_t g_IS_ARMED = 0;
-uint8_t g_IS_PARALYZE = 0;
 
 uint8_t cfg_step = 0; // 0:idle, 1:freq, 2:power, 3:LP_MODE
 
@@ -284,7 +281,7 @@ void Setting_Save() {
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
-        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BOOT_0MW, BOOT_0MW);
+        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_TEAM_RACE, TEAM_RACE);
 #ifdef _DEBUG_MODE
         if (!err)
             debugf("\r\nEEPROM write success");
@@ -299,7 +296,7 @@ void Setting_Save() {
     debugf("    PIT_MODE=%d\r\n", (uint16_t)PIT_MODE);
     debugf("    OFFSET_25MW=%d\r\n", (uint16_t)OFFSET_25MW);
     debugf("    BAUDRATE=%d\r\n", (uint16_t)BAUDRATE);
-    debugf("    BOOT_0MW=%d\r\n", (uint16_t)BOOT_0MW);
+    debugf("    TEAM_RACE=%d\r\n", (uint16_t)TEAM_RACE);
 #endif
 }
 
@@ -309,7 +306,7 @@ void CFG_Back() {
     LP_MODE = (LP_MODE > 2) ? 0 : LP_MODE;
     PIT_MODE = (PIT_MODE > PIT_0MW) ? PIT_OFF : PIT_MODE;
     OFFSET_25MW = (OFFSET_25MW > 20) ? 0 : OFFSET_25MW;
-    BOOT_0MW = (BOOT_0MW > 1) ? 0 : BOOT_0MW;
+    TEAM_RACE = (TEAM_RACE > 2) ? 0 : TEAM_RACE;
     BAUDRATE = (BAUDRATE > 1) ? 0 : BAUDRATE;
 }
 
@@ -387,7 +384,7 @@ void GetVtxParameter() {
         LP_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_LPMODE);
         PIT_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_PITMODE);
         OFFSET_25MW = I2C_Read8(ADDR_EEPROM, EEP_ADDR_25MW);
-        BOOT_0MW = I2C_Read8(ADDR_EEPROM, EEP_ADDR_BOOT_0MW);
+        TEAM_RACE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_TEAM_RACE);
         BAUDRATE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_BAUDRATE);
 
         CFG_Back();
@@ -396,7 +393,7 @@ void GetVtxParameter() {
 #endif
 
 // last_SA_lock
-#ifdef USE_SMARTAUDIO
+#if defined USE_SMARTAUDIO_SW || defined USE_SMARTAUDIO_HW
         last_SA_lock = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK);
         WAIT(10);
         if (last_SA_lock == 0xff) {
@@ -499,7 +496,7 @@ void Init_HW() {
     Init_6300RF(RF_FREQ, RF_POWER);
     DM6300_AUXADC_Calib();
 #else
-#ifdef HDZERO_FREESTYLE
+#ifdef USE_TC3587_LED
     LED_TC3587_Init();
 #endif
     GetVtxParameter();
@@ -1329,6 +1326,9 @@ void OnButton1() {
     static uint16_t cur_sec = 0;
     static uint8_t last_keyon = 0;
 
+    if (SA_lock)
+        return;
+
     if (cur_sec != seconds) {
         cur_sec = seconds;
 
@@ -1460,5 +1460,17 @@ void uart_baudrate_detect(void) {
         CFG_Back();
         uart_set_baudrate(BAUDRATE);
         Setting_Save();
+    }
+}
+
+void vtx_paralized(void) {
+    // Sleep until repower
+    WriteReg(0, 0x8F, 0x00);
+#ifdef _DEBUG_MODE
+    debugf("\r\nvtx paralized");
+#endif
+    while (1) {
+        LED_Flip();
+        WAIT(50);
     }
 }

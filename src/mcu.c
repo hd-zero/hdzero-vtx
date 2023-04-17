@@ -28,7 +28,7 @@ BIT_TYPE int1_req = 0;
 void Timer0_isr(void) INTERRUPT(1) {
     TH0 = 138;
 
-#ifdef USE_SMARTAUDIO
+#ifdef USE_SMARTAUDIO_SW
     if (SA_config) {
         if (suart_tx_en) {
             // TH0 = 139;
@@ -67,7 +67,30 @@ void UART0_isr() INTERRUPT(4) {
         RS_Xbusy = 0;
     }
 }
+#ifdef USE_SMARTAUDIO_HW
+void UART1_isr() INTERRUPT(6) {
 
+    if (RI1) { // RX int
+        RI1 = 0;
+        if (sa_status == SA_ST_IDLE) {
+            uart_set_baudrate(3);
+            sa_status = SA_ST_RX;
+            sa_start_ms = timer_ms10x;
+        }
+        if (sa_status == SA_ST_TX)
+            return;
+
+        RS_buf1[RS_in1++] = SBUF1;
+        if (RS_in1 >= BUF1_MAX)
+            RS_in1 = 0;
+    }
+
+    if (TI1) { // TX int
+        TI1 = 0;
+        RS_Xbusy1 = 0;
+    }
+}
+#else
 void UART1_isr() INTERRUPT(6) {
 
     if (RI1) { // RX int
@@ -84,6 +107,7 @@ void UART1_isr() INTERRUPT(6) {
         RS_Xbusy1 = 0;
     }
 }
+#endif
 
 void version_info(void) {
 #ifdef _DEBUG_MODE
@@ -105,7 +129,7 @@ void main(void) {
     Init_HW(); // init
     fc_init(); // init displayport
 
-#ifdef USE_SMARTAUDIO
+#ifdef USE_SMARTAUDIO_SW
     SA_Init();
 #endif
 
@@ -117,9 +141,14 @@ void main(void) {
     while (1) {
         timer_task();
 
-#ifdef USE_SMARTAUDIO
+#if defined USE_SMARTAUDIO_SW
         while (SA_task())
             ;
+#elif defined USE_SMARTAUDIO_HW
+        while (SA_task()) {
+            if (SA_timeout())
+                break;
+        }
 #endif
 
 #ifdef _RF_CALIB
@@ -128,14 +157,13 @@ void main(void) {
         Monitor();
 #endif
         video_detect();
-        if (!SA_lock)
-            OnButton1();
+        OnButton1();
 
         if ((last_SA_lock && (seconds > WAIT_SA_CONFIG)) || (last_SA_lock == 0)) {
             LED_Task();
             TempDetect(); // temperature dectect
             PwrLMT();     // RF power ctrl
-            msp_task();   // msp displayport process
+            msp_task();
             Update_EEP_LifeTime();
             uart_baudrate_detect();
         }
@@ -227,6 +255,8 @@ void RF_Delay_Init() {
 #ifdef _DEBUG_MODE
         debugf("\r\nRF_Delay_Init: None");
 #endif
+        if (TEAM_RACE == 0x01)
+            vtx_paralized();
 #if (0)
         if (PIT_MODE == PIT_0MW) {
             pwr_lmt_done = 1;

@@ -13,7 +13,7 @@
 #define ADDR_RUNCAM  0x21
 
 void set_segment(uint32_t val);
-#ifdef HDZERO_FREESTYLE
+#ifdef USE_TC3587_LED
 void LED_TC3587_Init();
 #endif
 void Init_TC3587(uint8_t fmt);

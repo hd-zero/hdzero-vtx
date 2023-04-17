@@ -59,8 +59,7 @@ extern XDATA_SEG volatile uint8_t RS_in1;
 extern XDATA_SEG volatile uint8_t RS_out1;
 #endif
 
-#ifdef USE_SMARTAUDIO
-
+#ifdef USE_SMARTAUDIO_SW
 #define SUART_BUF_MAX 32 // has to be power of 2
 
 extern uint8_t suart_tx_en;
@@ -73,6 +72,11 @@ uint8_t SUART_rx();
 void SUART_tx(uint8_t *tbuf, uint8_t len);
 extern uint8_t SA_is_0;
 extern uint8_t SA_config;
-#endif // USE_SMARTAUDIO
+
+#elif defined USE_SMARTAUDIO_HW
+uint8_t SUART_ready();
+uint8_t SUART_rx();
+void SUART_tx(uint8_t *tbuf, uint8_t len);
+#endif
 
 #endif /* __UART_H_ */
