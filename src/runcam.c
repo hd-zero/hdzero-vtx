@@ -103,6 +103,7 @@ const uint8_t runcam_nano_90_attribute[CAMERA_SETTING_NUM][4] = {
 
 void runcam_type_detect(void) {
     uint8_t i, j;
+    uint32_t rdat;
 
     if (!RUNCAM_Write(RUNCAM_MICRO_V1, 0x50, 0x0452484E)) {
         camera_type = CAMERA_TYPE_RUNCAM_MICRO_V1;
@@ -111,19 +112,26 @@ void runcam_type_detect(void) {
             for (j = 0; j < 4; j++)
                 camera_attribute[i][j] = runcam_micro_v1_attribute[i][j];
         }
-    } else if (!RUNCAM_Write(RUNCAM_MICRO_V2, 0x50, 0x0452484E)) {
-        camera_type = CAMERA_TYPE_RUNCAM_MICRO_V2;
-        camera_device = RUNCAM_MICRO_V2;
-        for (i = 0; i < CAMERA_SETTING_NUM; i++) {
-            for (j = 0; j < 4; j++)
-                camera_attribute[i][j] = runcam_micro_v2_attribute[i][j];
+    } else {
+        rdat = RUNCAM_Read(RUNCAM_MICRO_V2, 0x50);
+        if (rdat != 0x00000000 && rdat != 0xffffffff) {
+            camera_type = CAMERA_TYPE_RUNCAM_MICRO_V2;
+            camera_device = RUNCAM_MICRO_V2;
+            for (i = 0; i < CAMERA_SETTING_NUM; i++) {
+                for (j = 0; j < 4; j++)
+                    camera_attribute[i][j] = runcam_micro_v2_attribute[i][j];
+            }
+            return;
         }
-    } else if (!RUNCAM_Write(RUNCAM_NANO_90, 0x50, 0x04484848)) {
-        camera_type = CAMERA_TYPE_RUNCAM_NANO_90;
-        camera_device = RUNCAM_NANO_90;
-        for (i = 0; i < CAMERA_SETTING_NUM; i++) {
-            for (j = 0; j < 4; j++)
-                camera_attribute[i][j] = runcam_nano_90_attribute[i][j];
+
+        rdat = RUNCAM_Read(RUNCAM_NANO_90, 0x50);
+        if (rdat != 0x00000000 && rdat != 0xffffffff) {
+            camera_type = CAMERA_TYPE_RUNCAM_NANO_90;
+            camera_device = RUNCAM_NANO_90;
+            for (i = 0; i < CAMERA_SETTING_NUM; i++) {
+                for (j = 0; j < 4; j++)
+                    camera_attribute[i][j] = runcam_nano_90_attribute[i][j];
+            }
         }
     }
 }
