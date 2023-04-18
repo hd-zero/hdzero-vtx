@@ -1,5 +1,6 @@
 #include "i2c.h"
 
+#include "camera.h"
 #include "common.h"
 #include "global.h"
 #include "print.h"
@@ -350,6 +351,11 @@ uint8_t RUNCAM_Write(uint8_t cam_id, uint32_t addr, uint32_t val) {
     I2C_write_byte(value);
 
     I2C_stop(); // stop
+#ifdef _DEBUG_RUNCAM
+    debugf("\r\nRUNCAM_Write: %d, %d, %d", (uint16_t)cam_id, (uint16_t)addr, (uint16_t)val);
+#else
+    WAIT(10);
+#endif
 
     return 0;
 }
@@ -390,6 +396,32 @@ uint32_t RUNCAM_Read(uint8_t cam_id, uint32_t addr) {
     ret = (ret << 8) | value;
 
     I2C_stop(); // stop
+#ifdef _DEBUG_RUNCAM
+    debugf("\r\nRUNCAM_Read: %d, %d: %d", (uint16_t)cam_id, (uint16_t)addr, (uint16_t)ret);
+#else
+    WAIT(10);
+#endif
 
     return ret;
+}
+
+/*
+    return 0: false
+           1: success
+*/
+uint8_t RUNCAM_Read_Write(uint8_t cam_id, uint32_t addr, uint32_t val) {
+    uint32_t rdata;
+
+    if (cam_id == RUNCAM_MICRO_V1)
+        rdata = val + 1;
+    else
+        rdata = RUNCAM_Read(cam_id, addr);
+
+    if (rdata != val) {
+        if (RUNCAM_Write(cam_id, addr, val) == 0)
+            return 1;
+        else
+            return 0;
+    } else
+        return 1;
 }
