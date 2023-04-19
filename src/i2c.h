@@ -15,5 +15,6 @@ uint16_t I2C_Read16_a8(uint8_t slave_addr, uint8_t reg_addr);
 
 uint8_t RUNCAM_Write(uint8_t cam_id, uint32_t addr, uint32_t val);
 uint32_t RUNCAM_Read(uint8_t cam_id, uint32_t addr);
+uint8_t RUNCAM_Read_Write(uint8_t cam_id, uint32_t addr, uint32_t val);
 
 #endif /* __I2C_H_ */

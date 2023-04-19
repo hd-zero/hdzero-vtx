@@ -480,6 +480,7 @@ void Init_6300RF(uint8_t freq, uint8_t pwr) {
 }
 
 void Init_HW() {
+    WAIT(100);
     SPI_Init();
     LED_Init();
 #ifdef VIDEO_PAT
