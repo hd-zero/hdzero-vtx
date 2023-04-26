@@ -994,6 +994,7 @@ void Flicker_LED(uint8_t n) {
 }
 
 void video_detect(void) {
+    static uint8_t timeout_tiems = 5;
     static uint16_t last_sec = 0;
     static uint8_t sec = 0;
     static uint8_t cnt = 0;
@@ -1059,8 +1060,10 @@ void video_detect(void) {
         if (heat_protect)
             return;
 
-        if (camera_type == CAMERA_TYPE_RESERVED)
+        if (camera_type == CAMERA_TYPE_RESERVED) {
+            cameraLost = 1;
             return;
+        }
 
         if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 ||
             camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 ||
@@ -1069,12 +1072,12 @@ void video_detect(void) {
             val |= I2C_Read16(ADDR_TC3587, 0x006E);
             if (val)
                 cnt = 0;
-            else
+            else if (cnt < timeout_tiems)
                 cnt++;
 #ifdef _DEBUG_CAMERA
             debugf("\r\nvideo_detect:%d %d", val, (uint16_t)cnt);
 #endif
-            if (cnt == 5)
+            if (cnt == timeout_tiems)
                 cameraLost = 1;
             else {
                 cameraLost = 0;
