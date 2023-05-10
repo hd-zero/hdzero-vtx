@@ -13,6 +13,7 @@
 #include "rom.h"
 #include "sfr_ext.h"
 #include "smartaudio_protocol.h"
+#include "tramp_protocol.h"
 #include "uart.h"
 #include "version.h"
 
@@ -140,7 +141,11 @@ void main(void) {
     // main loop
     while (1) {
         timer_task();
-
+#if (1)
+        tramp_receive();
+    }
+}
+#else
 #if defined USE_SMARTAUDIO_SW
         while (SA_task())
             ;
@@ -163,14 +168,15 @@ void main(void) {
             LED_Task();
             TempDetect(); // temperature dectect
             PwrLMT();     // RF power ctrl
-            msp_task();
+            // msp_task();
             Update_EEP_LifeTime();
-            uart_baudrate_detect();
+            // uart_baudrate_detect();
         }
 
         RF_Delay_Init();
     }
 }
+#endif
 
 void timer_task() {
     static uint16_t cur_ms10x_1sd16 = 0, last_ms10x_1sd16 = 0;

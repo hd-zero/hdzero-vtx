@@ -14,6 +14,7 @@
 // #define HDZERO_RACE_V2
 // #define HDZERO_FREESTYLE
 // #define FOXEER_VTX
+// #define HDZERO_RACE_V3
 
 /* define VTX ID start */
 #if defined HDZERO_WHOOP
@@ -28,6 +29,8 @@
 #define VTX_ID 0x58
 #elif defined FOXEER_VTX
 #define VTX_ID 0x59
+#elif defined HDZERO_RACE_V3
+#define VTX_ID 0x5a
 #else
 #define VTX_ID 0x00
 #endif
@@ -63,7 +66,7 @@
 // #define FIX_EEP
 
 #ifndef _RF_CALIB
-// #define _DEBUG_MODE
+#define _DEBUG_MODE
 // #define _DEBUG_DM6300
 // #define _DEBUG_TC3587
 // #define _DEBUG_CAMERA
@@ -72,6 +75,7 @@
 // #define _DEBUG_DISPLAYPORT
 // #define _DEBUG_RUNCAM
 // #define _DEBUG_SPI
+#define _DEBUG_TRAMP
 #endif
 
 #define Raceband
