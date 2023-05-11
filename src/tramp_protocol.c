@@ -42,6 +42,7 @@ void trampResponse(void) {
 
     WAIT(1);
     tr_tx_busy = 0;
+    tr_read(); // fix me!
 }
 
 static uint16_t get_freq(void) {
@@ -122,6 +123,7 @@ static void set_freq(uint16_t freq) {
     if (ch != 0xff) {
         RF_FREQ = ch;
         DM6300_SetChannel(RF_FREQ);
+        _outchar('0' + RF_FREQ);
     }
 }
 
@@ -136,7 +138,7 @@ static uint16_t get_power(void) {
         power = 200;
         break;
     default:
-        power = 0;
+        power = 25;
         break;
     }
 
@@ -196,11 +198,27 @@ static uint8_t tramp_reply(void) {
     }
 
     case 'F': {
-        freq = (tbuf[2] & 0xff) | (tbuf[3] << 8);
+        freq = ((uint16_t)rbuf[2] & 0xff) | ((uint16_t)rbuf[3] << 8);
+        _outchar(freq & 0xff);
+        _outchar(freq >> 8);
         set_freq(freq);
 #ifdef _DEBUG_TRAMP
-        debugf("%d", freq);
+        _outchar('>');
 #endif
+        return respCode;
+    }
+
+    case 's': {
+        tbuf[0] = 0x0f;
+        tbuf[1] = 's';
+        tbuf[6] = 0x01;
+        tbuf[7] = 0x00;
+
+        trampResponse();
+#ifdef _DEBUG_TRAMP
+        _outchar('>');
+#endif
+        return respCode;
     }
 
     default:
@@ -211,13 +229,14 @@ static uint8_t tramp_reply(void) {
 // returns completed response code or 0
 
 void tramp_receive(void) {
+    uint8_t rdata = 0;
     while (tr_ready()) {
-        rbuf[r_ptr++] = tr_read();
-        r_ptr &= 0x0f;
+        rdata = tr_read();
+        rbuf[r_ptr++] = rdata;
 
         switch (trampReceiveState) {
         case S_WAIT_LEN: {
-            if (rbuf[0] == 0x0F) {
+            if (rdata == 0x0F) {
                 // Found header byte, advance to wait for code
                 trampReceiveState = S_WAIT_CODE;
             } else {
@@ -248,7 +267,8 @@ void tramp_receive(void) {
                 }
 #ifdef _DEBUG_TRAMP
                 else {
-                    _outchar('#');
+                    _outchar('?');
+                    _outchar(rbuf[1]);
                 }
 #endif
 

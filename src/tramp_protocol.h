@@ -4,9 +4,9 @@
 #include "common.h"
 #include "uart.h"
 
-#define tr_ready(void) RS_ready(void)
-#define tr_read(void)  RS_rx(void)
-#define tr_tx(c)       RS_tx(c)
+#define tr_ready(void) RS_ready1(void)
+#define tr_read(void)  RS_rx1(void)
+#define tr_tx(c)       RS_tx1(c)
 
 typedef enum {
     S_WAIT_LEN = 0, // Waiting for a packet len

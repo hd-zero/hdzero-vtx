@@ -54,7 +54,7 @@ void Ext1_isr(void) INTERRUPT(2) {
 }
 
 void UART0_isr() INTERRUPT(4) {
-    if (RI) { // RX int
+    if (RI && (tr_tx_busy == 0)) { // RX int
         RI = 0;
         RS_buf[RS_in++] = SBUF0;
         if (RS_in >= BUF_MAX)
@@ -94,13 +94,11 @@ void UART1_isr() INTERRUPT(6) {
 #else
 void UART1_isr() INTERRUPT(6) {
 
-    if (RI1) { // RX int
+    if (RI1 && (tr_tx_busy == 0)) { // RX int
         RI1 = 0;
-#if (1)
         RS_buf1[RS_in1++] = SBUF1;
         if (RS_in1 >= BUF1_MAX)
             RS_in1 = 0;
-#endif
     }
 
     if (TI1) { // TX int

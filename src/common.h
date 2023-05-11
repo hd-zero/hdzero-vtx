@@ -99,7 +99,7 @@
 #define PRESS_LL     8
 #define PWR_LMT_SEC  10
 
-#if defined USE_SMARTAUDIO_SW || defined USE_SMARTAUDIO_HW
+#if defined USE_SMARTAUDIO_SW || defined USE_SMARTAUDIO_HW || defined USE_TRAMP_HW
 #define WAIT_SA_LOCK   4
 #define WAIT_SA_CONFIG 9
 #else
@@ -139,7 +139,8 @@
 #define Mon_tx(ch)  RS_tx1(ch)
 #define Mon_rx()    RS_rx1()
 #define Mon_ready() RS_ready1()
-#define _outchar(c) RS_tx1(c)
+// #define _outchar(c) RS_tx1(c)
+#define _outchar(c) RS_tx(c)
 #define CMS_tx(ch)  RS_tx(ch)
 #define CMS_rx()    RS_rx()
 #define CMS_ready() RS_ready()
