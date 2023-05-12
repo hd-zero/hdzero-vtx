@@ -2,6 +2,7 @@
 #include "dm6300.h"
 #include "global.h"
 #include "hardware.h"
+#include "msp_displayport.h"
 #include "print.h"
 
 static trampReceiveState_e trampReceiveState = S_WAIT_LEN;
@@ -122,7 +123,8 @@ static void set_freq(uint16_t freq) {
     }
     if (ch != 0xff) {
         RF_FREQ = ch;
-        DM6300_SetChannel(RF_FREQ);
+        if (dm6300_init_done)
+            DM6300_SetChannel(RF_FREQ);
         _outchar('0' + RF_FREQ);
     }
 }
@@ -143,6 +145,42 @@ static uint16_t get_power(void) {
     }
 
     return power;
+}
+
+static void set_power(uint16_t power) {
+    switch (power) {
+    case 25:
+        RF_POWER = 0;
+        break;
+    case 200:
+        RF_POWER = 1;
+        break;
+    case 0:
+        RF_POWER = 2;
+        break;
+    default:
+        RF_POWER = 0;
+        break;
+    }
+    if (RF_POWER == 2) {
+        // enter 0mw
+        cur_pwr = POWER_MAX + 2;
+        vtx_pit = PIT_0MW;
+
+        WriteReg(0, 0x8F, 0x10); // reset RF_chip
+        dm6300_init_done = 0;
+        temp_err = 1;
+    } else {
+
+        if (dm6300_init_done)
+            DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+        else {
+            Init_6300RF(RF_FREQ, RF_POWER);
+            DM6300_AUXADC_Calib();
+            dm6300_init_done = 1;
+        }
+        cur_pwr = RF_POWER;
+    }
 }
 
 // Process response and return code if valid else 0
@@ -203,6 +241,16 @@ static uint8_t tramp_reply(void) {
         _outchar(freq >> 8);
         set_freq(freq);
 #ifdef _DEBUG_TRAMP
+        _outchar('>');
+#endif
+        return respCode;
+    }
+
+    case 'P': {
+        power = ((uint16_t)rbuf[2] & 0xff) | ((uint16_t)rbuf[3] << 8);
+        set_power(power);
+#ifdef _DEBUG_TRAMP
+        _outchar('0' + RF_POWER);
         _outchar('>');
 #endif
         return respCode;
