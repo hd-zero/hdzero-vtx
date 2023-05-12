@@ -66,7 +66,7 @@
 // #define FIX_EEP
 
 #ifndef _RF_CALIB
-#define _DEBUG_MODE
+// #define _DEBUG_MODE
 // #define _DEBUG_DM6300
 // #define _DEBUG_TC3587
 // #define _DEBUG_CAMERA
@@ -75,7 +75,7 @@
 // #define _DEBUG_DISPLAYPORT
 // #define _DEBUG_RUNCAM
 // #define _DEBUG_SPI
-#define _DEBUG_TRAMP
+// #define _DEBUG_TRAMP
 #endif
 
 #define Raceband
@@ -99,7 +99,7 @@
 #define PRESS_LL     8
 #define PWR_LMT_SEC  10
 
-#if defined USE_SMARTAUDIO_SW || defined USE_SMARTAUDIO_HW || defined USE_TRAMP_HW
+#if defined USE_SMARTAUDIO_SW || defined USE_SMARTAUDIO_HW || defined USE_TRAMP
 #define WAIT_SA_LOCK   4
 #define WAIT_SA_CONFIG 9
 #else

@@ -161,16 +161,16 @@ void main(void) {
         video_detect();
         OnButton1();
 
-        if ((last_SA_lock && (seconds > WAIT_SA_CONFIG)) || (last_SA_lock == 0)) {
-            LED_Task();
-            TempDetect(); // temperature dectect
-            PwrLMT();     // RF power ctrl
-            // msp_task();
-            Update_EEP_LifeTime();
-            // uart_baudrate_detect();
-        }
+        // if ((last_SA_lock && (seconds > WAIT_SA_CONFIG)) || (last_SA_lock == 0)) {
+        LED_Task();
+        TempDetect(); // temperature dectect
+        PwrLMT();     // RF power ctrl
+        msp_task();
+        Update_EEP_LifeTime();
+        // uart_baudrate_detect();
+        //}
 
-        RF_Delay_Init();
+        // RF_Delay_Init();
     }
 }
 
