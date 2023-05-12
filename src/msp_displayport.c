@@ -890,6 +890,10 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
     static uint8_t last_lp = 255;
     static uint8_t last_pit = 255;
 
+#ifdef USE_TRAMP
+    return;
+#endif
+
     if (cmd_u16 != MSP_CMD_VTX_CONFIG_BYTE)
         return;
 
