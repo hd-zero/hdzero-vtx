@@ -15,6 +15,7 @@ typedef enum {
 } trampReceiveState_e;
 
 void tramp_receive(void);
+void tramp_init(void);
 
 extern uint8_t tr_tx_busy;
 

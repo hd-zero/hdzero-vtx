@@ -130,6 +130,8 @@ void main(void) {
 
 #ifdef USE_SMARTAUDIO_SW
     SA_Init();
+#elif defined USE_TRAMP
+    tramp_init();
 #endif
 
 #ifdef _DEBUG_MODE
@@ -139,11 +141,6 @@ void main(void) {
     // main loop
     while (1) {
         timer_task();
-#if (1)
-        tramp_receive();
-    }
-}
-#else
 #if defined USE_SMARTAUDIO_SW
         while (SA_task())
             ;
@@ -152,6 +149,8 @@ void main(void) {
             if (SA_timeout())
                 break;
         }
+#elif defined USE_TRAMP
+        tramp_receive();
 #endif
 
 #ifdef _RF_CALIB
@@ -174,7 +173,6 @@ void main(void) {
         RF_Delay_Init();
     }
 }
-#endif
 
 void timer_task() {
     static uint16_t cur_ms10x_1sd16 = 0, last_ms10x_1sd16 = 0;
