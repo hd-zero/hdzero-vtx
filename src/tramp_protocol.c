@@ -121,12 +121,21 @@ static void set_freq(uint16_t freq) {
     default:
         break;
     }
+    _outchar('a');
     if (ch != 0xff) {
+        _outchar('b');
         RF_FREQ = ch;
-        if (dm6300_init_done)
+        if (dm6300_init_done) {
+            _outchar('c');
             DM6300_SetChannel(RF_FREQ);
+            _outchar('d');
+        }
+        _outchar('e');
+#ifdef _DEBUG_TRAMP
         _outchar('0' + RF_FREQ);
+#endif
     }
+    _outchar('f');
 }
 
 static uint16_t get_power(void) {
@@ -172,15 +181,23 @@ static void set_power(uint16_t power) {
         temp_err = 1;
     } else {
 
-        if (dm6300_init_done)
+        _outchar('A');
+        if (dm6300_init_done) {
+            _outchar('B');
             DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
-        else {
+            _outchar('C');
+
+        } else {
+            _outchar('D');
             Init_6300RF(RF_FREQ, RF_POWER);
             DM6300_AUXADC_Calib();
+            _outchar('E');
             dm6300_init_done = 1;
         }
         cur_pwr = RF_POWER;
+        _outchar('F');
     }
+    _outchar('G');
 }
 
 // Process response and return code if valid else 0
@@ -237,10 +254,10 @@ static uint8_t tramp_reply(void) {
 
     case 'F': {
         freq = ((uint16_t)rbuf[2] & 0xff) | ((uint16_t)rbuf[3] << 8);
-        _outchar(freq & 0xff);
-        _outchar(freq >> 8);
         set_freq(freq);
 #ifdef _DEBUG_TRAMP
+        _outchar(freq & 0xff);
+        _outchar(freq >> 8);
         _outchar('>');
 #endif
         return respCode;
