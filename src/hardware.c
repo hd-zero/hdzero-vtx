@@ -1458,6 +1458,10 @@ uint8_t RF_BW_check(void) {
 }
 
 void uart_baudrate_detect(void) {
+#ifdef USE_TRAMP
+    // tramp protocol need 115200 bps.
+    return;
+#endif
     if (seconds - msp_lst_rcv_sec >= 20) {
         msp_lst_rcv_sec = seconds;
         BAUDRATE++;

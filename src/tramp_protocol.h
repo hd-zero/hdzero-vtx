@@ -18,5 +18,5 @@ void tramp_receive(void);
 void tramp_init(void);
 
 extern uint8_t tr_tx_busy;
-
+extern uint8_t tramp_lock;
 #endif

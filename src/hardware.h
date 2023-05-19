@@ -95,6 +95,8 @@ void uart_baudrate_detect(void);
 uint8_t temperature_level(void);
 void vtx_paralized(void);
 
+void timer_task();
+
 #ifdef HDZERO_FREESTYLE
 extern uint8_t powerLock;
 #endif

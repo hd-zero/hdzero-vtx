@@ -11,6 +11,7 @@ uint8_t tr_tx_busy = 0;
 static uint8_t tbuf[16];
 static uint8_t rbuf[16];
 static uint8_t r_ptr;
+uint8_t tramp_lock = 0;
 
 // Calculate tramp protocol checksum of provided buffer
 static uint8_t tramp_checksum(uint8_t *buf) {
@@ -156,22 +157,30 @@ static uint16_t get_power(void) {
 
 static void set_power(uint16_t power) {
     switch (power) {
+    case 0:
+        RF_POWER = POWER_MAX + 2;
+        break;
+    case 1:
+        RF_POWER = POWER_MAX + 1;
+        break;
+
     case 25:
         RF_POWER = 0;
         break;
+
+    case 100:
     case 200:
+    case 350:
+    case 1000:
         RF_POWER = 1;
         break;
-    case 0:
-        RF_POWER = 2;
-        break;
+
     default:
-        RF_POWER = 0;
         break;
     }
-    if (RF_POWER == 2) {
+    if (RF_POWER == POWER_MAX + 2) {
         // enter 0mw
-        cur_pwr = POWER_MAX + 2;
+        cur_pwr = RF_POWER;
         vtx_pit = PIT_0MW;
 
         WriteReg(0, 0x8F, 0x10); // reset RF_chip
@@ -188,6 +197,8 @@ static void set_power(uint16_t power) {
             dm6300_init_done = 1;
         }
         cur_pwr = RF_POWER;
+        if (RF_POWER == POWER_MAX + 1)
+            vtx_pit = PIT_P1MW;
     }
 }
 
@@ -247,8 +258,6 @@ static uint8_t tramp_reply(void) {
         freq = ((uint16_t)rbuf[2] & 0xff) | ((uint16_t)rbuf[3] << 8);
         set_freq(freq);
 #ifdef _DEBUG_TRAMP
-        _outchar(freq & 0xff);
-        _outchar(freq >> 8);
         _outchar('>');
 #endif
         return respCode;
@@ -302,23 +311,15 @@ void tramp_receive(void) {
             break;
         }
         case S_WAIT_CODE: {
-#if (0)
-            if (c == 'r' || c == 'v' || c == 's') {
-                // Code is for response is one we're interested in, advance to data
-                trampReceiveState = S_DATA;
-            } else {
-                // Unexpected code, reset state machine
-                tramp_reset_receive();
-            }
-#else
+
             trampReceiveState = S_DATA;
-#endif
             break;
         }
         case S_DATA: {
             if (r_ptr == 16) {
                 // Buffer is full, calculate checksum
                 if ((rbuf[14] == tramp_checksum(rbuf)) && (rbuf[15] == 0)) {
+                    tramp_lock = 1;
                     tramp_reply();
                 }
 #ifdef _DEBUG_TRAMP
@@ -343,5 +344,10 @@ void tramp_receive(void) {
 }
 
 void tramp_init(void) {
-    RF_POWER = POWER_MAX + 1;
+    uint16_t time_ms = 3000;
+    RF_POWER = POWER_MAX + 2;
+    while (time_ms--) {
+        timer_task();
+        tramp_receive();
+    }
 }
