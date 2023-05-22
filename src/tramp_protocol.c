@@ -5,13 +5,14 @@
 #include "msp_displayport.h"
 #include "print.h"
 
-static trampReceiveState_e trampReceiveState = S_WAIT_LEN;
-
 uint8_t tr_tx_busy = 0;
+uint8_t tramp_lock = 0;
+
+#ifdef USE_TRAMP
+static trampReceiveState_e trampReceiveState = S_WAIT_LEN;
 static uint8_t tbuf[16];
 static uint8_t rbuf[16];
 static uint8_t r_ptr;
-uint8_t tramp_lock = 0;
 
 // Calculate tramp protocol checksum of provided buffer
 static uint8_t tramp_checksum(uint8_t *buf) {
@@ -351,3 +352,4 @@ void tramp_init(void) {
         tramp_receive();
     }
 }
+#endif

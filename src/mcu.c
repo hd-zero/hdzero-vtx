@@ -161,7 +161,11 @@ void main(void) {
         video_detect();
         OnButton1();
 
-        if ((last_SA_lock && (seconds > WAIT_SA_CONFIG)) || (last_SA_lock == 0) || tramp_lock) {
+        if (last_SA_lock && seconds < WAIT_SA_CONFIG)
+            ;
+        else if (!tramp_lock)
+            ;
+        else {
             LED_Task();
             TempDetect(); // temperature dectect
             PwrLMT();     // RF power ctrl

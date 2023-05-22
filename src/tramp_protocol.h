@@ -4,6 +4,7 @@
 #include "common.h"
 #include "uart.h"
 
+#ifdef USE_TRAMP
 #define tr_ready(void) RS_ready1(void)
 #define tr_read(void)  RS_rx1(void)
 #define tr_tx(c)       RS_tx1(c)
@@ -16,7 +17,7 @@ typedef enum {
 
 void tramp_receive(void);
 void tramp_init(void);
-
+#endif
 extern uint8_t tr_tx_busy;
 extern uint8_t tramp_lock;
 #endif
