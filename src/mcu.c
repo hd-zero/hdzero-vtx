@@ -163,8 +163,10 @@ void main(void) {
 
         if (last_SA_lock && seconds < WAIT_SA_CONFIG)
             ;
-        else if (!tramp_lock)
+#if USE_TRAMP
+        else if (!tramp_lock && !dm6300_init_done)
             ;
+#endif
         else {
             LED_Task();
             TempDetect(); // temperature dectect
