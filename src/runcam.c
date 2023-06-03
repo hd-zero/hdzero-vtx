@@ -412,10 +412,16 @@ void runcam_shutter(uint8_t val) {
                 dat = 0x460;
             else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90)
                 dat = 0x447;
-        } else // manual
+            // DO NOT REMOVE, Otherwise, auto mode may fail to be set.
+            RUNCAM_Write(camera_device, 0x00006c, 800);
+            WAIT(50);
+            RUNCAM_Write(camera_device, 0x000044, 0x80009629);
+            WAIT(50);
+        } else { // manual
             dat = (uint32_t)(val)*25;
+        }
 
-        RUNCAM_Read_Write(camera_device, 0x00006c, dat);
+        RUNCAM_Write(camera_device, 0x00006c, dat);
         WAIT(50);
         RUNCAM_Write(camera_device, 0x000044, 0x80009629);
         WAIT(50);
