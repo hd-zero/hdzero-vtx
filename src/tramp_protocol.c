@@ -165,10 +165,12 @@ static void set_power(uint16_t power) {
         RF_POWER = POWER_MAX + 1;
         break;
 
-    case 25:
+    case 14: // dBm
+    case 25: // mw
         RF_POWER = 0;
         break;
 
+    case 23: // dBm
     case 100:
     case 200:
     case 350:
