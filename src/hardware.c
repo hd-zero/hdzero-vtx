@@ -350,7 +350,9 @@ void GetVtxParameter() {
                     table_power[i][j] = tab[i][j];
 #ifndef _RF_CALIB
                     if (j == 0) // 25mw +3dbm
+#ifndef HDZERO_FREESTYLE
                         table_power[i][j] += 0xC;
+#endif
 #endif
                 }
             }
@@ -360,8 +362,10 @@ void GetVtxParameter() {
                 table_power[8][j] = tab[3][j];
                 table_power[9][j] = tab[4][j];
                 if (j == 0) { // 25mw +3dbm
+#ifndef HDZERO_FREESTYLE
                     table_power[8][j] += 0x0C;
                     table_power[9][j] += 0x0C;
+#endif
                 }
             }
         } else {
