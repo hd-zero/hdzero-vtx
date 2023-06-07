@@ -349,8 +349,8 @@ void GetVtxParameter() {
                 for (j = 0; j <= POWER_MAX; j++) {
                     table_power[i][j] = tab[i][j];
 #ifndef _RF_CALIB
-                    if (j == 0) // 25mw +3dbm
 #ifndef HDZERO_FREESTYLE
+                    if (j == 0) // 25mw +3dbm
                         table_power[i][j] += 0xC;
 #endif
 #endif
