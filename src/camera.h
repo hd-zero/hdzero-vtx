@@ -88,4 +88,5 @@ extern uint8_t camera_type;
 extern uint8_t camera_device;
 extern uint8_t camera_attribute[CAMERA_SETTING_NUM][4];
 extern uint8_t camera_setting_reg_set[CAMERA_SETTING_NUM];
+extern uint8_t camera_setting_reg_menu[CAMERA_SETTING_NUM];
 #endif /* __CAMERA_H_ */

@@ -11,6 +11,7 @@
 #include "msp_displayport.h"
 #include "print.h"
 #include "rom.h"
+#include "runcam.h"
 #include "sfr_ext.h"
 #include "smartaudio_protocol.h"
 #include "uart.h"
@@ -166,6 +167,7 @@ void main(void) {
             msp_task();
             Update_EEP_LifeTime();
             uart_baudrate_detect();
+            runcam_shutter_fix(seconds);
         }
 
         RF_Delay_Init();
