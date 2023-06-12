@@ -153,4 +153,19 @@
 #define Rom_rx()    RS_rx()
 #define Rom_ready() RS_ready()
 
+#define FREQ_R1 (uint16_t)5658
+#define FREQ_R2 (uint16_t)5696
+#define FREQ_R3 (uint16_t)5732
+#define FREQ_R4 (uint16_t)5769
+#define FREQ_R5 (uint16_t)5806
+#define FREQ_R6 (uint16_t)5843
+#define FREQ_R7 (uint16_t)5880
+#define FREQ_R8 (uint16_t)5917
+#define FREQ_F2 (uint16_t)5760
+#define FREQ_F4 (uint16_t)5800
+
+#define INVALID_CHANNEL 0xff
+
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
+
 #endif /* __COMMON_H_ */

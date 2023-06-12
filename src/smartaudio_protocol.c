@@ -25,7 +25,6 @@ uint8_t SA_config = 0;
 uint8_t sa_rbuf[8];
 uint8_t SA_dbm = 14;
 uint8_t SA_dbm_last;
-uint8_t ch = 0;
 uint8_t mode_o = 0x04;
 // Bit0: 1=set freq 0=set ch    0
 // Bit1: pitmode active         0
@@ -39,9 +38,8 @@ uint8_t mode_p = 0x05;
 // Bit2: pitmode active         0
 // Bit3: 1 = Unclocked VTX      1
 
-uint8_t freq_new_h = 0x16;
-uint8_t freq_new_l = 0x1a;
-uint16_t freq = 0x161a;
+uint8_t freq_new_h;
+uint8_t freq_new_l;
 
 uint8_t sa_status = SA_ST_IDLE;
 uint32_t sa_start_ms = 0;
@@ -83,6 +81,28 @@ uint8_t pwr_to_dbm(uint8_t pwr) {
     else
         return 14;
 }
+
+uint8_t channel_to_bfChannel(uint8_t const channel) {
+
+    if (channel < 8)
+        return channel + 32; // R1...R8
+    if (channel == 8)
+        return 25; // F2
+    if (channel == 9)
+        return 27; // F4
+    return INVALID_CHANNEL;
+}
+
+uint8_t bfChannel_to_channel(uint8_t const channel) {
+    if (channel == 25)
+        return 8;
+    else if (channel == 27)
+        return 9;
+    else if (channel >= 32 && channel < 40)
+        return channel - 32;
+    return INVALID_CHANNEL;
+}
+
 void SA_Response(uint8_t cmd) {
     uint8_t i, crc, tx_len;
     uint8_t tbuf[20];
@@ -253,80 +273,50 @@ void SA_Update(uint8_t cmd) {
         }
         break;
 
-    case SA_SET_CH:
-        ch_bf = sa_rbuf[0];
-
-        if (ch_bf == 25)
-            ch = 8;
-        else if (ch_bf == 27)
-            ch = 9;
-        else if (ch_bf >= 32 && ch_bf < 40)
-            ch = ch_bf - 32;
+    case SA_SET_CH: {
+        uint8_t const channel = bfChannel_to_channel(sa_rbuf[0]);
+        if (channel < INVALID_CHANNEL) {
+            ch_bf = sa_rbuf[0];
 
 #ifdef _DEBUG_SMARTAUDIO
-        _outchar('C');
-        debugf("%x", (uint16_t)ch);
+            _outchar('C');
+            debugf("%x", (uint16_t)channel);
 #endif
 
-        if (ch != RF_FREQ) {
-            RF_FREQ = ch;
-            if (last_SA_lock && (seconds < WAIT_SA_CONFIG))
-                ch_init = RF_FREQ;
-            else
-                DM6300_SetChannel(RF_FREQ);
-            Setting_Save();
+            if (channel != RF_FREQ) {
+                RF_FREQ = channel;
+                if (last_SA_lock && (seconds < WAIT_SA_CONFIG))
+                    ch_init = channel;
+                else
+                    DM6300_SetChannel(channel);
+                Setting_Save();
+            }
         }
-
         break;
-    case SA_SET_FREQ:
-        freq_new_h = sa_rbuf[0];
-        freq_new_l = sa_rbuf[1];
-        freq = freq_new_h;
-        freq = freq << 8;
-        freq += freq_new_l;
+    }
 
-        if (freq == FREQ_R1)
-            ch = 0;
-        else if (freq == FREQ_R2)
-            ch = 1;
-        else if (freq == FREQ_R3)
-            ch = 2;
-        else if (freq == FREQ_R4)
-            ch = 3;
-        else if (freq == FREQ_R5)
-            ch = 4;
-        else if (freq == FREQ_R6)
-            ch = 5;
-        else if (freq == FREQ_R7)
-            ch = 6;
-        else if (freq == FREQ_R8)
-            ch = 7;
-        else if (freq == FREQ_F2)
-            ch = 8;
-        else if (freq == FREQ_F4)
-            ch = 9;
-
-        if (ch == 8)
-            ch_bf = 25;
-        else if (ch == 9)
-            ch_bf = 27;
-        else
-            ch_bf = ch + 32;
+    case SA_SET_FREQ: {
+        uint16_t const freq = ((uint16_t)sa_rbuf[0] << 8) + sa_rbuf[1];
+        uint8_t const channel = DM6300_GetChannelByFreq(freq);
+        if (channel < INVALID_CHANNEL) {
+            ch_bf = channel_to_bfChannel(channel);
 
 #ifdef _DEBUG_SMARTAUDIO
-        _outchar('F');
-        debugf("%x", (uint16_t)ch);
+            _outchar('F');
+            debugf("%x", (uint16_t)channel);
 #endif
 
-        if (ch != RF_FREQ) {
-            RF_FREQ = ch;
-            if (last_SA_lock && (seconds < WAIT_SA_CONFIG))
-                ch_init = RF_FREQ;
-            else
-                DM6300_SetChannel(RF_FREQ);
-            Setting_Save();
+            if (channel != RF_FREQ) {
+                RF_FREQ = channel;
+                if (last_SA_lock && (seconds < WAIT_SA_CONFIG))
+                    ch_init = channel;
+                else
+                    DM6300_SetChannel(channel);
+                Setting_Save();
+            }
         }
         break;
+    }
 
     case SA_SET_MODE:
         if (mode_p != sa_rbuf[0]) {
@@ -551,56 +541,17 @@ uint8_t SA_Process() {
 }
 
 void SA_Init() {
+    uint16_t freq;
     SA_dbm = pwr_to_dbm(RF_POWER);
     SA_dbm_last = SA_dbm;
-    ch = RF_FREQ;
-    if (ch == 8)
-        ch_bf = 25;
-    else if (ch == 9)
-        ch_bf = 27;
-    else
-        ch_bf = ch + 32;
     mode_o |= PIT_MODE;
     mode_p |= (PIT_MODE << 1);
 
     ch_init = RF_FREQ;
     pwr_init = RF_POWER;
 
-    switch (ch) {
-    case 0:
-        freq = FREQ_R1;
-        break;
-    case 1:
-        freq = FREQ_R2;
-        break;
-    case 2:
-        freq = FREQ_R3;
-        break;
-    case 3:
-        freq = FREQ_R4;
-        break;
-    case 4:
-        freq = FREQ_R5;
-        break;
-    case 5:
-        freq = FREQ_R6;
-        break;
-    case 6:
-        freq = FREQ_R7;
-        break;
-    case 7:
-        freq = FREQ_R8;
-        break;
-    case 8:
-        freq = FREQ_F2;
-        break;
-    case 9:
-        freq = FREQ_F4;
-        break;
-    default:
-        freq = FREQ_R1;
-        break;
-    }
+    ch_bf = channel_to_bfChannel(ch_init);
+    freq = DM6300_GetFreqByChannel(ch_init);
     freq_new_h = (uint8_t)(freq >> 8);
     freq_new_l = (uint8_t)(freq & 0xff);
 }

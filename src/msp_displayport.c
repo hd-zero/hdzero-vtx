@@ -881,10 +881,9 @@ void parse_set_osd_canvas(void) {
     // debugf("\r\nparse_set_osd_canvas");
     osd_menu_offset = 8;
 }
-void parseMspVtx_V2(uint16_t cmd_u16) {
-    uint8_t nxt_ch = 0;
+void parseMspVtx_V2(uint16_t const cmd_u16) {
+    uint8_t nxt_ch = INVALID_CHANNEL;
     uint8_t nxt_pwr = 0;
-    uint8_t pit_update = 0;
     uint8_t needSaveEEP = 0;
     static uint8_t last_pwr = 255;
     static uint8_t last_lp = 255;
@@ -895,6 +894,8 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
 
     if (!(fc_lock & FC_VTX_CONFIG_LOCK))
         return;
+
+    uint16_t const fc_frequency = ((uint16_t)msp_rx_buf[6] << 8) + msp_rx_buf[5];
 
     fc_band_rx = msp_rx_buf[1];
     fc_channel_rx = msp_rx_buf[2];
@@ -908,12 +909,13 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
 #ifdef _DEBUG_MODE
     debugf("\r\nparseMspVtx_V2");
     debugf("\r\n    fc_vtx_dev:    %x", (uint16_t)msp_rx_buf[0]);
-    debugf("\r\n    fc_band_rx:    %x", (uint16_t)msp_rx_buf[1]);
-    debugf("\r\n    fc_channel_rx: %x", (uint16_t)msp_rx_buf[2]);
-    debugf("\r\n    fc_pwr_rx:     %x", (uint16_t)msp_rx_buf[3]);
-    debugf("\r\n    fc_pit_rx :    %x", (uint16_t)msp_rx_buf[4]);
+    debugf("\r\n    fc_band_rx:    %x", (uint16_t)fc_band_rx);
+    debugf("\r\n    fc_channel_rx: %x", (uint16_t)fc_channel_rx);
+    debugf("\r\n    fc_pwr_rx:     %x", (uint16_t)fc_pwr_rx);
+    debugf("\r\n    fc_pit_rx :    %x", (uint16_t)fc_pit_rx);
+    debugf("\r\n    fc_frequency : %x", fc_frequency);
     debugf("\r\n    fc_vtx_status: %x", (uint16_t)msp_rx_buf[7]);
-    debugf("\r\n    fc_lp_rx:      %x", (uint16_t)msp_rx_buf[8]);
+    debugf("\r\n    fc_lp_rx:      %x", (uint16_t)fc_lp_rx);
     debugf("\r\n    fc_bands:      %x", (uint16_t)msp_rx_buf[12]);
     debugf("\r\n    fc_channels:   %x", (uint16_t)msp_rx_buf[13]);
     debugf("\r\n    fc_powerLevels %x", (uint16_t)msp_rx_buf[14]);
@@ -931,19 +933,32 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
         needSaveEEP = 1;
     }
     // update channel
-    if (fc_band_rx == 5) // race band
+    if (fc_band_rx == 5) { // race band
         nxt_ch = fc_channel_rx - 1;
-    else if (fc_band_rx == 4) { // fatshark band
-        if (fc_channel_rx == 2)
+    } else if (fc_band_rx == 4) { // fatshark band
+        if (fc_channel_rx == 2) {
             nxt_ch = 8;
-        else if (fc_channel_rx == 4)
+        } else if (fc_channel_rx == 4) {
             nxt_ch = 9;
+        }
+    }
+    if (nxt_ch == INVALID_CHANNEL) {
+        // Note: BF sends band index 0 when frequency setting is used.
+        //       Won't harm to validate frequency is all cases.
+        nxt_ch = DM6300_GetChannelByFreq(fc_frequency);
+        if (nxt_ch == INVALID_CHANNEL) {
+            // Invalid config requested -> ignore
+            return;
+        }
     }
     if (RF_FREQ != nxt_ch) {
+#ifdef _DEBUG_MODE
+        debugf("\r\nRF_FREQ to %x", (uint16_t)nxt_ch);
+#endif
         vtx_channel = nxt_ch;
         RF_FREQ = nxt_ch;
         if (dm6300_init_done)
-            DM6300_SetChannel(RF_FREQ);
+            DM6300_SetChannel(nxt_ch);
         needSaveEEP = 1;
     }
 

@@ -150,7 +150,7 @@ void parse_status();
 void parse_rc();
 void parse_variant();
 void parse_vtx_config();
-void parseMspVtx_V2(uint16_t cmd_u16);
+void parseMspVtx_V2(uint16_t const cmd_u16);
 uint8_t parse_displayport(uint8_t len);
 void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throttle);
 void vtx_menu_init();
