@@ -41,8 +41,6 @@ uint8_t vtx_offset = 0;
 uint8_t vtx_team_race = 0;
 uint8_t first_arm = 0;
 
-uint8_t fc_band_rx = 0;
-uint8_t fc_channel_rx = 0;
 uint8_t fc_pwr_rx = 0;
 uint8_t fc_pit_rx = 0;
 uint8_t fc_lp_rx = 0;
@@ -695,7 +693,8 @@ void msp_send_header(uint8_t dl) {
 
 void msp_cmd_tx() // send 3 commands to FC
 {
-    uint8_t i, j;
+    uint8_t i;
+    uint8_t const count = (fc_lock & FC_VTX_CONFIG_LOCK) ? 3 : 4;
     uint8_t msp_cmd[4] = {
         MSP_CMD_FC_VARIANT_BYTE,
         MSP_CMD_STATUS_BYTE,
@@ -703,16 +702,11 @@ void msp_cmd_tx() // send 3 commands to FC
         MSP_CMD_VTX_CONFIG_BYTE,
     };
 
-    if (fc_lock & FC_VTX_CONFIG_LOCK)
-        j = 3;
-    else
-        j = 4;
-
-    for (i = 0; i < j; i++) {
+    for (i = 0; i < count; i++) {
         msp_send_header(0);
-        CMS_tx(0x00);
-        CMS_tx(msp_cmd[i]);
-        CMS_tx(msp_cmd[i]);
+        CMS_tx(0x00);       // len
+        CMS_tx(msp_cmd[i]); // function
+        CMS_tx(msp_cmd[i]); // crc
     }
 }
 
@@ -724,18 +718,24 @@ void msp_eeprom_write() {
 }
 void msp_set_vtx_config(uint8_t power, uint8_t save) {
     uint8_t crc = 0;
-    uint8_t channel = 0;
+    uint8_t channel = RF_FREQ;
     uint8_t band;
+    uint16_t const freq = DM6300_GetFreqByChannel(channel);
 
-    if (RF_FREQ < 8) {
+    if (channel < 8) {  // race band
         band = 5;
-        channel = RF_FREQ;
-    } else {
+        channel = channel + 1;
+    } else {  // fatshark band
         band = 4;
-        if (RF_FREQ == 8)
-            channel = 1;
-        else if (RF_FREQ == 9)
-            channel = 3;
+        if (channel == 8)
+            channel = 2;
+        else if (channel == 9)
+            channel = 4;
+        else {
+            // internal error... should not happen
+            channel = 0;
+            band = 0;
+        }
     }
     msp_send_header(0);
     CMS_tx(0x0f);
@@ -743,9 +743,9 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     CMS_tx(MSP_CMD_SET_VTX_CONFIG_BYTE);
     crc ^= MSP_CMD_SET_VTX_CONFIG_BYTE; // cmd
     CMS_tx(0x00);
-    crc ^= 0x00; // freq_h
-    CMS_tx(0x00);
     crc ^= 0x00; // freq_l
+    CMS_tx(0x00);
+    crc ^= 0x00; // freq_h
     CMS_tx(power + 1);
     crc ^= (power + 1); // power_level
     CMS_tx((PIT_MODE & 1));
@@ -753,35 +753,35 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     CMS_tx(LP_MODE);
     crc ^= LP_MODE; // lp_mode
     CMS_tx(0x00);
-    crc ^= 0x00; // pit_freq_h
-    CMS_tx(0x00);
     crc ^= 0x00; // pit_freq_l
+    CMS_tx(0x00);
+    crc ^= 0x00; // pit_freq_h
     CMS_tx(band);
     crc ^= band; // band
-    CMS_tx(channel + 1);
-    crc ^= (channel + 1); // channel
-    CMS_tx(0x00);
-    crc ^= 0x00; // freq_h
-    CMS_tx(0x00);
-    crc ^= 0x00; // freq_l
-    CMS_tx(0x06);
-    crc ^= 0x06; // band number
+    CMS_tx(channel);
+    crc ^= channel; // channel
+    CMS_tx((freq & 0xff));
+    crc ^= (freq & 0xff); // freq_l
+    CMS_tx(((freq >> 8) & 0xff));
+    crc ^= ((freq >> 8) & 0xff); // freq_h
+    CMS_tx(0x05);
+    crc ^= 0x05; // band count
     CMS_tx(0x08);
-    crc ^= 0x08; // channel number
+    crc ^= 0x08; // channel count
 #ifdef HDZERO_FREESTYLE
     if (powerLock) {
         CMS_tx(3);
-        crc ^= (3); // power number
+        crc ^= (3); // power count
     } else {
         CMS_tx(5);
-        crc ^= (5); // power number
+        crc ^= (5); // power count
     }
 #else
     CMS_tx(POWER_MAX + 2);
-    crc ^= (POWER_MAX + 2); // power number
+    crc ^= (POWER_MAX + 2); // power count
 #endif
     CMS_tx(0x00);
-    crc ^= 0x00; // disable table
+    crc ^= 0x00; // disable/clear vtx table
     CMS_tx(crc);
 
 #ifdef _DEBUG_MODE
@@ -794,8 +794,7 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
 
 void parse_status() {
 
-    if (!(fc_lock & FC_STATUS_LOCK))
-        fc_lock |= FC_STATUS_LOCK;
+    fc_lock |= FC_STATUS_LOCK;
 
     g_IS_ARMED = (msp_rx_buf[6] & 0x01);
 #if (0)
@@ -814,8 +813,7 @@ void parse_status() {
 void parse_variant() {
     uint8_t i;
 
-    if (!(fc_lock & FC_VARIANT_LOCK))
-        fc_lock |= FC_VARIANT_LOCK;
+    fc_lock |= FC_VARIANT_LOCK;
 
     for (i = 0; i < 4; i++)
         fc_variant[i] = msp_rx_buf[i];
@@ -824,8 +822,7 @@ void parse_variant() {
 void parse_rc() {
     uint16_t roll, pitch, yaw, throttle;
 
-    if (!(fc_lock & FC_RC_LOCK))
-        fc_lock |= FC_RC_LOCK;
+    fc_lock |= FC_RC_LOCK;
 
     roll = (msp_rx_buf[1] << 8) | msp_rx_buf[0];
     pitch = (msp_rx_buf[3] << 8) | msp_rx_buf[2];
@@ -834,8 +831,40 @@ void parse_rc() {
 
     update_cms_menu(roll, pitch, yaw, throttle);
 }
+
+uint8_t parse_vtx_band_and_channel(uint8_t const band, uint8_t const channel) {
+    if (band == 5) {            // race band
+        return (channel - 1);
+    } else if (band == 4) {     // fatshark band
+        if (channel == 2) {
+            return 8;
+        }
+        if (channel == 4) {
+            return 9;
+        }
+    }
+    return INVALID_CHANNEL;
+}
+
+uint8_t msp_vtx_set_channel(uint8_t const channel) {
+    if (channel == INVALID_CHANNEL || channel == RF_FREQ)
+        return 0;
+#ifdef _DEBUG_MODE
+    debugf("\r\nRF_FREQ to %x", (uint16_t)channel);
+#endif
+    vtx_channel = channel;
+    RF_FREQ = channel;
+    if (dm6300_init_done)
+        DM6300_SetChannel(channel);
+    return 1;
+}
+
 void parse_vtx_config() {
-    uint8_t nxt_ch = 0;
+    uint8_t nxt_ch;
+    //uint8_t const power = msp_rx_buf[3];
+    //uint8_t const pitmode = msp_rx_buf[4];
+
+
     /*
     nxt_pwr:
         0: 25mW
@@ -843,20 +872,35 @@ void parse_vtx_config() {
         .....
         POWER_MAX+1: 0mw
     */
-    uint8_t nxt_pwr = 0;
-    uint8_t pit_update = 0;
-    uint8_t needSaveEEP = 0;
+    //uint8_t nxt_pwr = 0;
+    //uint8_t pit_update = 0;
+    //uint8_t needSaveEEP = 0;
 
-    if (!(fc_lock & FC_VTX_CONFIG_LOCK))
-        fc_lock |= FC_VTX_CONFIG_LOCK;
+    fc_lock |= FC_VTX_CONFIG_LOCK;
 
     if (!msp_cmp_fc_variant("BTFL") && !msp_cmp_fc_variant("EMUF") && !msp_cmp_fc_variant("QUIC")) {
         return;
     }
+    if (!msp_rx_buf[0]) {
+        // Invalid VTX type
+        return;
+    }
 
     fc_pwr_rx = msp_rx_buf[3] - 1;
-    if (fc_pwr_rx > POWER_MAX + 2)
+    if (fc_pwr_rx > (POWER_MAX + 2))
         fc_pwr_rx = 0;
+
+    // Check configured band
+    nxt_ch = parse_vtx_band_and_channel(msp_rx_buf[1], msp_rx_buf[2]);
+    if (nxt_ch == INVALID_CHANNEL) {
+        // Validate frequency
+        uint16_t const fc_frequency = ((uint16_t)msp_rx_buf[6] << 8) + msp_rx_buf[5];
+        nxt_ch = DM6300_GetChannelByFreq(fc_frequency);
+    }
+    msp_vtx_set_channel(nxt_ch);
+    // PIT_MODE ?
+    // RF_POWER ?
+
 }
 
 void msp_set_osd_canvas(void) {
@@ -895,10 +939,6 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
     if (!(fc_lock & FC_VTX_CONFIG_LOCK))
         return;
 
-    uint16_t const fc_frequency = ((uint16_t)msp_rx_buf[6] << 8) + msp_rx_buf[5];
-
-    fc_band_rx = msp_rx_buf[1];
-    fc_channel_rx = msp_rx_buf[2];
     fc_pwr_rx = msp_rx_buf[3];
     fc_pit_rx = msp_rx_buf[4];
     fc_lp_rx = msp_rx_buf[8];
@@ -909,8 +949,8 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
 #ifdef _DEBUG_MODE
     debugf("\r\nparseMspVtx_V2");
     debugf("\r\n    fc_vtx_dev:    %x", (uint16_t)msp_rx_buf[0]);
-    debugf("\r\n    fc_band_rx:    %x", (uint16_t)fc_band_rx);
-    debugf("\r\n    fc_channel_rx: %x", (uint16_t)fc_channel_rx);
+    debugf("\r\n    fc_band_rx:    %x", (uint16_t)msp_rx_buf[1]);
+    debugf("\r\n    fc_channel_rx: %x", (uint16_t)msp_rx_buf[2]);
     debugf("\r\n    fc_pwr_rx:     %x", (uint16_t)fc_pwr_rx);
     debugf("\r\n    fc_pit_rx :    %x", (uint16_t)fc_pit_rx);
     debugf("\r\n    fc_frequency : %x", fc_frequency);
@@ -933,34 +973,18 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
         needSaveEEP = 1;
     }
     // update channel
-    if (fc_band_rx == 5) { // race band
-        nxt_ch = fc_channel_rx - 1;
-    } else if (fc_band_rx == 4) { // fatshark band
-        if (fc_channel_rx == 2) {
-            nxt_ch = 8;
-        } else if (fc_channel_rx == 4) {
-            nxt_ch = 9;
-        }
-    }
+    nxt_ch = parse_vtx_band_and_channel(msp_rx_buf[1], msp_rx_buf[2]);
     if (nxt_ch == INVALID_CHANNEL) {
         // Note: BF sends band index 0 when frequency setting is used.
         //       Won't harm to validate frequency is all cases.
+        uint16_t const fc_frequency = ((uint16_t)msp_rx_buf[6] << 8) + msp_rx_buf[5];
         nxt_ch = DM6300_GetChannelByFreq(fc_frequency);
         if (nxt_ch == INVALID_CHANNEL) {
             // Invalid config requested -> ignore
             return;
         }
     }
-    if (RF_FREQ != nxt_ch) {
-#ifdef _DEBUG_MODE
-        debugf("\r\nRF_FREQ to %x", (uint16_t)nxt_ch);
-#endif
-        vtx_channel = nxt_ch;
-        RF_FREQ = nxt_ch;
-        if (dm6300_init_done)
-            DM6300_SetChannel(nxt_ch);
-        needSaveEEP = 1;
-    }
+    needSaveEEP |= msp_vtx_set_channel(nxt_ch);
 
     // update pit
     nxt_pwr = fc_pwr_rx - 1;
@@ -1825,19 +1849,21 @@ void set_vtx_param() {
 }
 
 #ifdef INIT_VTX_TABLE
+#define FACTORY_BAND 0  // BF requires band to be CUSTOM with VTX_MSP
+
 CODE_SEG const uint8_t bf_vtx_band_table[6][31] = {
     /*BOSCAM_A*/
-    {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x01, 0x08, 'B', 'O', 'S', 'C', 'A', 'M', '_', 'A', 'A', 0x01, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+    {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x01, 0x08, 'B', 'O', 'S', 'C', 'A', 'M', '_', 'A', 'A', FACTORY_BAND, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
     /*BOSCAM_B*/
-    {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x02, 0x08, 'B', 'O', 'S', 'C', 'A', 'M', '_', 'B', 'B', 0x01, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+    {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x02, 0x08, 'B', 'O', 'S', 'C', 'A', 'M', '_', 'B', 'B', FACTORY_BAND, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
     /*BOSCAM_R*/
-    {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x03, 0x08, 'B', 'O', 'S', 'C', 'A', 'M', '_', 'E', 'E', 0x01, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+    {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x03, 0x08, 'B', 'O', 'S', 'C', 'A', 'M', '_', 'E', 'E', FACTORY_BAND, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
     /*FATSHARK*/
-    {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x04, 0x08, 'F', 'A', 'T', 'S', 'H', 'A', 'R', 'K', 'F', 0x01, 0x08, 0x00, 0x00, 0x80, 0x16, 0x00, 0x00, 0xa8, 0x16, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+    {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x04, 0x08, 'F', 'A', 'T', 'S', 'H', 'A', 'R', 'K', 'F', FACTORY_BAND, 0x08, 0x00, 0x00, 0x80, 0x16, 0x00, 0x00, 0xa8, 0x16, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
     /*RACEBAND*/
-    {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x05, 0x08, 'R', 'A', 'C', 'E', 'B', 'A', 'N', 'D', 'R', 0x01, 0x08, 0x1a, 0x16, 0x3f, 0x16, 0x64, 0x16, 0x89, 0x16, 0xae, 0x16, 0xd3, 0x16, 0xf8, 0x16, 0x1d, 0x17},
+    {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x05, 0x08, 'R', 'A', 'C', 'E', 'B', 'A', 'N', 'D', 'R', FACTORY_BAND, 0x08, 0x1a, 0x16, 0x3f, 0x16, 0x64, 0x16, 0x89, 0x16, 0xae, 0x16, 0xd3, 0x16, 0xf8, 0x16, 0x1d, 0x17},
     /*IMD6*/
-    {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x06, 0x08, 'I', 'M', 'D', '6', ' ', ' ', ' ', ' ', 'I', 0x01, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+    {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x06, 0x08, 'I', 'M', 'D', '6', ' ', ' ', ' ', ' ', 'I', FACTORY_BAND, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
 };
 CODE_SEG const uint8_t bf_vtx_power_table[5][9] = {
     {/*0x24,0x4d,0x3c,*/ 0x07, 0xe4, 0x01, 0x0e, 0x00, 0x03, '2', '5', ' '}, // 25mW
