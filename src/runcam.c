@@ -412,13 +412,43 @@ void runcam_shutter(uint8_t val) {
                 dat = 0x460;
             else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90)
                 dat = 0x447;
-        } else // manual
+            // DO NOT REMOVE, Otherwise, auto mode may fail to be set.
+            RUNCAM_Write(camera_device, 0x00006c, 800);
+            WAIT(50);
+            RUNCAM_Write(camera_device, 0x000044, 0x80009629);
+            WAIT(50);
+        } else { // manual
             dat = (uint32_t)(val)*25;
+        }
 
-        RUNCAM_Read_Write(camera_device, 0x00006c, dat);
+        RUNCAM_Write(camera_device, 0x00006c, dat);
         WAIT(50);
         RUNCAM_Write(camera_device, 0x000044, 0x80009629);
         WAIT(50);
+    }
+}
+
+void runcam_shutter_fix(uint16_t sec) {
+    static uint8_t fixed = 0;
+    uint32_t dat = 0;
+    uint8_t val = camera_setting_reg_menu[4];
+    /*
+        Setting the shutter for RUNCAM_NANO_90 in the first few seconds of power-on will not take effect, so configure the shutter speed after little seconds.
+    */
+    if (sec >= 1 && !fixed) {
+        if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
+            if (val == 0) {
+                dat = 0x447;
+            } else {
+                dat = (uint32_t)(val)*25;
+            }
+
+            RUNCAM_Write(camera_device, 0x00006c, dat);
+            WAIT(50);
+            RUNCAM_Write(camera_device, 0x000044, 0x80009629);
+            WAIT(50);
+        }
+        fixed = 1;
     }
 }
 
