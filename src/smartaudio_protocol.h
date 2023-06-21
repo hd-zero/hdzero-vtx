@@ -5,17 +5,6 @@
 
 #if defined USE_SMARTAUDIO_SW || defined USE_SMARTAUDIO_HW
 
-#define FREQ_R1 (uint16_t)5658
-#define FREQ_R2 (uint16_t)5696
-#define FREQ_R3 (uint16_t)5732
-#define FREQ_R4 (uint16_t)5769
-#define FREQ_R5 (uint16_t)5806
-#define FREQ_R6 (uint16_t)5843
-#define FREQ_R7 (uint16_t)5880
-#define FREQ_R8 (uint16_t)5917
-#define FREQ_F2 (uint16_t)5760
-#define FREQ_F4 (uint16_t)5800
-
 #define SA_HEADER0_BYTE 0xAA
 #define SA_HEADER1_BYTE 0x55
 #define SA_VERSION_BYTE 0x09

@@ -15,6 +15,8 @@ void DM6300_EFUSE1();
 void DM6300_EFUSE2();
 // void DM6300_CalibRF();
 void DM6300_SetChannel(uint8_t ch);
+uint8_t DM6300_GetChannelByFreq(uint16_t const freq);
+uint16_t DM6300_GetFreqByChannel(uint8_t const ch);
 void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset);
 int16_t DM6300_GetTemp();
 void DM6300_AUXADC_Calib();
