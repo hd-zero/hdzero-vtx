@@ -14,6 +14,7 @@
 // #define HDZERO_RACE_V2
 // #define HDZERO_FREESTYLE
 // #define FOXEER_VTX
+// #define HDZERO_RACE_V3
 
 /* define VTX ID start */
 #if defined HDZERO_WHOOP
@@ -28,6 +29,8 @@
 #define VTX_ID 0x58
 #elif defined FOXEER_VTX
 #define VTX_ID 0x59
+#elif defined HDZERO_RACE_V3
+#define VTX_ID 0x5a
 #else
 #define VTX_ID 0x00
 #endif
@@ -72,6 +75,7 @@
 // #define _DEBUG_DISPLAYPORT
 // #define _DEBUG_RUNCAM
 // #define _DEBUG_SPI
+// #define _DEBUG_TRAMP
 #endif
 
 #define Raceband
@@ -95,7 +99,7 @@
 #define PRESS_LL     8
 #define PWR_LMT_SEC  10
 
-#if defined USE_SMARTAUDIO_SW || defined USE_SMARTAUDIO_HW
+#if defined USE_SMARTAUDIO_SW || defined USE_SMARTAUDIO_HW || defined USE_TRAMP
 #define WAIT_SA_LOCK   4
 #define WAIT_SA_CONFIG 9
 #else

@@ -9,6 +9,7 @@
 #include "print.h"
 #include "smartaudio_protocol.h"
 #include "spi.h"
+#include "tramp_protocol.h"
 #include "uart.h"
 #include "version.h"
 
@@ -890,6 +891,9 @@ void parseMspVtx_V2(uint16_t cmd_u16) {
     static uint8_t last_lp = 255;
     static uint8_t last_pit = 255;
 
+    if (tramp_lock)
+        return;
+
     if (cmd_u16 != MSP_CMD_VTX_CONFIG_BYTE)
         return;
 
@@ -1247,6 +1251,8 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
         else {
             cms_state = CMS_OSD;
         }
+        if (tramp_lock)
+            break;
         if (cms_cnt == 3) {
             vtx_channel = RF_FREQ;
             vtx_power = RF_POWER;
@@ -1266,6 +1272,8 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
         break;
 
     case CMS_EXIT_0MW:
+        if (tramp_lock)
+            break;
         if (vtx_pit == PIT_0MW) {
             vtx_channel = RF_FREQ;
             vtx_power = RF_POWER;
@@ -1279,7 +1287,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                 Init_6300RF(RF_FREQ, POWER_MAX + 1);
                 cur_pwr = POWER_MAX + 1;
                 DM6300_AUXADC_Calib();
-#ifdef _DEBUG_DISPLAYPORT
+#ifdef _DEBUG_MODE
                 debugf("\r\nExit 0mW\r\n");
 #endif
                 // debugf("\r\n exit0");
@@ -1340,7 +1348,11 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_state = 0;
                     else if (VirtualBtn == BTN_RIGHT) {
-                        if (SA_lock == 0) {
+                        if (SA_lock)
+                            ;
+                        else if (tramp_lock)
+                            ;
+                        else {
                             vtx_power++;
 #ifdef HDZERO_FREESTYLE
                             if (powerLock)
@@ -1350,7 +1362,11 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                                 vtx_power = 0;
                         }
                     } else if (VirtualBtn == BTN_LEFT) {
-                        if (SA_lock == 0) {
+                        if (SA_lock)
+                            ;
+                        else if (tramp_lock)
+                            ;
+                        else {
                             vtx_power--;
 #ifdef HDZERO_FREESTYLE
                             if (powerLock)
@@ -1370,13 +1386,21 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_state = 1;
                     else if (VirtualBtn == BTN_LEFT) {
-                        if (SA_lock == 0) {
+                        if (SA_lock)
+                            ;
+                        else if (tramp_lock)
+                            ;
+                        else {
                             vtx_lp--;
                             if (vtx_lp > 2)
                                 vtx_lp = 2;
                         }
                     } else if (VirtualBtn == BTN_RIGHT) {
-                        if (SA_lock == 0) {
+                        if (SA_lock)
+                            ;
+                        else if (tramp_lock)
+                            ;
+                        else {
                             vtx_lp++;
                             if (vtx_lp > 2)
                                 vtx_lp = 0;
@@ -1392,14 +1416,22 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_state = 2;
                     else if (VirtualBtn == BTN_RIGHT) {
-                        if (SA_lock == 0) {
+                        if (SA_lock)
+                            ;
+                        else if (tramp_lock)
+                            ;
+                        else {
                             if (vtx_pit == PIT_0MW)
                                 vtx_pit = PIT_OFF;
                             else
                                 vtx_pit++;
                         }
                     } else if (VirtualBtn == BTN_LEFT) {
-                        if (SA_lock == 0) {
+                        if (SA_lock)
+                            ;
+                        else if (tramp_lock)
+                            ;
+                        else {
                             if (vtx_pit == PIT_OFF)
                                 vtx_pit = PIT_0MW;
                             else
@@ -1482,7 +1514,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     } else if (VirtualBtn == BTN_RIGHT) {
                         vtx_state = 0;
                         cms_state = CMS_OSD;
-                        if (SA_lock) {
+                        if (SA_lock || tramp_lock) {
                             RF_FREQ = vtx_channel;
                             RF_POWER = vtx_power;
                             LP_MODE = vtx_lp;
@@ -1685,7 +1717,11 @@ void save_vtx_param() {
     if (TEAM_RACE)
         boot_0mw_done = 1;
 
-    if (!SA_lock) {
+    if (SA_lock)
+        ;
+    else if (tramp_lock)
+        ;
+    else {
         if (vtx_pit == PIT_0MW)
             msp_set_vtx_config(POWER_MAX + 1, 0);
         else
@@ -1703,6 +1739,8 @@ void set_vtx_param() {
     }
     */
     if (SA_lock)
+        return;
+    if (tramp_lock)
         return;
     if (!rf_delay_init_done)
         return;

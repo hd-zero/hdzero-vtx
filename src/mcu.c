@@ -14,6 +14,7 @@
 #include "runcam.h"
 #include "sfr_ext.h"
 #include "smartaudio_protocol.h"
+#include "tramp_protocol.h"
 #include "uart.h"
 #include "version.h"
 
@@ -54,7 +55,7 @@ void Ext1_isr(void) INTERRUPT(2) {
 }
 
 void UART0_isr() INTERRUPT(4) {
-    if (RI) { // RX int
+    if (RI && (tr_tx_busy == 0)) { // RX int
         RI = 0;
         RS_buf[RS_in++] = SBUF0;
         if (RS_in >= BUF_MAX)
@@ -94,13 +95,11 @@ void UART1_isr() INTERRUPT(6) {
 #else
 void UART1_isr() INTERRUPT(6) {
 
-    if (RI1) { // RX int
+    if (RI1 && (tr_tx_busy == 0)) { // RX int
         RI1 = 0;
-#if (1)
         RS_buf1[RS_in1++] = SBUF1;
         if (RS_in1 >= BUF1_MAX)
             RS_in1 = 0;
-#endif
     }
 
     if (TI1) { // TX int
@@ -132,6 +131,8 @@ void main(void) {
 
 #ifdef USE_SMARTAUDIO_SW
     SA_Init();
+#elif defined USE_TRAMP
+    tramp_init();
 #endif
 
 #ifdef _DEBUG_MODE
@@ -141,7 +142,6 @@ void main(void) {
     // main loop
     while (1) {
         timer_task();
-
 #if defined USE_SMARTAUDIO_SW
         while (SA_task())
             ;
@@ -150,6 +150,8 @@ void main(void) {
             if (SA_timeout())
                 break;
         }
+#elif defined USE_TRAMP
+        tramp_receive();
 #endif
 
 #ifdef _RF_CALIB
@@ -160,7 +162,9 @@ void main(void) {
         video_detect();
         OnButton1();
 
-        if ((last_SA_lock && (seconds > WAIT_SA_CONFIG)) || (last_SA_lock == 0)) {
+        if (last_SA_lock && seconds < WAIT_SA_CONFIG)
+            ;
+        else {
             LED_Task();
             TempDetect(); // temperature dectect
             PwrLMT();     // RF power ctrl
@@ -205,6 +209,9 @@ void timer_task() {
 
 void RF_Delay_Init() {
     static uint8_t SA_saved = 0;
+
+    if (tramp_lock)
+        return;
 
     if (SA_saved == 0) {
         if (seconds >= WAIT_SA_CONFIG) {

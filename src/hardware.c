@@ -389,8 +389,12 @@ void GetVtxParameter() {
         PIT_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_PITMODE);
         OFFSET_25MW = I2C_Read8(ADDR_EEPROM, EEP_ADDR_25MW);
         TEAM_RACE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_TEAM_RACE);
+#ifdef USE_TRAMP
+        // tramp protocol need 115200 bps.
+        BAUDRATE = 0;
+#else
         BAUDRATE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_BAUDRATE);
-
+#endif
         CFG_Back();
 #ifdef _DEBUG_MODE
         debugf("\r\nUSE EEPROM for VTX setting:RF_FREQ=%d, RF_POWER=%d, LPMODE=%d PIT_MODE=%d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
@@ -478,6 +482,7 @@ void Init_6300RF(uint8_t freq, uint8_t pwr) {
         cur_pwr = pwr;
     }
     WriteReg(0, 0x8F, 0x11);
+    rf_delay_init_done = 1;
 #ifdef _DEBUG_MODE
     debugf("\r\nInit_6300RF(%x, %x)", (uint16_t)freq, (uint16_t)pwr);
 #endif
@@ -507,6 +512,7 @@ void Init_HW() {
     GetVtxParameter();
     Get_EEP_LifeTime();
     camera_init();
+
     uart_set_baudrate(BAUDRATE);
 //--------- dm6300 --------------------
 // move to RF_Delay_Init()
@@ -1462,6 +1468,10 @@ uint8_t RF_BW_check(void) {
 }
 
 void uart_baudrate_detect(void) {
+#ifdef USE_TRAMP
+    // tramp protocol need 115200 bps.
+    return;
+#endif
     if (seconds - msp_lst_rcv_sec >= 20) {
         msp_lst_rcv_sec = seconds;
         BAUDRATE++;
