@@ -48,6 +48,8 @@
 #define VTX_NAME "HDZ FREESTYLE"
 #elif defined FOXEER_VTX
 #define VTX_NAME "FOX VTX"
+#elif defined HDZERO_RACE_V3
+#define VTX_NAME "HDZ RACE V3"
 #else
 #define VTX_NAME "  "
 #endif
