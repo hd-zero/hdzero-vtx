@@ -314,7 +314,7 @@ uint8_t msp_read_one_frame() {
                         InitVtxTable();
 #endif
                         msp_set_osd_canvas();
-                    } else {
+                    } else if (msp_cmp_fc_variant("INAV")) {
                         init_table_unsupported = 1;
                     }
                 }
