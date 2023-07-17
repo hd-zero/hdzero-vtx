@@ -18,7 +18,7 @@
 uint8_t KEYBOARD_ON = 0; // avoid conflict between keyboard and cam_control
 uint8_t EE_VALID = 0;
 
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
 uint8_t powerLock = 1;
 #endif
 
@@ -26,7 +26,7 @@ uint8_t powerLock = 1;
 //
 //  POWER MODE
 //
-//    HDZERO_FREESTYLE
+//    HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
 //    0------------25mW   (14dBm)
 //    1------------200mW  (23dBm)
 //    2------------500mW  (27dBm)
@@ -349,7 +349,8 @@ void GetVtxParameter() {
                 for (j = 0; j <= POWER_MAX; j++) {
                     table_power[i][j] = tab[i][j];
 #ifndef _RF_CALIB
-#ifndef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#else
                     if (j == 0) // 25mw +3dbm
                         table_power[i][j] += 0xC;
 #endif
@@ -362,7 +363,8 @@ void GetVtxParameter() {
                 table_power[8][j] = tab[3][j];
                 table_power[9][j] = tab[4][j];
                 if (j == 0) { // 25mw +3dbm
-#ifndef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#else
                     table_power[8][j] += 0x0C;
                     table_power[9][j] += 0x0C;
 #endif
@@ -413,7 +415,7 @@ void GetVtxParameter() {
 #endif
 #endif
 
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
         // powerLock
         powerLock = 0x01 & I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_POWER_LOCK);
 #endif
@@ -471,7 +473,7 @@ void Init_6300RF(uint8_t freq, uint8_t pwr) {
     DM6300_Init(freq, RF_BW);
     DM6300_SetChannel(freq);
 #ifndef VIDEO_PAT
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
     if ((pwr == 3) && (!g_IS_ARMED))
         pwr_lmt_done = 0;
     else
@@ -789,7 +791,11 @@ void HeatProtect() {
     int16_t temp;
 
 #ifdef USE_TEMPERATURE_SENSOR
-    int16_t temp_max = 0x5A;
+#ifdef HDZERO_FREESTYLE_V2
+    int16_t temp_max = 95;
+#else
+    int16_t temp_max = 90;
+#endif
 #else
     int16_t temp_max = 0x5C0;
     int16_t temp_err_data = 0x700;
@@ -833,7 +839,7 @@ void HeatProtect() {
                             debugf("\r\nHeat Protect.");
 #endif
                             heat_protect = 1;
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
                             WriteReg(0, 0x8F, 0x00);
                             msp_set_vtx_config(POWER_MAX + 1, 0);
 #else
@@ -870,7 +876,7 @@ void PwrLMT() {
                     pwr_tflg = 0;
                     pwr_lmt_sec++;
 
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
                     // test: power plus every sec
                     if (pwr_lmt_sec >= 3) {
                         if (RF_POWER == 3) {
@@ -925,6 +931,7 @@ void PwrLMT() {
     */
     else if (g_IS_ARMED) { // Armed
         PowerAutoSwitch();
+        HeatProtect();
     } else { // Disarmed
         if (PIT_MODE) {
             /*if(cur_pwr == 0mW)
@@ -942,7 +949,7 @@ void PwrLMT() {
                         pwr_tflg = 0;
                         pwr_lmt_sec++;
 
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
                         // test: power plus every sec
                         if (pwr_lmt_sec >= 3) {
                             if (RF_POWER == 3) {
@@ -962,7 +969,7 @@ void PwrLMT() {
                                 SPI_Write(0x3, 0x330, 0x31F);                      // analog offset 1W
                             }
                         }
-#endif // HDZERO_FREESTYLE
+#endif // HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
 
 #ifdef _DEBUG_MODE
                         debugf("\r\npwr_lmt_sec %x", (uint16_t)pwr_lmt_sec);
@@ -1117,7 +1124,7 @@ void Imp_RF_Param() {
     if (LP_MODE && !g_IS_ARMED)
         return;
 #ifndef VIDEO_PAT
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
     if (RF_POWER == 3 && !g_IS_ARMED)
         pwr_lmt_done = 0;
     else
@@ -1180,7 +1187,7 @@ void Button1_SP() {
             RF_POWER = 0;
         else
             RF_POWER++;
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
         if (powerLock)
             RF_POWER &= 0x01;
 #endif
@@ -1193,7 +1200,7 @@ void Button1_SP() {
             cur_pwr = 0;
         } else {
 #ifndef VIDEO_PAT
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
             if (RF_POWER == 3 && !g_IS_ARMED)
                 pwr_lmt_done = 0;
             else

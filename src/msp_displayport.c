@@ -474,9 +474,31 @@ uint8_t get_tx_data_5680() // prepare data to VRX
 
 // VTX temp and overhot
 #ifdef USE_TEMPERATURE_SENSOR
+#if defined HDZERO_FREESTYLE_V2
+    temp = temperature >> 2;
+    if (temp > 90)
+        temp = 8;
+    else if (temp > 85)
+        temp = 7;
+    else if (temp > 80)
+        temp = 6;
+    else if (temp > 75)
+        temp = 5;
+    else if (temp > 70)
+        temp = 4;
+    else if (temp > 60)
+        temp = 3;
+    else if (temp > 50)
+        temp = 2;
+    else if (temp > 40)
+        temp = 1;
+    else
+        temp = 0;
+#else
     temp = temperature_level() >> 1;
     if (temp > 8)
         temp = 8;
+#endif
     tx_buf[10] = 0x80 | (heat_protect << 6) | temp;
 #else
     tx_buf[10] = 0;
@@ -723,10 +745,10 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     uint8_t band;
     uint16_t const freq = DM6300_GetFreqByChannel(channel);
 
-    if (channel < 8) {  // race band
+    if (channel < 8) { // race band
         band = 5;
         channel = channel + 1;
-    } else {  // fatshark band
+    } else { // fatshark band
         band = 4;
         if (channel == 8)
             channel = 2;
@@ -769,7 +791,7 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     crc ^= 0x05; // band count
     CMS_tx(0x08);
     crc ^= 0x08; // channel count
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
     if (powerLock) {
         CMS_tx(3);
         crc ^= (3); // power count
@@ -834,9 +856,9 @@ void parse_rc() {
 }
 
 uint8_t parse_vtx_band_and_channel(uint8_t const band, uint8_t const channel) {
-    if (band == 5) {            // race band
+    if (band == 5) { // race band
         return (channel - 1);
-    } else if (band == 4) {     // fatshark band
+    } else if (band == 4) { // fatshark band
         if (channel == 2) {
             return 8;
         }
@@ -862,9 +884,8 @@ uint8_t msp_vtx_set_channel(uint8_t const channel) {
 
 void parse_vtx_config() {
     uint8_t nxt_ch;
-    //uint8_t const power = msp_rx_buf[3];
-    //uint8_t const pitmode = msp_rx_buf[4];
-
+    // uint8_t const power = msp_rx_buf[3];
+    // uint8_t const pitmode = msp_rx_buf[4];
 
     /*
     nxt_pwr:
@@ -873,9 +894,9 @@ void parse_vtx_config() {
         .....
         POWER_MAX+1: 0mw
     */
-    //uint8_t nxt_pwr = 0;
-    //uint8_t pit_update = 0;
-    //uint8_t needSaveEEP = 0;
+    // uint8_t nxt_pwr = 0;
+    // uint8_t pit_update = 0;
+    // uint8_t needSaveEEP = 0;
 
     fc_lock |= FC_VTX_CONFIG_LOCK;
 
@@ -901,7 +922,6 @@ void parse_vtx_config() {
     msp_vtx_set_channel(nxt_ch);
     // PIT_MODE ?
     // RF_POWER ?
-
 }
 
 void msp_set_osd_canvas(void) {
@@ -1022,7 +1042,7 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
             vtx_pit_save = PIT_MODE;
         } else {
 #ifndef VIDEO_PAT
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
             if ((RF_POWER == 3) && (!g_IS_ARMED))
                 pwr_lmt_done = 0;
             else
@@ -1074,7 +1094,7 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
             if (dm6300_init_done) {
                 if (cur_pwr != RF_POWER) {
 #ifndef VIDEO_PAT
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
                     if ((RF_POWER == 3) && (!g_IS_ARMED))
                         pwr_lmt_done = 0;
                     else
@@ -1393,7 +1413,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                             ;
                         else {
                             vtx_power++;
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
                             if (powerLock)
                                 vtx_power &= 0x01;
 #endif
@@ -1407,7 +1427,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                             ;
                         else {
                             vtx_power--;
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
                             if (powerLock)
                                 vtx_power &= 0x01;
 #endif
@@ -1843,7 +1863,7 @@ void set_vtx_param() {
             debugf("\n\rExit PIT or LP");
 #endif
 #ifndef VIDEO_PAT
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
             if (RF_POWER == 3 && !g_IS_ARMED)
                 pwr_lmt_done = 0;
             else
@@ -1854,7 +1874,7 @@ void set_vtx_param() {
                 cur_pwr = RF_POWER;
             }
         } else if (heat_protect) {
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
             WriteReg(0, 0x8F, 0x00);
             WriteReg(0, 0x8F, 0x01);
             DM6300_Init(RF_FREQ, RF_BW);
@@ -1887,7 +1907,7 @@ void set_vtx_param() {
 }
 
 #ifdef INIT_VTX_TABLE
-#define FACTORY_BAND 0  // BF requires band to be CUSTOM with VTX_MSP
+#define FACTORY_BAND 0 // BF requires band to be CUSTOM with VTX_MSP
 
 CODE_SEG const uint8_t bf_vtx_band_table[6][31] = {
     /*BOSCAM_A*/
@@ -1943,7 +1963,7 @@ void InitVtxTable() {
     power_table[0] = bf_vtx_power_table[0];
     power_table[1] = bf_vtx_power_table[1];
 
-#if defined HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
     if (!powerLock) {
         // if we dont have power lock, enable 500mw and 1W
         power_table[2] = bf_vtx_power_500mW;

@@ -50,7 +50,7 @@ typedef enum {
 
 #define FREQ_MAX     7
 #define FREQ_MAX_EXT 9
-#if defined HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
 #define POWER_MAX 3
 #else
 #define POWER_MAX 1
@@ -97,7 +97,7 @@ void vtx_paralized(void);
 
 void timer_task();
 
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
 extern uint8_t powerLock;
 #endif
 extern uint8_t RF_FREQ;
