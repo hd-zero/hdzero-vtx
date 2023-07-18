@@ -94,6 +94,7 @@ uint8_t boot_0mw_done = 0;
 
 #ifdef USE_MSP
 void msp_set_osd_canvas(void);
+void msp_set_inav_osd_canvas(void);
 void parse_set_osd_canvas(void);
 
 uint8_t msp_cmp_fc_variant(const char *variant) {
@@ -316,6 +317,7 @@ uint8_t msp_read_one_frame() {
                         msp_set_osd_canvas();
                     } else if (msp_cmp_fc_variant("INAV")) {
                         init_table_unsupported = 1;
+                        msp_set_inav_osd_canvas();
                     }
                 }
             }
@@ -881,7 +883,7 @@ void parse_vtx_config() {
 
     fc_lock |= FC_VTX_CONFIG_LOCK;
 
-    if (!msp_cmp_fc_variant("BTFL") && !msp_cmp_fc_variant("EMUF") && !msp_cmp_fc_variant("QUIC")) {
+    if (!msp_cmp_fc_variant("BTFL") && !msp_cmp_fc_variant("EMUF") && !msp_cmp_fc_variant("QUIC") && !msp_cmp_fc_variant("INAV")) {
         return;
     }
     if (!msp_rx_buf[0]) {
@@ -922,11 +924,19 @@ void msp_set_osd_canvas(void) {
     }
 }
 
+void msp_set_inav_osd_canvas(void) {
+    if (msp_cmp_fc_variant("INAV")) {
+        resolution = HD_5018;
+        osd_menu_offset = 8;
+    }
+}
+
 void parse_set_osd_canvas(void) {
     resolution = HD_5018;
     // debugf("\r\nparse_set_osd_canvas");
     osd_menu_offset = 8;
 }
+
 void parseMspVtx_V2(uint16_t const cmd_u16) {
     uint8_t nxt_ch = INVALID_CHANNEL;
     uint8_t nxt_pwr = 0;
