@@ -36,6 +36,6 @@ The Blue LED provides these status indications:
 - ON/OFF @ 4hz = 0.1mw pitt mode active
 - ON solid = VTX operation normal
 
-If both Red and Blue LEDS are on solid but no signal is detected:
+If both Red and Blue LEDS are on solid but no video signal is detected by VRX:
 - use spectrum analyzer (available on some analog VRXs) to verify VTX RF output on correct channel.
-- use PAT version of firmware to verify RF output from VTX and test patern signal is received by VRX.
+- use a PAT version of firmware for your specific VTX to verify RF output from VTX and test patern signal is received by VRX.
