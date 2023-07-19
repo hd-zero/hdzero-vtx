@@ -26,7 +26,8 @@ To download the latest firmware for your VTX, visit the [release page](https://g
 **Please do not arbitrarily modify the data in use in the EEPROM, that may make your VTX not work.**
 
 # Basic troubleshooting:
-The Red LED is a simple indicator of power status and should be ON solid during normal operation.
+The Red LED is a simple indicator of power status and should be ON solid during normal operation. 
+- If the Red LED is dim or flickering: Test power input to VTX is stable at expected voltage and within input voltage tolerance of VTX.
 
 The Blue LED provides these status indications:
 - flicker 3x after boot indicates MSP signaling is detected.
@@ -39,3 +40,4 @@ The Blue LED provides these status indications:
 If both Red and Blue LEDS are on solid but no video signal is detected by VRX:
 - use spectrum analyzer (available on some analog VRXs) to verify VTX RF output on correct channel.
 - use a PAT version of firmware for your specific VTX to verify RF output from VTX and test patern signal is received by VRX.
+- test voltages at various test pads of VTX.
