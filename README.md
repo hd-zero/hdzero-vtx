@@ -25,9 +25,9 @@ To download the latest firmware for your VTX, visit the [release page](https://g
 # Attention:
 **Please do not arbitrarily modify the data in use in the EEPROM, that may make your VTX not work.**
 
-# Basic troubleshooting:
+# Basic VTX hardware troubleshooting:
 The Red LED is a simple indicator of power status and should be ON solid during normal operation. 
-- If the Red LED is dim or flickering: Test power input to VTX is stable at expected voltage and within input voltage tolerance of VTX.
+- If the Red LED is Off, dim, or flickering: Test power input to VTX is stable at expected voltage and within input voltage tolerance of VTX.
 
 The Blue LED provides these status indications:
 - flicker 3x after boot indicates MSP signaling is detected.
