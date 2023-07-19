@@ -22,5 +22,20 @@ To download the latest firmware for your VTX, visit the [release page](https://g
 - Copy HDZERO_TX.bin to root of VRX SD Card
 - Follow normal flashing proceedure
 
-# Attention
+# Attention:
 **Please do not arbitrarily modify the data in use in the EEPROM, that may make your VTX not work.**
+
+# Basic troubleshooting:
+The Red LED is a simple indicator of power status and should be ON solid during normal operation.
+
+The Blue LED provides these status indications:
+- flicker 3x after boot indicates MSP signaling is detected.
+- OFF = camera lost (check camera and cabling)
+- ON/OFF @ 2hz = heat protection
+- ON/OFF @ 8hz = 0MW pitt mode active
+- ON/OFF @ 4hz = 0.1mw pitt mode active
+- ON solid = VTX operation normal
+
+If both Red and Blue LEDS are on solid but no signal is detected:
+- use spectrum analyzer (available on some analog VRXs) to verify VTX RF output on correct channel.
+- use PAT version of firmware to verify RF output from VTX and test patern signal is received by VRX.
