@@ -40,4 +40,5 @@ The Blue LED provides these status indications:
 If both Red and Blue LEDS are on solid but no video signal is detected by VRX:
 - use spectrum analyzer (available on some analog VRXs) to verify VTX RF output on correct channel.
 - use a PAT version of firmware for your specific VTX to verify RF output from VTX and test patern signal is received by VRX.
-- test voltages at various test pads of VTX.
+
+The test pads on the VTX can also help verify some segments of the VTX cricut. eg: pad labeled 1v8 should be approximately 1.8 Volts.
