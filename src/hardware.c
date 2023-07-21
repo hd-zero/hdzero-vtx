@@ -316,6 +316,7 @@ void GetVtxParameter() {
     XDATA_SEG uint8_t tab[FREQ_MAX + 1][POWER_MAX + 1];
     uint8_t flash_vld = 1;
     uint8_t ee_vld = 1;
+    uint8_t tab_min[4] = {255, 255, 255, 255};
 
     EE_VALID = !I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_EEP_VLD, 0xFF);
 
@@ -335,10 +336,18 @@ void GetVtxParameter() {
         // RF Tab
         for (i = 0; i <= FREQ_MAX; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
-                tab[i][j] = I2C_Read8_Wait(10, ADDR_EEPROM, 0 * (POWER_MAX + 1) + j);
+                tab[i][j] = I2C_Read8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j);
                 tab[i][j] -= 4;
+                if (tab[i][j] < tab_min[j])
+                    tab_min[j] = tab[i][j];
                 if (tab[i][j] == 0xFF)
                     ee_vld = 0;
+            }
+        }
+
+        for (i = 0; i <= FREQ_MAX; i++) {
+            for (j = 0; j <= POWER_MAX; j++) {
+                tab[i][j] = tab_min[j];
             }
         }
 
@@ -417,6 +426,7 @@ void GetVtxParameter() {
 #ifdef HDZERO_FREESTYLE
         // powerLock
         powerLock = 0x01 & I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_POWER_LOCK);
+        powerLock = 0;
 #endif
     } else {
         for (i = 0; i <= FREQ_MAX; i++) {
