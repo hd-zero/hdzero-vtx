@@ -23,6 +23,7 @@ uint32_t dcoc_ih = 0x075F0000;
 uint32_t dcoc_qh = 0x075F0000;
 
 uint8_t dm6300_init_done = 0;
+uint8_t is_low_band = 1;
 #ifdef HDZERO_FREESTYLE
 uint8_t table_power[FREQ_MAX_EXT + 1][POWER_MAX + 1] = {
     {0x70, 0x68, 0x5c, 0x60},
@@ -49,37 +50,27 @@ uint8_t table_power[FREQ_MAX_EXT + 1][POWER_MAX + 1] = {
     {0x72, 0x7C}}; // ch10-5800
 #endif
 
-#ifndef Raceband
-// ch1-8,5660M/5695M/5735M/5770M/5805M/5839M/5878M/5914M
-const uint32_t tab[3][FREQ_MAX + 1] = {
-    {0x3746, 0x379D, 0x3801, 0x3859, 0x38B0, 0x3905, 0x3967, 0x39C1},
-    {0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9A},
-    {0xCAAAAB, 0x9D5555, 0xB2AAAB, 0x855555, 0x580000, 0x1D5555, 0x255555, 0x55555}};
-
-//                   5658,  5695,  5732,  5769,  5806,  5843,  5880,  5917
-// uint32_t freq[FREQ_MAX+1] = {113160,113900,114640,115380,116120,116860,117600,118340};
-//                   5658,  5695,  5732,  5769,  5806,  5843,  5880,  5917,  5760,  5800
-const uint32_t freq_tab[FREQ_MAX_EXT + 1] = {113160, 113900, 114640, 115380, 116120, 116860, 117600, 118340, 115200, 116000};
-#else
-#if (0)
-// Raceband1-8,5658M/5695M/5732M/5769M/5806M/5843M/5880M/5917M/5760M/5800M
-const uint32_t tab[3][FREQ_MAX_EXT + 1] = {
-    {0x3867, 0x379D, 0x3924, 0x3982, 0x39E1, 0x3A3F, 0x3A9E, 0x3AFC, 0x3840, 0x38A4},
-    {0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x96, 0x97},
-    {0xB00000, 0x9D5555, 0x8AAAAB, 0x780000, 0x655555, 0x52AAAB, 0x400000, 0x2D5555, 0x000000, 0x155555}};
-#else
-const uint32_t tab[3][FREQ_MAX_EXT + 1] = {
-    {0x3574, 0x35D2, 0x3631, 0x368F, 0x36ED, 0x374C, 0x37AA, 0x3809, 0x35D2, 0x368F},
-    {0x8B, 0x8C, 0x8D, 0x8E, 0x8F, 0x90, 0x91, 0x92, 0x8C, 0x8E},
-    {0x1455555, 0x132AAAB, 0x1200000, 0x10D5555, 0xFAAAAB, 0xE80000, 0xD55555, 0xC2AAAB, 0x132AAAB, 0x10D5555}};
-#endif
-#if (0)
-//                            5660,  5695,  5735,  5770,  5805,  5839,  5878,  5914,  5760,  5800
-const uint32_t freq_tab[FREQ_MAX_EXT + 1] = {113200, 113900, 114700, 115400, 116100, 116780, 117560, 118280, 115200, 116000};
-#endif
+const uint32_t tab[2][3][FREQ_MAX_EXT + 1] = {
+    // raceband
+    {
+        {0x3867, 0x379D, 0x3924, 0x3982, 0x39E1, 0x3A3F, 0x3A9E, 0x3AFC, 0x3840, 0x38A4},
+        {0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x96, 0x97},
+        {0xB00000, 0x9D5555, 0x8AAAAB, 0x780000, 0x655555, 0x52AAAB, 0x400000, 0x2D5555, 0x000000, 0x155555},
+    },
+    // lowband
+    {
+        {0x3574, 0x35D2, 0x3631, 0x368F, 0x36ED, 0x374C, 0x37AA, 0x3809, 0x35D2, 0x368F},
+        {0x8B, 0x8C, 0x8D, 0x8E, 0x8F, 0x90, 0x91, 0x92, 0x8C, 0x8E},
+        {0x1455555, 0x132AAAB, 0x1200000, 0x10D5555, 0xFAAAAB, 0xE80000, 0xD55555, 0xC2AAAB, 0x132AAAB, 0x10D5555},
+    },
+};
 //                            5362,  5399,  5436,  5473,  5510,  5547,  5584,  5621,  5399,  5473
-const uint32_t freq_tab[FREQ_MAX_EXT + 1] = {107240, 107980, 108720, 109640, 110200, 110940, 111680, 112420, 107980, 109640};
-#endif
+const uint32_t freq_tab[2][FREQ_MAX_EXT + 1] = {
+    // raceband
+    {113200, 113900, 114700, 115400, 116100, 116780, 117560, 118280, 115200, 116000},
+    // lowband
+    {107240, 107980, 108720, 109640, 110200, 110940, 111680, 112420, 107980, 109640},
+};
 
 const uint16_t frequencies[] = {FREQ_R1, FREQ_R2, FREQ_R3, FREQ_R4, FREQ_R5, FREQ_R6, FREQ_R7, FREQ_R8, FREQ_F2, FREQ_F4};
 
@@ -148,8 +139,8 @@ void DM6300_SetChannel(uint8_t ch) {
     dm6300_set_channel_regs[17].dat = 0x00008000 + (init6300_fcnt & 0xFF);
     dm6300_set_channel_regs[18].dat = init6300_fnum[ch];
 
-    dm6300_set_channel_regs[23].dat = tab[1][ch];
-    dm6300_set_channel_regs[24].dat = tab[2][ch];
+    dm6300_set_channel_regs[23].dat = tab[is_low_band][1][ch];
+    dm6300_set_channel_regs[24].dat = tab[is_low_band][2][ch];
 
     WRITE_REG_MAP(dm6300_set_channel_regs);
 }
@@ -473,8 +464,8 @@ void DM6300_init3(uint8_t ch) {
     dm6300_init3_regs[17].dat = 0x00008000 + (init6300_fcnt & 0xFF);
     dm6300_init3_regs[18].dat = init6300_fnum[ch]; // tab[0][ch]
 
-    dm6300_init3_regs[23].dat = tab[1][ch];
-    dm6300_init3_regs[24].dat = tab[2][ch];
+    dm6300_init3_regs[23].dat = tab[is_low_band][1][ch];
+    dm6300_init3_regs[24].dat = tab[is_low_band][2][ch];
 
     WRITE_REG_MAP(dm6300_init3_regs);
 }
@@ -776,7 +767,7 @@ void DM6300_Init(uint8_t ch, BWType_e bw) {
     init6300_fcnt = dat & 0x3FFF;
     init6300_fcnt = 0x20000 / init6300_fcnt - 3;
     for (i = 0; i < FREQ_MAX_EXT + 1; i++)
-        init6300_fnum[i] = freq_tab[i] * init6300_fcnt / 384;
+        init6300_fnum[i] = freq_tab[is_low_band][i] * init6300_fcnt / 384;
 
     // 02_BBPLL_3456
     DM6300_init2(bw);
