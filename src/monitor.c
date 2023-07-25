@@ -188,7 +188,7 @@ void MonEE(uint8_t op, uint8_t d) {
     }
 
     val = I2C_Read8_Wait(10, ADDR_EEPROM, addr);
-    table_power[RF_FREQ][RF_POWER] = val;
+    table_power[0][RF_FREQ][RF_POWER] = val;
     debugf("\r\nRF TAB[%d][%d] = %x", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, val);
 
     DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);

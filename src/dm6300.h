@@ -32,7 +32,7 @@ void DM6300_RFTest();
 // void DM6300_M0();
 
 extern int16_t auxadc_offset;
-extern uint8_t table_power[FREQ_MAX_EXT + 1][POWER_MAX + 1];
+extern uint8_t table_power[2][FREQ_MAX_EXT + 1][POWER_MAX + 1];
 
 extern uint32_t dcoc_ih, dcoc_qh;
 

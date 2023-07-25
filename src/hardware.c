@@ -43,6 +43,7 @@ uint8_t PIT_MODE = 0;
 uint8_t OFFSET_25MW = 0; // 0~10 -> 0~10    11~20 -> -1~-10
 uint8_t TEAM_RACE = 0;
 uint8_t BAUDRATE = 0;
+uint8_t is_low_band = 1;
 
 uint8_t RF_BW = BW_27M;
 uint8_t RF_BW_last = BW_27M;
@@ -312,8 +313,8 @@ void CFG_Back() {
 
 void GetVtxParameter() {
     unsigned char CODE_SEG *ptr = (unsigned char CODE_SEG *)0xFFE8;
-    uint8_t i, j;
-    XDATA_SEG uint8_t tab[FREQ_MAX + 1][POWER_MAX + 1];
+    uint8_t i, j, k;
+    XDATA_SEG uint8_t tab[2][FREQ_MAX + 1][POWER_MAX + 1];
     uint8_t flash_vld = 1;
     uint8_t ee_vld = 1;
     uint8_t tab_min[4] = {255, 255, 255, 255};
@@ -329,25 +330,25 @@ void GetVtxParameter() {
 #ifdef FIX_EEP
         for (i = 0; i <= FREQ_MAX; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
-                I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, table_power[i][j]);
+                I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, table_power[0][i][j]);
             }
         }
 #endif
         // RF Tab
         for (i = 0; i <= FREQ_MAX; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
-                tab[i][j] = I2C_Read8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j);
-                tab[i][j] -= 4;
-                if (tab[i][j] < tab_min[j])
-                    tab_min[j] = tab[i][j];
-                if (tab[i][j] == 0xFF)
+                tab[0][i][j] = I2C_Read8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j);
+                tab[0][i][j] -= 4;
+                if (tab[0][i][j] < tab_min[j])
+                    tab_min[j] = tab[0][i][j];
+                if (tab[0][i][j] == 0xFF)
                     ee_vld = 0;
             }
         }
 
         for (i = 0; i <= FREQ_MAX; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
-                tab[i][j] = tab_min[j];
+                tab[1][i][j] = tab_min[j];
             }
         }
 
@@ -355,27 +356,31 @@ void GetVtxParameter() {
 #ifdef _DEBUG_MODE
             debugf("\r\nUSE EEPROM for rf_pwr_tab.");
 #endif
-            for (i = 0; i <= FREQ_MAX; i++) {
-                for (j = 0; j <= POWER_MAX; j++) {
-                    table_power[i][j] = tab[i][j];
+            for (i = 0; i < 2; i++) {
+                for (j = 0; j <= FREQ_MAX; j++) {
+                    for (k = 0; k <= POWER_MAX; k++) {
+                        table_power[i][j][k] = tab[i][j][k];
 #ifndef _RF_CALIB
 #ifndef HDZERO_FREESTYLE
-                    if (j == 0) // 25mw +3dbm
-                        table_power[i][j] += 0xC;
+                        if (k == 0) // 25mw +3dbm
+                            table_power[i][j][k] += 0xC;
 #endif
 #endif
+                    }
                 }
             }
 
             // ch9 5760M use ch4 5769M;ch10 5800 use ch5 5806
-            for (j = 0; j <= POWER_MAX; j++) {
-                table_power[8][j] = tab[3][j];
-                table_power[9][j] = tab[4][j];
-                if (j == 0) { // 25mw +3dbm
+            for (i = 0; i < 2; i++) {
+                for (j = 0; j <= POWER_MAX; j++) {
+                    table_power[i][8][j] = tab[i][3][j];
+                    table_power[i][9][j] = tab[i][4][j];
+                    if (j == 0) { // 25mw +3dbm
 #ifndef HDZERO_FREESTYLE
-                    table_power[8][j] += 0x0C;
-                    table_power[9][j] += 0x0C;
+                        table_power[i][8][j] += 0x0C;
+                        table_power[i][9][j] += 0x0C;
 #endif
+                    }
                 }
             }
         } else {
@@ -386,7 +391,7 @@ void GetVtxParameter() {
 #ifdef _RF_CALIB
             for (i = 0; i <= FREQ_MAX; i++) {
                 for (j = 0; j <= POWER_MAX; j++) {
-                    I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, table_power[i][j]);
+                    I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, table_power[0][i][j]);
                 }
             }
 #endif
@@ -431,10 +436,18 @@ void GetVtxParameter() {
     } else {
         for (i = 0; i <= FREQ_MAX; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
-                tab[i][j] = *ptr;
+                tab[0][i][j] = *ptr;
+                if (tab[0][i][j] < tab_min[j])
+                    tab_min[j] = tab[0][i][j];
                 ptr++;
-                if (tab[i][j] == 0xFF)
+                if (tab[0][i][j] == 0xFF)
                     flash_vld = 0;
+            }
+        }
+
+        for (i = 0; i <= FREQ_MAX; i++) {
+            for (j = 0; j <= POWER_MAX; j++) {
+                tab[1][i][j] = tab_min[j];
             }
         }
 
@@ -442,21 +455,25 @@ void GetVtxParameter() {
 #ifdef _DEBUG_MODE
             debugf("\r\nUse Flash rf_pwr_tab space.");
 #endif
-            for (i = 0; i <= FREQ_MAX; i++) {
-                for (j = 0; j <= POWER_MAX; j++) {
-                    table_power[i][j] = tab[i][j];
-                    if (j == 0)
-                        table_power[i][j] += 0x0c;
+            for (i = 0; i < 2; i++) {
+                for (j = 0; j <= FREQ_MAX; j++) {
+                    for (k = 0; k <= POWER_MAX; k++) {
+                        table_power[i][j][k] = tab[i][j][k];
+                        if (k == 0)
+                            table_power[i][i][j] += 0x0c;
+                    }
                 }
             }
 
             // ch9 5760M use ch4 5769M;ch10 5800 use ch5 5806
-            for (j = 0; j <= POWER_MAX; j++) {
-                table_power[8][j] = tab[3][j];
-                table_power[9][j] = tab[4][j];
-                if (j == 0) { // 25mw +3dbm
-                    table_power[8][j] += 0x0C;
-                    table_power[9][j] += 0x0C;
+            for (i = 0; i < 2; i++) {
+                for (j = 0; j <= POWER_MAX; j++) {
+                    table_power[i][8][j] = tab[i][3][j];
+                    table_power[i][9][j] = tab[i][4][j];
+                    if (j == 0) { // 25mw +3dbm
+                        table_power[i][8][j] += 0x0C;
+                        table_power[i][9][j] += 0x0C;
+                    }
                 }
             }
         }
@@ -470,7 +487,7 @@ void GetVtxParameter() {
     for (i = 0; i <= FREQ_MAX_EXT; i++) {
         debugf("\r\nrf_pwr_tab[%d]=", (uint16_t)i);
         for (j = 0; j <= POWER_MAX; j++)
-            debugf(" %x", (uint16_t)table_power[i][j]);
+            debugf(" %x", (uint16_t)table_power[is_low_band][i][j]);
     }
     debugf("\r\nUSE EEPROM for VTX setting:RF_FREQ=%d, RF_POWER=%d, LPMODE=%d PIT_MODE=%d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
 #endif
@@ -886,14 +903,14 @@ void PwrLMT() {
                     if (pwr_lmt_sec >= 3) {
                         if (RF_POWER == 3) {
                             if (p_init) {
-                                p = table_power[RF_FREQ][3] - 0x1C;
+                                p = table_power[is_low_band][RF_FREQ][3] - 0x1C;
                                 p_init = 0;
                             }
 
                             SPI_Write(0x6, 0xFF0, 0x00000018);
 
-                            if (p >= table_power[RF_FREQ][3]) {
-                                p = table_power[RF_FREQ][3];
+                            if (p >= table_power[is_low_band][RF_FREQ][3]) {
+                                p = table_power[is_low_band][RF_FREQ][3];
                             } else {
                                 p += 0x4;
                                 debugf("\r\npwr_plus 2dbm,p=%x", (uint16_t)p);
@@ -958,13 +975,13 @@ void PwrLMT() {
                         if (pwr_lmt_sec >= 3) {
                             if (RF_POWER == 3) {
                                 if (p_init) {
-                                    p = table_power[RF_FREQ][3] - 0x1C;
+                                    p = table_power[is_low_band][RF_FREQ][3] - 0x1C;
                                     p_init = 0;
                                 }
                                 SPI_Write(0x6, 0xFF0, 0x00000018); // set page
 
-                                if (p >= table_power[RF_FREQ][3])
-                                    p = table_power[RF_FREQ][3];
+                                if (p >= table_power[is_low_band][RF_FREQ][3])
+                                    p = table_power[is_low_band][RF_FREQ][3];
                                 else {
                                     p += 0x4;
                                     debugf("\r\npwr_plus 2dbm,p=%x", (uint16_t)p + pwr_offset);

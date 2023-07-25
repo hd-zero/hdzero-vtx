@@ -111,6 +111,7 @@ extern uint8_t EE_VALID;
 extern uint8_t RF_BW;
 extern uint8_t RF_BW_last;
 extern uint8_t BAUDRATE;
+extern uint8_t is_low_band;
 
 extern uint8_t pwr_offset;
 extern uint8_t heat_protect;
