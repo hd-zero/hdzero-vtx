@@ -43,7 +43,6 @@ uint8_t PIT_MODE = 0;
 uint8_t OFFSET_25MW = 0; // 0~10 -> 0~10    11~20 -> -1~-10
 uint8_t TEAM_RACE = 0;
 uint8_t BAUDRATE = 0;
-uint8_t is_low_band = 1;
 
 uint8_t RF_BW = BW_27M;
 uint8_t RF_BW_last = BW_27M;
@@ -93,10 +92,12 @@ CODE_SEG const uint8_t BPLED[] = {
     0x83, // b
     0xC6, // C
     0x8E, // F
-    0x0E  // F.
+    0x0E, // F.
+    0x47, // L.
 };
 
 uint8_t dispF_cnt = 0xff;
+uint8_t dispL_cnt = 0xff;
 
 uint8_t cameraLost = 0;
 
@@ -302,7 +303,7 @@ void Setting_Save() {
 }
 
 void CFG_Back() {
-    RF_FREQ = (RF_FREQ > FREQ_MAX_EXT) ? 0 : RF_FREQ;
+    RF_FREQ = (RF_FREQ >= FREQ_NUM) ? 0 : RF_FREQ;
     RF_POWER = (RF_POWER > POWER_MAX) ? 0 : RF_POWER;
     LP_MODE = (LP_MODE > 2) ? 0 : LP_MODE;
     PIT_MODE = (PIT_MODE > PIT_0MW) ? PIT_OFF : PIT_MODE;
@@ -313,8 +314,8 @@ void CFG_Back() {
 
 void GetVtxParameter() {
     unsigned char CODE_SEG *ptr = (unsigned char CODE_SEG *)0xFFE8;
-    uint8_t i, j, k;
-    XDATA_SEG uint8_t tab[2][FREQ_MAX + 1][POWER_MAX + 1];
+    uint8_t i, j;
+    XDATA_SEG uint8_t tab[FREQ_NUM][POWER_MAX + 1];
     uint8_t flash_vld = 1;
     uint8_t ee_vld = 1;
     uint8_t tab_min[4] = {255, 255, 255, 255};
@@ -334,21 +335,27 @@ void GetVtxParameter() {
             }
         }
 #endif
-        // RF Tab
+        // race band
         for (i = 0; i <= FREQ_MAX; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
-                tab[0][i][j] = I2C_Read8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j);
-                tab[0][i][j] -= 4;
-                if (tab[0][i][j] < tab_min[j])
-                    tab_min[j] = tab[0][i][j];
-                if (tab[0][i][j] == 0xFF)
+                tab[i][j] = I2C_Read8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j);
+                if (tab[i][j] < tab_min[j])
+                    tab_min[j] = tab[i][j];
+                if (tab[i][j] == 0xFF)
                     ee_vld = 0;
             }
         }
 
-        for (i = 0; i <= FREQ_MAX; i++) {
+        // fatshark band
+        for (j = 0; j <= POWER_MAX; j++) {
+            tab[8][j] = tab[3][j];
+            tab[9][j] = tab[4][j];
+        }
+
+        // low band
+        for (i = 10; i < FREQ_NUM; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
-                tab[1][i][j] = tab_min[j];
+                tab[i][j] = tab_min[j] - 4;
             }
         }
 
@@ -356,31 +363,15 @@ void GetVtxParameter() {
 #ifdef _DEBUG_MODE
             debugf("\r\nUSE EEPROM for rf_pwr_tab.");
 #endif
-            for (i = 0; i < 2; i++) {
-                for (j = 0; j <= FREQ_MAX; j++) {
-                    for (k = 0; k <= POWER_MAX; k++) {
-                        table_power[i][j][k] = tab[i][j][k];
+            for (i = 0; i < FREQ_NUM; i++) {
+                for (j = 0; j <= POWER_MAX; j++) {
+                    table_power[i][j] = tab[i][j];
 #ifndef _RF_CALIB
 #ifndef HDZERO_FREESTYLE
-                        if (k == 0) // 25mw +3dbm
-                            table_power[i][j][k] += 0xC;
+                    if (j == 0) // 25mw +3dbm
+                        table_power[i][j] += 0xC;
 #endif
 #endif
-                    }
-                }
-            }
-
-            // ch9 5760M use ch4 5769M;ch10 5800 use ch5 5806
-            for (i = 0; i < 2; i++) {
-                for (j = 0; j <= POWER_MAX; j++) {
-                    table_power[i][8][j] = tab[i][3][j];
-                    table_power[i][9][j] = tab[i][4][j];
-                    if (j == 0) { // 25mw +3dbm
-#ifndef HDZERO_FREESTYLE
-                        table_power[i][8][j] += 0x0C;
-                        table_power[i][9][j] += 0x0C;
-#endif
-                    }
                 }
             }
         } else {
@@ -434,60 +425,14 @@ void GetVtxParameter() {
         powerLock = 0;
 #endif
     } else {
-        for (i = 0; i <= FREQ_MAX; i++) {
-            for (j = 0; j <= POWER_MAX; j++) {
-                tab[0][i][j] = *ptr;
-                if (tab[0][i][j] < tab_min[j])
-                    tab_min[j] = tab[0][i][j];
-                ptr++;
-                if (tab[0][i][j] == 0xFF)
-                    flash_vld = 0;
-            }
-        }
-
-        for (i = 0; i <= FREQ_MAX; i++) {
-            for (j = 0; j <= POWER_MAX; j++) {
-                tab[1][i][j] = tab_min[j];
-            }
-        }
-
-        if (flash_vld) { // flash valid
-#ifdef _DEBUG_MODE
-            debugf("\r\nUse Flash rf_pwr_tab space.");
-#endif
-            for (i = 0; i < 2; i++) {
-                for (j = 0; j <= FREQ_MAX; j++) {
-                    for (k = 0; k <= POWER_MAX; k++) {
-                        table_power[i][j][k] = tab[i][j][k];
-                        if (k == 0)
-                            table_power[i][i][j] += 0x0c;
-                    }
-                }
-            }
-
-            // ch9 5760M use ch4 5769M;ch10 5800 use ch5 5806
-            for (i = 0; i < 2; i++) {
-                for (j = 0; j <= POWER_MAX; j++) {
-                    table_power[i][8][j] = tab[i][3][j];
-                    table_power[i][9][j] = tab[i][4][j];
-                    if (j == 0) { // 25mw +3dbm
-                        table_power[i][8][j] += 0x0C;
-                        table_power[i][9][j] += 0x0C;
-                    }
-                }
-            }
-        }
-#ifdef _DEBUG_MODE
-        else
-            debugf("\r\nUse default rf_pwr_tab.");
-#endif
+        CFG_Back();
     }
 
 #ifdef _DEBUG_DM6300
-    for (i = 0; i <= FREQ_MAX_EXT; i++) {
+    for (i = 0; i < FREQ_NUM; i++) {
         debugf("\r\nrf_pwr_tab[%d]=", (uint16_t)i);
         for (j = 0; j <= POWER_MAX; j++)
-            debugf(" %x", (uint16_t)table_power[is_low_band][i][j]);
+            debugf(" %x", (uint16_t)table_power[i][j]);
     }
     debugf("\r\nUSE EEPROM for VTX setting:RF_FREQ=%d, RF_POWER=%d, LPMODE=%d PIT_MODE=%d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
 #endif
@@ -903,14 +848,14 @@ void PwrLMT() {
                     if (pwr_lmt_sec >= 3) {
                         if (RF_POWER == 3) {
                             if (p_init) {
-                                p = table_power[is_low_band][RF_FREQ][3] - 0x1C;
+                                p = table_power[RF_FREQ][3] - 0x1C;
                                 p_init = 0;
                             }
 
                             SPI_Write(0x6, 0xFF0, 0x00000018);
 
-                            if (p >= table_power[is_low_band][RF_FREQ][3]) {
-                                p = table_power[is_low_band][RF_FREQ][3];
+                            if (p >= table_power[RF_FREQ][3]) {
+                                p = table_power[RF_FREQ][3];
                             } else {
                                 p += 0x4;
                                 debugf("\r\npwr_plus 2dbm,p=%x", (uint16_t)p);
@@ -975,13 +920,13 @@ void PwrLMT() {
                         if (pwr_lmt_sec >= 3) {
                             if (RF_POWER == 3) {
                                 if (p_init) {
-                                    p = table_power[is_low_band][RF_FREQ][3] - 0x1C;
+                                    p = table_power[RF_FREQ][3] - 0x1C;
                                     p_init = 0;
                                 }
                                 SPI_Write(0x6, 0xFF0, 0x00000018); // set page
 
-                                if (p >= table_power[is_low_band][RF_FREQ][3])
-                                    p = table_power[is_low_band][RF_FREQ][3];
+                                if (p >= table_power[RF_FREQ][3])
+                                    p = table_power[RF_FREQ][3];
                                 else {
                                     p += 0x4;
                                     debugf("\r\npwr_plus 2dbm,p=%x", (uint16_t)p + pwr_offset);
@@ -1180,17 +1125,20 @@ void Button1_SP() {
         cfg_step = 1;
         if ((RF_FREQ == 8) || (RF_FREQ == 9))
             dispF_cnt = 0;
+        else if (RF_FREQ > 9)
+            dispL_cnt = 0;
         CFG_Back();
 
         break;
     case 1:
-        if (RF_FREQ >= FREQ_MAX_EXT)
+        RF_FREQ++;
+        if (RF_FREQ == FREQ_NUM)
             RF_FREQ = 0;
-        else
-            RF_FREQ++;
 
         if ((RF_FREQ == 8) || (RF_FREQ == 9))
             dispF_cnt = 0;
+        else if (RF_FREQ > 9)
+            dispL_cnt = 0;
         Imp_RF_Param();
         Setting_Save();
         msp_set_vtx_config(RF_POWER, 1);
@@ -1308,8 +1256,11 @@ void Flicker_MAX(uint8_t ch, uint8_t cnt) {
 void BlinkPhase() {
     uint8_t bp = 0;
 
-    if (cfg_step == 1 && (dispF_cnt < DISPF_TIME)) { // display 'F' band
+    if (cfg_step == 1 && dispF_cnt < DISP_TIME) { // display 'F' band
         bp = BPLED[14];
+        set_segment(bp);
+    } else if (cfg_step == 1 && dispL_cnt < DISP_TIME) { // display 'L' band
+        bp = BPLED[15];
         set_segment(bp);
     } else {
         switch (cfg_step) {
@@ -1326,6 +1277,8 @@ void BlinkPhase() {
                 bp = BPLED[2];
             else if (RF_FREQ == 9) // F4
                 bp = BPLED[4];
+            else
+                bp = BPLED[RF_FREQ - 9];
             set_segment(bp);
             break;
 

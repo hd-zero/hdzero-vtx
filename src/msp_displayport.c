@@ -181,8 +181,10 @@ void msp_task() {
     if (timer_8hz) {
         len = get_tx_data_5680();
         insert_tx_buf(len);
-        if (dispF_cnt < DISPF_TIME)
+        if (dispF_cnt < DISP_TIME)
             dispF_cnt++;
+        if (dispL_cnt < DISP_TIME)
+            dispL_cnt++;
 
         if (msp_tx_cnt <= 8)
             msp_tx_cnt++;
@@ -723,10 +725,10 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     uint8_t band;
     uint16_t const freq = DM6300_GetFreqByChannel(channel);
 
-    if (channel < 8) {  // race band
+    if (channel < 8) { // race band
         band = 5;
         channel = channel + 1;
-    } else {  // fatshark band
+    } else if (channel < 10) { // fatshark band
         band = 4;
         if (channel == 8)
             channel = 2;
@@ -737,7 +739,11 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
             channel = 0;
             band = 0;
         }
+    } else { // low band
+        band = 6;
+        channel = channel - 9;
     }
+
     msp_send_header(0);
     CMS_tx(0x0f);
     crc ^= 0x0f; // len
@@ -765,8 +771,8 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     crc ^= (freq & 0xff); // freq_l
     CMS_tx(((freq >> 8) & 0xff));
     crc ^= ((freq >> 8) & 0xff); // freq_h
-    CMS_tx(0x05);
-    crc ^= 0x05; // band count
+    CMS_tx(0x06);
+    crc ^= 0x06; // band count
     CMS_tx(0x08);
     crc ^= 0x08; // channel count
 #ifdef HDZERO_FREESTYLE
@@ -834,17 +840,21 @@ void parse_rc() {
 }
 
 uint8_t parse_vtx_band_and_channel(uint8_t const band, uint8_t const channel) {
-    if (band == 5) {            // race band
-        return (channel - 1);
-    } else if (band == 4) {     // fatshark band
+    if (band == 4) { // fatshark band
         if (channel == 2) {
             return 8;
-        }
-        if (channel == 4) {
+        } else if (channel == 4) {
             return 9;
+        } else {
+            return INVALID_CHANNEL;
         }
+    } else if (band == 5) { // race band
+        return (channel - 1);
+    } else if (band == 6) {
+        return (channel + 9); // low band
+    } else {
+        return INVALID_CHANNEL;
     }
-    return INVALID_CHANNEL;
 }
 
 uint8_t msp_vtx_set_channel(uint8_t const channel) {
@@ -862,9 +872,8 @@ uint8_t msp_vtx_set_channel(uint8_t const channel) {
 
 void parse_vtx_config() {
     uint8_t nxt_ch;
-    //uint8_t const power = msp_rx_buf[3];
-    //uint8_t const pitmode = msp_rx_buf[4];
-
+    // uint8_t const power = msp_rx_buf[3];
+    // uint8_t const pitmode = msp_rx_buf[4];
 
     /*
     nxt_pwr:
@@ -873,9 +882,9 @@ void parse_vtx_config() {
         .....
         POWER_MAX+1: 0mw
     */
-    //uint8_t nxt_pwr = 0;
-    //uint8_t pit_update = 0;
-    //uint8_t needSaveEEP = 0;
+    // uint8_t nxt_pwr = 0;
+    // uint8_t pit_update = 0;
+    // uint8_t needSaveEEP = 0;
 
     fc_lock |= FC_VTX_CONFIG_LOCK;
 
@@ -901,7 +910,6 @@ void parse_vtx_config() {
     msp_vtx_set_channel(nxt_ch);
     // PIT_MODE ?
     // RF_POWER ?
-
 }
 
 void msp_set_osd_canvas(void) {
@@ -1367,14 +1375,14 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_RIGHT) {
                         if (SA_lock == 0) {
                             vtx_channel++;
-                            if (vtx_channel == FREQ_MAX_EXT + 1)
+                            if (vtx_channel == FREQ_NUM)
                                 vtx_channel = 0;
                         }
                     } else if (VirtualBtn == BTN_LEFT) {
                         if (SA_lock == 0) {
                             vtx_channel--;
-                            if (vtx_channel > FREQ_MAX_EXT + 1)
-                                vtx_channel = FREQ_MAX_EXT;
+                            if (vtx_channel >= FREQ_NUM)
+                                vtx_channel = FREQ_NUM - 1;
                         }
                     }
                     update_vtx_menu_param(vtx_state);
@@ -1695,12 +1703,15 @@ void update_vtx_menu_param(uint8_t vtx_state) {
     if (vtx_channel < 8) {
         osd_buf[2][osd_menu_offset + 23] = 'R';
         osd_buf[2][osd_menu_offset + 24] = vtx_channel + '1';
-    } else {
+    } else if (vtx_channel < 10) {
         osd_buf[2][osd_menu_offset + 23] = 'F';
         if (vtx_channel == 8)
             osd_buf[2][osd_menu_offset + 24] = '2';
         else if (vtx_channel == 9)
             osd_buf[2][osd_menu_offset + 24] = '4';
+    } else {
+        osd_buf[2][osd_menu_offset + 23] = 'L';
+        osd_buf[2][osd_menu_offset + 24] = '1' + vtx_channel - 10;
     }
 
     strcpy(osd_buf[3] + osd_menu_offset + 20, powerString[vtx_power]);
@@ -1887,7 +1898,7 @@ void set_vtx_param() {
 }
 
 #ifdef INIT_VTX_TABLE
-#define FACTORY_BAND 0  // BF requires band to be CUSTOM with VTX_MSP
+#define FACTORY_BAND 0 // BF requires band to be CUSTOM with VTX_MSP
 
 CODE_SEG const uint8_t bf_vtx_band_table[6][31] = {
     /*BOSCAM_A*/
@@ -1900,8 +1911,8 @@ CODE_SEG const uint8_t bf_vtx_band_table[6][31] = {
     {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x04, 0x08, 'F', 'A', 'T', 'S', 'H', 'A', 'R', 'K', 'F', FACTORY_BAND, 0x08, 0x00, 0x00, 0x80, 0x16, 0x00, 0x00, 0xa8, 0x16, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
     /*RACEBAND*/
     {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x05, 0x08, 'R', 'A', 'C', 'E', 'B', 'A', 'N', 'D', 'R', FACTORY_BAND, 0x08, 0x1a, 0x16, 0x3f, 0x16, 0x64, 0x16, 0x89, 0x16, 0xae, 0x16, 0xd3, 0x16, 0xf8, 0x16, 0x1d, 0x17},
-    /*IMD6*/
-    {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x06, 0x08, 'I', 'M', 'D', '6', ' ', ' ', ' ', ' ', 'I', FACTORY_BAND, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+    /*LOWBAND*/
+    {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x06, 0x08, 'L', 'O', 'W', 'B', 'A', 'N', 'D', ' ', 'L', FACTORY_BAND, 0x08, 0xf2, 0x14, 0x17, 0x15, 0x3c, 0x15, 0x61, 0x15, 0x86, 0x15, 0xab, 0x15, 0xd0, 0x15, 0xf5, 0x15},
 };
 CODE_SEG const uint8_t bf_vtx_power_table[5][9] = {
     {/*0x24,0x4d,0x3c,*/ 0x07, 0xe4, 0x01, 0x0e, 0x00, 0x03, '2', '5', ' '}, // 25mW

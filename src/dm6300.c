@@ -17,95 +17,178 @@ typedef struct {
 
 int16_t auxadc_offset = 0;
 uint32_t init6300_fcnt = 0;
-uint32_t init6300_fnum[FREQ_MAX_EXT + 1] = {0};
+uint32_t init6300_fnum[FREQ_NUM] = {0};
 
 uint32_t dcoc_ih = 0x075F0000;
 uint32_t dcoc_qh = 0x075F0000;
 
 uint8_t dm6300_init_done = 0;
 #ifdef HDZERO_FREESTYLE
-uint8_t table_power[2][FREQ_MAX_EXT + 1][POWER_MAX + 1] = {
+uint8_t table_power[FREQ_NUM][POWER_MAX + 1] = {
     // race band
-    {
-        {0x70, 0x68, 0x5c, 0x60},
-        {0x70, 0x68, 0x5c, 0x60},
-        {0x70, 0x68, 0x60, 0x60},
-        {0x72, 0x6d, 0x60, 0x60},
-        {0x74, 0x70, 0x62, 0x5c},
-        {0x78, 0x74, 0x64, 0x5b},
-        {0x7a, 0x77, 0x64, 0x5b},
-        {0x7a, 0x77, 0x64, 0x5b},
-        {0x72, 0x6d, 0x60, 0x60}, // ch9-5760
-        {0x74, 0x70, 0x62, 0x5c},
-    },
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x60, 0x60},
+    {0x72, 0x6d, 0x60, 0x60},
+    {0x74, 0x70, 0x62, 0x5c},
+    {0x78, 0x74, 0x64, 0x5b},
+    {0x7a, 0x77, 0x64, 0x5b},
+    {0x7a, 0x77, 0x64, 0x5b},
+    // fatshark band
+    {0x72, 0x6d, 0x60, 0x60},
+    {0x74, 0x70, 0x62, 0x5c},
     // low band
-    {
-        {0x70, 0x68, 0x5c, 0x60},
-        {0x70, 0x68, 0x5c, 0x60},
-        {0x70, 0x68, 0x60, 0x60},
-        {0x72, 0x6d, 0x60, 0x60},
-        {0x74, 0x70, 0x62, 0x5c},
-        {0x78, 0x74, 0x64, 0x5b},
-        {0x7a, 0x77, 0x64, 0x5b},
-        {0x7a, 0x77, 0x64, 0x5b},
-        {0x72, 0x6d, 0x60, 0x60}, // ch9-5760
-        {0x74, 0x70, 0x62, 0x5c},
-    },
-}; // ch10-5800
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+};
 #else
-uint8_t table_power[2][FREQ_MAX_EXT + 1][POWER_MAX + 1] = {
+uint8_t table_power[FREQ_NUM][POWER_MAX + 1] = {
     // race band
-    {
-        {0x79, 0x83},
-        {0x77, 0x81},
-        {0x75, 0x80},
-        {0x73, 0x7E},
-        {0x72, 0x7C},
-        {0x70, 0x7B},
-        {0x72, 0x7E},
-        {0x71, 0x7C},
-        {0x73, 0x7E}, // ch9-5760
-        {0x72, 0x7C},
-    },
+    {0x79, 0x83},
+    {0x77, 0x81},
+    {0x75, 0x80},
+    {0x73, 0x7E},
+    {0x72, 0x7C},
+    {0x70, 0x7B},
+    {0x72, 0x7E},
+    {0x71, 0x7C},
+    // fatshark band
+    {0x73, 0x7E},
+    {0x72, 0x7C},
     // low band
-    {
-        {0x79, 0x83},
-        {0x77, 0x81},
-        {0x75, 0x80},
-        {0x73, 0x7E},
-        {0x72, 0x7C},
-        {0x70, 0x7B},
-        {0x72, 0x7E},
-        {0x71, 0x7C},
-        {0x73, 0x7E}, // ch9-5760
-        {0x72, 0x7C},
-    },
-}; // ch10-5800
+    {0x79, 0x83},
+    {0x79, 0x83},
+    {0x79, 0x83},
+    {0x79, 0x83},
+    {0x79, 0x83},
+    {0x79, 0x83},
+    {0x79, 0x83},
+    {0x79, 0x83},
+};
 #endif
 
-const uint32_t tab[2][3][FREQ_MAX_EXT + 1] = {
-    // raceband
+const uint32_t tab[3][FREQ_NUM] = {
     {
-        {0x3867, 0x379D, 0x3924, 0x3982, 0x39E1, 0x3A3F, 0x3A9E, 0x3AFC, 0x3840, 0x38A4},
-        {0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x96, 0x97},
-        {0xB00000, 0x9D5555, 0x8AAAAB, 0x780000, 0x655555, 0x52AAAB, 0x400000, 0x2D5555, 0x000000, 0x155555},
+        // race band
+        0x3867,
+        0x379D,
+        0x3924,
+        0x3982,
+        0x39E1,
+        0x3A3F,
+        0x3A9E,
+        0x3AFC,
+        // fatshark bank
+        0x3840,
+        0x38A4,
+        // low band
+        0x3574,
+        0x35D2,
+        0x3631,
+        0x368F,
+        0x36ED,
+        0x374C,
+        0x37AA,
+        0x3809,
     },
-    // lowband
     {
-        {0x3574, 0x35D2, 0x3631, 0x368F, 0x36ED, 0x374C, 0x37AA, 0x3809, 0x35D2, 0x368F},
-        {0x8B, 0x8C, 0x8D, 0x8E, 0x8F, 0x90, 0x91, 0x92, 0x8C, 0x8E},
-        {0x1455555, 0x132AAAB, 0x1200000, 0x10D5555, 0xFAAAAB, 0xE80000, 0xD55555, 0xC2AAAB, 0x132AAAB, 0x10D5555},
+        // race band
+        0x93,
+        0x94,
+        0x95,
+        0x96,
+        0x97,
+        0x98,
+        0x99,
+        0x9a,
+        // fatshark bank
+        0x96,
+        0x97,
+        // low band
+        0x8B,
+        0x8C,
+        0x8D,
+        0x8E,
+        0x8F,
+        0x90,
+        0x91,
+        0x92,
     },
-};
-//                            5362,  5399,  5436,  5473,  5510,  5547,  5584,  5621,  5399,  5473
-const uint32_t freq_tab[2][FREQ_MAX_EXT + 1] = {
-    // raceband
-    {113200, 113900, 114700, 115400, 116100, 116780, 117560, 118280, 115200, 116000},
-    // lowband
-    {107240, 107980, 108720, 109640, 110200, 110940, 111680, 112420, 107980, 109640},
+    {
+        // race band
+        0xB00000,
+        0x9D5555,
+        0x8AAAAB,
+        0x780000,
+        0x655555,
+        0x52AAAB,
+        0x400000,
+        0x2D5555,
+        // fatshark bank
+        0x000000,
+        0x155555,
+        // low band
+        0x1455555,
+        0x132AAAB,
+        0x1200000,
+        0x10D5555,
+        0xFAAAAB,
+        0xE80000,
+        0xD55555,
+        0xC2AAAB,
+    },
 };
 
-const uint16_t frequencies[] = {FREQ_R1, FREQ_R2, FREQ_R3, FREQ_R4, FREQ_R5, FREQ_R6, FREQ_R7, FREQ_R8, FREQ_F2, FREQ_F4};
+const uint32_t freq_tab[FREQ_NUM] = {
+    // race band
+    113200,
+    113900,
+    114700,
+    115400,
+    116100,
+    116780,
+    117560,
+    118280,
+    // fatshark bank
+    115200,
+    116000,
+    // low band
+    107240,
+    107980,
+    108720,
+    109640,
+    110200,
+    110940,
+    111680,
+    112420,
+};
+
+const uint16_t frequencies[] = {
+    FREQ_R1,
+    FREQ_R2,
+    FREQ_R3,
+    FREQ_R4,
+    FREQ_R5,
+    FREQ_R6,
+    FREQ_R7,
+    FREQ_R8,
+    FREQ_F2,
+    FREQ_F4,
+    FREQ_L1,
+    FREQ_L2,
+    FREQ_L3,
+    FREQ_L4,
+    FREQ_L5,
+    FREQ_L6,
+    FREQ_L7,
+    FREQ_L8,
+};
 
 void DM6300_write_reg_map(const dm6300_reg_value_t *reg_map, uint8_t size) {
     uint8_t i = 0;
@@ -156,7 +239,7 @@ void DM6300_SetChannel(uint8_t ch) {
     debugf("\r\nset ch:%x", (uint16_t)ch);
 #endif
 
-    if (ch > 9)
+    if (ch >= FREQ_NUM)
         ch = 0;
     /*#ifndef _RF_CALIB
     #ifndef _DEBUG_MODE
@@ -172,8 +255,8 @@ void DM6300_SetChannel(uint8_t ch) {
     dm6300_set_channel_regs[17].dat = 0x00008000 + (init6300_fcnt & 0xFF);
     dm6300_set_channel_regs[18].dat = init6300_fnum[ch];
 
-    dm6300_set_channel_regs[23].dat = tab[is_low_band][1][ch];
-    dm6300_set_channel_regs[24].dat = tab[is_low_band][2][ch];
+    dm6300_set_channel_regs[23].dat = tab[1][ch];
+    dm6300_set_channel_regs[24].dat = tab[2][ch];
 
     WRITE_REG_MAP(dm6300_set_channel_regs);
 }
@@ -217,7 +300,7 @@ void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset) {
 
 #ifndef _RF_CALIB
         if (RF_POWER == 0 && pwr == 0) {
-            p = table_power[is_low_band][freq][pwr] + offset - 2;
+            p = table_power[freq][pwr] + offset - 2;
 
             if (OFFSET_25MW <= 10)
                 p += OFFSET_25MW;
@@ -227,7 +310,7 @@ void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset) {
                 p = p + 10 - OFFSET_25MW;
         } else
 #endif
-            p = table_power[is_low_band][freq][pwr] + offset - 2;
+            p = table_power[freq][pwr] + offset - 2;
 
         if (p > 255)
             p = 255;
@@ -497,8 +580,8 @@ void DM6300_init3(uint8_t ch) {
     dm6300_init3_regs[17].dat = 0x00008000 + (init6300_fcnt & 0xFF);
     dm6300_init3_regs[18].dat = init6300_fnum[ch]; // tab[0][ch]
 
-    dm6300_init3_regs[23].dat = tab[is_low_band][1][ch];
-    dm6300_init3_regs[24].dat = tab[is_low_band][2][ch];
+    dm6300_init3_regs[23].dat = tab[1][ch];
+    dm6300_init3_regs[24].dat = tab[2][ch];
 
     WRITE_REG_MAP(dm6300_init3_regs);
 }
@@ -799,8 +882,8 @@ void DM6300_Init(uint8_t ch, BWType_e bw) {
     SPI_Read(0x3, 0x02C, &dat);
     init6300_fcnt = dat & 0x3FFF;
     init6300_fcnt = 0x20000 / init6300_fcnt - 3;
-    for (i = 0; i < FREQ_MAX_EXT + 1; i++)
-        init6300_fnum[i] = freq_tab[is_low_band][i] * init6300_fcnt / 384;
+    for (i = 0; i < FREQ_NUM + 1; i++)
+        init6300_fnum[i] = freq_tab[i] * init6300_fcnt / 384;
 
     // 02_BBPLL_3456
     DM6300_init2(bw);
@@ -1050,7 +1133,7 @@ void DM6300_EFUSE2() {
     WRITE_REG_MAP(dm6300_regs_dm6300_efuse2_1);
 
     for (i = 0; i < efuse.macro.m0.band_num; i++) // find match macro 5.8G
-                                                  // for(i=0; i<FREQ_MAX_EXT+1; i++) // find match macro 5.8G
+                                                  // for(i=0; i<FREQ_NUM; i++) // find match macro 5.8G
     {
 // efuse.macro.m2[i].tx1.freq_start = (efuse.macro.m2[i].tx1.freq_start >> 8) | (efuse.macro.m2[i].tx1.freq_start << 8);
 // efuse.macro.m2[i].tx1.freq_stop = (efuse.macro.m2[i].tx1.freq_stop >> 8) | (efuse.macro.m2[i].tx1.freq_stop << 8);

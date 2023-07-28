@@ -48,8 +48,8 @@ typedef enum {
 #define EEP_ADDR_LIFETIME_3 0xF3
 #define EEP_ADDR_EEP_VLD    0xFF
 
-#define FREQ_MAX     7
-#define FREQ_MAX_EXT 9
+#define FREQ_MAX 7
+#define FREQ_NUM 18
 #if defined HDZERO_FREESTYLE
 #define POWER_MAX 3
 #else
@@ -111,7 +111,6 @@ extern uint8_t EE_VALID;
 extern uint8_t RF_BW;
 extern uint8_t RF_BW_last;
 extern uint8_t BAUDRATE;
-extern uint8_t is_low_band;
 
 extern uint8_t pwr_offset;
 extern uint8_t heat_protect;
@@ -132,6 +131,7 @@ extern uint8_t ch_init;
 extern uint8_t led_status;
 
 extern uint8_t dispF_cnt;
+extern uint8_t dispL_cnt;
 extern uint8_t temp_err;
 extern uint8_t rf_delay_init_done;
 
