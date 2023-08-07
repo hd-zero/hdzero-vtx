@@ -471,10 +471,15 @@ void camera_menu_init(void) {
 }
 void camera_menu_show_repower(void) {
     memset(osd_buf, 0x20, sizeof(osd_buf));
-    strcpy(osd_buf[1] + osd_menu_offset + 3, "BANDWIDTH IS CHANGED");
-    strcpy(osd_buf[2] + osd_menu_offset + 3, "NEED TO RECONFIG VTX(PRESS OK)");
-    strcpy(osd_buf[3] + osd_menu_offset + 3, "NEED TO RESCAN ON GOGGLE");
-    strcpy(osd_buf[4] + osd_menu_offset + 3, "> OK");
+    strcpy(osd_buf[1] + osd_menu_offset + 3, "BW IS CHANGED:");
+    if (RF_BW == BW_17M) {
+        strcpy(osd_buf[2] + osd_menu_offset + 3, "    WIDE -> NARROW");
+    } else {
+        strcpy(osd_buf[2] + osd_menu_offset + 3, "    NARROW -> WIDE");
+    }
+    strcpy(osd_buf[3] + osd_menu_offset + 3, "NEED TO RECONFIG VTX(PRESS OK)");
+    strcpy(osd_buf[4] + osd_menu_offset + 3, "NEED TO RECONFIG BW ON GOGGLE");
+    strcpy(osd_buf[5] + osd_menu_offset + 3, "> OK");
 }
 
 void camera_menu_cursor_update(uint8_t erase) {
