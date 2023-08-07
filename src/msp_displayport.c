@@ -66,6 +66,7 @@ uint8_t msp_rbuf[64];
 
 uint8_t mspVtxLock = 0;
 uint8_t init_table_done = 0;
+uint8_t init_table_unsupported = 0;
 
 uint8_t crc8tab[256] = {
     0x00, 0xD5, 0x7F, 0xAA, 0xFE, 0x2B, 0x81, 0x54, 0x29, 0xFC, 0x56, 0x83, 0xD7, 0x02, 0xA8, 0x7D,
@@ -93,6 +94,7 @@ uint8_t boot_0mw_done = 0;
 
 #ifdef USE_MSP
 void msp_set_osd_canvas(void);
+void msp_set_inav_osd_canvas(void);
 void parse_set_osd_canvas(void);
 
 uint8_t msp_cmp_fc_variant(const char *variant) {
@@ -315,6 +317,9 @@ uint8_t msp_read_one_frame() {
                         InitVtxTable();
 #endif
                         msp_set_osd_canvas();
+                    } else if (msp_cmp_fc_variant("INAV")) {
+                        init_table_unsupported = 1;
+                        msp_set_inav_osd_canvas();
                     }
                 }
             }
@@ -888,7 +893,7 @@ void parse_vtx_config() {
 
     fc_lock |= FC_VTX_CONFIG_LOCK;
 
-    if (!msp_cmp_fc_variant("BTFL") && !msp_cmp_fc_variant("EMUF") && !msp_cmp_fc_variant("QUIC")) {
+    if (!msp_cmp_fc_variant("BTFL") && !msp_cmp_fc_variant("EMUF") && !msp_cmp_fc_variant("QUIC") && !msp_cmp_fc_variant("INAV")) {
         return;
     }
     if (!msp_rx_buf[0]) {
@@ -929,11 +934,19 @@ void msp_set_osd_canvas(void) {
     }
 }
 
+void msp_set_inav_osd_canvas(void) {
+    if (msp_cmp_fc_variant("INAV")) {
+        resolution = HD_5018;
+        osd_menu_offset = 8;
+    }
+}
+
 void parse_set_osd_canvas(void) {
     resolution = HD_5018;
     // debugf("\r\nparse_set_osd_canvas");
     osd_menu_offset = 8;
 }
+
 void parseMspVtx_V2(uint16_t const cmd_u16) {
     uint8_t nxt_ch = INVALID_CHANNEL;
     uint8_t nxt_pwr = 0;
@@ -965,7 +978,7 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
     debugf("\r\n    fc_channel_rx: %x", (uint16_t)msp_rx_buf[2]);
     debugf("\r\n    fc_pwr_rx:     %x", (uint16_t)fc_pwr_rx);
     debugf("\r\n    fc_pit_rx :    %x", (uint16_t)fc_pit_rx);
-    debugf("\r\n    fc_frequency : %x", fc_frequency);
+    debugf("\r\n    fc_frequency : %x", ((uint16_t)msp_rx_buf[6] << 8) + msp_rx_buf[5]);
     debugf("\r\n    fc_vtx_status: %x", (uint16_t)msp_rx_buf[7]);
     debugf("\r\n    fc_lp_rx:      %x", (uint16_t)fc_lp_rx);
     debugf("\r\n    fc_bands:      %x", (uint16_t)msp_rx_buf[12]);
@@ -973,8 +986,12 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
     debugf("\r\n    fc_powerLevels %x", (uint16_t)msp_rx_buf[14]);
 #endif
 
-    if (SA_lock || (init_table_done == 0))
+    if (SA_lock || (init_table_done == 0 && !init_table_unsupported)) {
+#ifdef _DEBUG_MODE
+        debugf("\r\nparseMspVtx_V2 skipped. (SA_lock: %i, init_table_done: %i, init_table_unsupported: %i)\r\n", SA_lock, init_table_done, init_table_unsupported);
+#endif
         return;
+    }
 
     // update LP_MODE
     if (fc_lp_rx != last_lp) {
