@@ -28,21 +28,21 @@ void CalibProc() {
         } else {
             switch (rxbuf[0]) {
             case 'r':
-                for (cnt = 0; cnt < (FREQ_MAX + 1) * (POWER_MAX + 1); cnt++) {
-                    Rom_tx(table_power[cnt / (POWER_MAX + 1)][cnt % (POWER_MAX + 1)]);
+                for (cnt = 0; cnt < FREQ_NUM_INTERNAL * (POWER_MAX + 1); cnt++) {
+                    Rom_tx(table_power[0][cnt / (POWER_MAX + 1)][cnt % (POWER_MAX + 1)]);
                 }
                 break;
 
             case 'w':
-                table_power[RF_FREQ][RF_POWER] = rxbuf[1];
+                table_power[0][RF_FREQ][RF_POWER] = rxbuf[1];
 
                 DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
 
-                I2C_Write8_Wait(10, ADDR_EEPROM, RF_FREQ * (POWER_MAX + 1) + RF_POWER, table_power[RF_FREQ][RF_POWER]);
+                I2C_Write8_Wait(10, ADDR_EEPROM, RF_FREQ * (POWER_MAX + 1) + RF_POWER, table_power[0][RF_FREQ][RF_POWER]);
                 break;
 
             case 'c':
-                if (rxbuf[1] <= FREQ_MAX && rxbuf[2] <= POWER_MAX) {
+                if (rxbuf[1] < FREQ_NUM_INTERNAL && rxbuf[2] <= POWER_MAX) {
                     RF_FREQ = rxbuf[1];
                     RF_POWER = rxbuf[2];
                     DM6300_SetChannel(RF_FREQ);

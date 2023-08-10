@@ -188,7 +188,7 @@ void MonEE(uint8_t op, uint8_t d) {
     }
 
     val = I2C_Read8_Wait(10, ADDR_EEPROM, addr);
-    table_power[RF_FREQ][RF_POWER] = val;
+    table_power[0][RF_FREQ][RF_POWER] = val;
     debugf("\r\nRF TAB[%d][%d] = %x", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, val);
 
     DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
@@ -250,7 +250,7 @@ void Monitor(void) {
     // else if ( !stricmp( argv[0], "m0" ) )
     // DM6300_M0();
     else if (!stricmp(argv[0], "ch")) {
-        if (argc == 3 && Asc2Bin(argv[1]) <= FREQ_MAX && Asc2Bin(argv[2]) <= POWER_MAX) {
+        if (argc == 3 && Asc2Bin(argv[1]) < FREQ_NUM_INTERNAL && Asc2Bin(argv[2]) <= POWER_MAX) {
             RF_FREQ = Asc2Bin(argv[1]);
             RF_POWER = Asc2Bin(argv[2]);
             DM6300_SetChannel(RF_FREQ);

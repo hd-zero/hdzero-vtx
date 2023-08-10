@@ -72,11 +72,8 @@ void camera_mode_detect(uint8_t init) {
             Set_540P90_crop(0);
             video_format = VDO_FMT_540P90_CROP;
         } else if (camera_setting_reg_set[11] == 2) {
-#if (0)
-            // disbale 540P60, fix me.
             Set_540P60(0);
             video_format = VDO_FMT_540P60;
-#endif
         } else if (camera_setting_reg_set[11] == 3) {
             Set_960x720P60(0);
             video_format = VDO_FMT_960x720P60;
@@ -146,12 +143,9 @@ void camera_mode_detect(uint8_t init) {
     camera_ratio_detect();
 
     if (init) {
-#if (0)
-        // disable 540P60, fix me.
         if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90 && camera_setting_reg_set[11] == 2)
             RF_BW = BW_17M;
         else
-#endif
             RF_BW = BW_27M;
         RF_BW_last = RF_BW;
     }
@@ -477,10 +471,15 @@ void camera_menu_init(void) {
 }
 void camera_menu_show_repower(void) {
     memset(osd_buf, 0x20, sizeof(osd_buf));
-    strcpy(osd_buf[1] + osd_menu_offset + 3, "BANDWIDTH IS CHANGED");
-    strcpy(osd_buf[2] + osd_menu_offset + 3, "NEED TO RECONFIG VTX(PRESS OK)");
-    strcpy(osd_buf[3] + osd_menu_offset + 3, "NEED TO RESCAN ON GOGGLE");
-    strcpy(osd_buf[4] + osd_menu_offset + 3, "> OK");
+    strcpy(osd_buf[1] + osd_menu_offset + 3, "BW IS CHANGED:");
+    if (RF_BW == BW_17M) {
+        strcpy(osd_buf[2] + osd_menu_offset + 3, "    WIDE -> NARROW");
+    } else {
+        strcpy(osd_buf[2] + osd_menu_offset + 3, "    NARROW -> WIDE");
+    }
+    strcpy(osd_buf[3] + osd_menu_offset + 3, "NEED TO RECONFIG VTX(PRESS OK)");
+    strcpy(osd_buf[4] + osd_menu_offset + 3, "NEED TO RECONFIG BW ON GOGGLE");
+    strcpy(osd_buf[5] + osd_menu_offset + 3, "> OK");
 }
 
 void camera_menu_cursor_update(uint8_t erase) {
@@ -713,9 +712,6 @@ uint8_t camera_status_update(uint8_t op) {
         camera_menu_item_toggle(op);
 
         if (op == BTN_RIGHT) {
-            // disbale 540P60, fix me.
-            if ((camera_type == CAMERA_TYPE_RUNCAM_NANO_90) && (camera_setting_reg_menu[11] == 2))
-                break;
             camera_profile_eep = camera_profile_menu;
             camera_profile_write();
             reset_isp_need |= camera_set(camera_setting_reg_menu, 1);
