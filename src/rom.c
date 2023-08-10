@@ -28,7 +28,7 @@ void CalibProc() {
         } else {
             switch (rxbuf[0]) {
             case 'r':
-                for (cnt = 0; cnt < (FREQ_MAX + 1) * (POWER_MAX + 1); cnt++) {
+                for (cnt = 0; cnt < FREQ_NUM_INTERNAL * (POWER_MAX + 1); cnt++) {
                     Rom_tx(table_power[0][cnt / (POWER_MAX + 1)][cnt % (POWER_MAX + 1)]);
                 }
                 break;
@@ -42,7 +42,7 @@ void CalibProc() {
                 break;
 
             case 'c':
-                if (rxbuf[1] <= FREQ_MAX && rxbuf[2] <= POWER_MAX) {
+                if (rxbuf[1] < FREQ_NUM_INTERNAL && rxbuf[2] <= POWER_MAX) {
                     RF_FREQ = rxbuf[1];
                     RF_POWER = rxbuf[2];
                     DM6300_SetChannel(RF_FREQ);

@@ -17,6 +17,7 @@
 
 uint8_t KEYBOARD_ON = 0; // avoid conflict between keyboard and cam_control
 uint8_t EE_VALID = 0;
+uint8_t lowband_lock = 1;
 
 #ifdef HDZERO_FREESTYLE
 uint8_t powerLock = 1;
@@ -315,7 +316,7 @@ void CFG_Back() {
 void GetVtxParameter() {
     unsigned char CODE_SEG *ptr = (unsigned char CODE_SEG *)0xFFE8;
     uint8_t i, j;
-    XDATA_SEG uint8_t tab[FREQ_NUM][POWER_MAX + 1];
+    XDATA_SEG uint8_t tab[FREQ_NUM_EXTERNAL][POWER_MAX + 1];
     uint8_t flash_vld = 1;
     uint8_t ee_vld = 1;
     uint8_t tab_min[4] = {255, 255, 255, 255};
@@ -329,14 +330,14 @@ void GetVtxParameter() {
     if (EE_VALID) { // eeprom valid
 
 #ifdef FIX_EEP
-        for (i = 0; i <= FREQ_MAX; i++) {
+        for (i = 0; i < FREQ_NUM_INTERNAL; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
                 I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, table_power[0][i][j]);
             }
         }
 #endif
         // race band
-        for (i = 0; i <= FREQ_MAX; i++) {
+        for (i = 0; i < FREQ_NUM_INTERNAL; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
                 tab[i][j] = I2C_Read8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j);
                 if (tab[i][j] < tab_min[j])
@@ -353,7 +354,7 @@ void GetVtxParameter() {
         }
 
         // low band
-        for (i = 10; i < FREQ_NUM; i++) {
+        for (i = 10; i < FREQ_NUM_EXTERNAL; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
                 tab[i][j] = tab_min[j] - 4;
             }
@@ -363,7 +364,7 @@ void GetVtxParameter() {
 #ifdef _DEBUG_MODE
             debugf("\r\nUSE EEPROM for rf_pwr_tab.");
 #endif
-            for (i = 0; i < FREQ_NUM; i++) {
+            for (i = 0; i < FREQ_NUM_EXTERNAL; i++) {
                 for (j = 0; j <= POWER_MAX; j++) {
                     table_power[i][j] = tab[i][j];
 #ifndef _RF_CALIB
@@ -380,7 +381,7 @@ void GetVtxParameter() {
 #endif
 
 #ifdef _RF_CALIB
-            for (i = 0; i <= FREQ_MAX; i++) {
+            for (i = 0; i < FREQ_NUM_INTERNAL; i++) {
                 for (j = 0; j <= POWER_MAX; j++) {
                     I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, table_power[0][i][j]);
                 }
@@ -389,6 +390,7 @@ void GetVtxParameter() {
         }
 
         // VTX Setting
+        lowband_lock = 0x01 & I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_LOWBAND_LOCK);
         RF_FREQ = I2C_Read8(ADDR_EEPROM, EEP_ADDR_RF_FREQ);
         RF_POWER = I2C_Read8(ADDR_EEPROM, EEP_ADDR_RF_POWER);
         LP_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_LPMODE);
@@ -422,14 +424,13 @@ void GetVtxParameter() {
 #ifdef HDZERO_FREESTYLE
         // powerLock
         powerLock = 0x01 & I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_POWER_LOCK);
-        powerLock = 0;
 #endif
     } else {
         CFG_Back();
     }
 
 #ifdef _DEBUG_DM6300
-    for (i = 0; i < FREQ_NUM; i++) {
+    for (i = 0; i < FREQ_NUM_EXTERNAL; i++) {
         debugf("\r\nrf_pwr_tab[%d]=", (uint16_t)i);
         for (j = 0; j <= POWER_MAX; j++)
             debugf(" %x", (uint16_t)table_power[i][j]);

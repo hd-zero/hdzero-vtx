@@ -17,14 +17,14 @@ typedef struct {
 
 int16_t auxadc_offset = 0;
 uint32_t init6300_fcnt = 0;
-uint32_t init6300_fnum[FREQ_NUM] = {0};
+uint32_t init6300_fnum[FREQ_NUM_EXTERNAL] = {0};
 
 uint32_t dcoc_ih = 0x075F0000;
 uint32_t dcoc_qh = 0x075F0000;
 
 uint8_t dm6300_init_done = 0;
 #ifdef HDZERO_FREESTYLE
-uint8_t table_power[FREQ_NUM][POWER_MAX + 1] = {
+uint8_t table_power[FREQ_NUM_EXTERNAL][POWER_MAX + 1] = {
     // race band
     {0x70, 0x68, 0x5c, 0x60},
     {0x70, 0x68, 0x5c, 0x60},
@@ -48,7 +48,7 @@ uint8_t table_power[FREQ_NUM][POWER_MAX + 1] = {
     {0x70, 0x68, 0x5c, 0x60},
 };
 #else
-uint8_t table_power[FREQ_NUM][POWER_MAX + 1] = {
+uint8_t table_power[FREQ_NUM_EXTERNAL][POWER_MAX + 1] = {
     // race band
     {0x79, 0x83},
     {0x77, 0x81},
@@ -73,7 +73,7 @@ uint8_t table_power[FREQ_NUM][POWER_MAX + 1] = {
 };
 #endif
 
-const uint32_t tab[3][FREQ_NUM] = {
+const uint32_t tab[3][FREQ_NUM_EXTERNAL] = {
     {
         // race band
         0x3867,
@@ -145,7 +145,7 @@ const uint32_t tab[3][FREQ_NUM] = {
     },
 };
 
-const uint32_t freq_tab[FREQ_NUM] = {
+const uint32_t freq_tab[FREQ_NUM_EXTERNAL] = {
     // race band
     113200,
     113900,
@@ -882,7 +882,7 @@ void DM6300_Init(uint8_t ch, BWType_e bw) {
     SPI_Read(0x3, 0x02C, &dat);
     init6300_fcnt = dat & 0x3FFF;
     init6300_fcnt = 0x20000 / init6300_fcnt - 3;
-    for (i = 0; i < FREQ_NUM + 1; i++)
+    for (i = 0; i < FREQ_NUM_EXTERNAL; i++)
         init6300_fnum[i] = freq_tab[i] * init6300_fcnt / 384;
 
     // 02_BBPLL_3456
@@ -1133,7 +1133,7 @@ void DM6300_EFUSE2() {
     WRITE_REG_MAP(dm6300_regs_dm6300_efuse2_1);
 
     for (i = 0; i < efuse.macro.m0.band_num; i++) // find match macro 5.8G
-                                                  // for(i=0; i<FREQ_NUM; i++) // find match macro 5.8G
+                                                  // for(i=0; i<FREQ_NUM_EXTERNAL; i++) // find match macro 5.8G
     {
 // efuse.macro.m2[i].tx1.freq_start = (efuse.macro.m2[i].tx1.freq_start >> 8) | (efuse.macro.m2[i].tx1.freq_start << 8);
 // efuse.macro.m2[i].tx1.freq_stop = (efuse.macro.m2[i].tx1.freq_stop >> 8) | (efuse.macro.m2[i].tx1.freq_stop << 8);

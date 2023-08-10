@@ -250,7 +250,7 @@ void Monitor(void) {
     // else if ( !stricmp( argv[0], "m0" ) )
     // DM6300_M0();
     else if (!stricmp(argv[0], "ch")) {
-        if (argc == 3 && Asc2Bin(argv[1]) <= FREQ_MAX && Asc2Bin(argv[2]) <= POWER_MAX) {
+        if (argc == 3 && Asc2Bin(argv[1]) < FREQ_NUM_INTERNAL && Asc2Bin(argv[2]) <= POWER_MAX) {
             RF_FREQ = Asc2Bin(argv[1]);
             RF_POWER = Asc2Bin(argv[2]);
             DM6300_SetChannel(RF_FREQ);
