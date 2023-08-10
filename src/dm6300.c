@@ -244,27 +244,35 @@ void DM6300_InitAUXADC() {
     SPI_Write(0x6, 0xFF0, 0x00000018);
     SPI_Write(0x3, 0x2A0, 0xC05B55FE);
     SPI_Write(0x6, 0xFF0, 0x00000019);
+#ifndef HDZERO_RACE_V2
     WAIT(1);
+#endif
     SPI_Read(0x3, 0x17C, &dat);
     dat1 = ((int32_t)dat) >> 20;
 
     SPI_Write(0x6, 0xFF0, 0x00000018);
     SPI_Write(0x3, 0x2A0, 0x305B55FE);
     SPI_Write(0x6, 0xFF0, 0x00000019);
+#ifndef HDZERO_RACE_V2
     WAIT(1);
+#endif
     SPI_Read(0x3, 0x17C, &dat);
     dat2 = ((int32_t)dat) >> 20;
 
     SPI_Write(0x6, 0xFF0, 0x00000018);
     SPI_Write(0x3, 0x2A0, 0xA05B51FE);
     SPI_Write(0x6, 0xFF0, 0x00000019);
+#ifndef HDZERO_RACE_V2
     WAIT(1);
+#endif
     SPI_Read(0x3, 0x17C, &dat);
     dat3 = ((int32_t)dat) >> 20;
 
     auxadc_offset = dat3 - ((dat1 + dat2) >> 1);
+#ifndef HDZERO_RACE_V2
     if (auxadc_offset < 0x420)
         auxadc_offset = 0x420;
+#endif
 #ifdef _DEBUG_DM6300
     debugf("\r\nDM6300 AUXADC Calib done. data1=%x, data2=%x, data3=%x, offset=%x", dat1, dat2, dat3, auxadc_offset);
 #endif
