@@ -1095,19 +1095,19 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
         } else if (nxt_pwr <= POWER_MAX) {
             RF_POWER = nxt_pwr;
             if (PIT_MODE)
-                RF_POWER = POWER_MAX + 1;
+                nxt_pwr = POWER_MAX + 1;
             if (dm6300_init_done) {
-                if (cur_pwr != RF_POWER) {
+                if (cur_pwr != nxt_pwr) {
 #ifndef VIDEO_PAT
 #ifdef HDZERO_FREESTYLE
-                    if ((RF_POWER == 3) && (!g_IS_ARMED))
+                    if ((nxt_pwr == 3) && (!g_IS_ARMED))
                         pwr_lmt_done = 0;
                     else
 #endif
 #endif
                     {
-                        DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
-                        cur_pwr = RF_POWER;
+                        DM6300_SetPower(nxt_pwr, RF_FREQ, pwr_offset);
+                        cur_pwr = nxt_pwr;
                     }
                     needSaveEEP = 1;
                 }
