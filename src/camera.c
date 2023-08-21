@@ -468,6 +468,8 @@ void camera_menu_init(void) {
             osd_buf_p = osd_buf[i] + osd_menu_offset + 3;
             strcpy(osd_buf_p, cam_menu_string[i]);
         }
+        camera_profile_menu = camera_profile_eep;
+        camera_setting_reg_menu_update();
         camera_menu_draw_bracket();
         camera_menu_draw_value();
     }
@@ -647,14 +649,11 @@ uint8_t camera_status_update(uint8_t op) {
     switch (camMenuStatus) {
     case CAM_STATUS_IDLE:
         if (op == BTN_MID) {
-            camera_profile_menu = camera_profile_eep;
-            camera_setting_reg_menu_update();
-
-            camera_menu_long_press(op, last_op, 1);
             reset_isp_need = 0;
+            camera_menu_cursor_update(0);
+            camera_menu_long_press(op, last_op, 1);
 
             camMenuStatus = CAM_STATUS_PROFILE;
-            camera_menu_cursor_update(0);
         }
         break;
 
@@ -696,8 +695,8 @@ uint8_t camera_status_update(uint8_t op) {
             uint8_t video_mode = camera_setting_reg_menu[11];
             camera_setting_profile_reset(camera_profile_menu);
             camera_setting_reg_menu_update();
-            camera_set(camera_setting_reg_menu, 0, 0);
             camera_setting_reg_menu[11] = video_mode;
+            camera_set(camera_setting_reg_menu, 0, 0);
             camera_menu_draw_value();
         }
         break;
