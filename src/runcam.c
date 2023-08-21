@@ -466,7 +466,6 @@ uint8_t runcam_setting_update_need(uint8_t *setting_p, uint8_t start, uint8_t st
 }
 
 void runcam_save(void) {
-    // THIS MAY CAUSE CAMERA FLASH MESS IF POWEN DOWN WHEN FLASH IS WRITING
     RUNCAM_Write(camera_device, 0x000694, 0x00000310);
     RUNCAM_Write(camera_device, 0x000694, 0x00000311);
 #ifdef _DEBUG_RUNCAM
