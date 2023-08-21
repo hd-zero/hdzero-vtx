@@ -696,7 +696,7 @@ uint8_t camera_status_update(uint8_t op) {
             uint8_t video_mode = camera_setting_reg_menu[11];
             camera_setting_profile_reset(camera_profile_menu);
             camera_setting_reg_menu_update();
-            reset_isp_need |= camera_set(camera_setting_reg_menu, 0, 0);
+            camera_set(camera_setting_reg_menu, 0, 0);
             camera_setting_reg_menu[11] = video_mode;
             camera_menu_draw_value();
         }
