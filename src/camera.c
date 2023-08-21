@@ -280,11 +280,11 @@ void camera_setting_reg_eep_update(void) {
         camera_setting_reg_eep[camera_profile_menu][i] = camera_setting_reg_menu[i];
 }
 
-uint8_t camera_set(uint8_t *camera_setting_reg, uint8_t save) {
+uint8_t camera_set(uint8_t *camera_setting_reg, uint8_t save, uint8_t init) {
     uint8_t ret = 0;
     if (camera_mfr == CAMERA_MFR_RUNCAM) {
         ret = runcam_set(camera_setting_reg);
-        if (save)
+        if (save || (init & ret))
             runcam_save();
     }
 
@@ -295,10 +295,13 @@ void camera_init(void) {
     camera_type_detect();
     camera_setting_read();
     camera_setting_reg_menu_update();
-    camera_set(camera_setting_reg_menu, 1);
+    reset_isp_need = camera_set(camera_setting_reg_menu, 0, 1);
 
-    if (camera_mfr == CAMERA_MFR_RUNCAM)
-        runcam_reset_isp();
+    if (reset_isp_need) {
+        if (camera_mfr == CAMERA_MFR_RUNCAM) {
+            runcam_reset_isp();
+        }
+    }
 
     camera_mode_detect(1);
 
@@ -465,6 +468,8 @@ void camera_menu_init(void) {
             osd_buf_p = osd_buf[i] + osd_menu_offset + 3;
             strcpy(osd_buf_p, cam_menu_string[i]);
         }
+        camera_profile_menu = camera_profile_eep;
+        camera_setting_reg_menu_update();
         camera_menu_draw_bracket();
         camera_menu_draw_value();
     }
@@ -480,6 +485,12 @@ void camera_menu_show_repower(void) {
     strcpy(osd_buf[3] + osd_menu_offset + 3, "NEED TO RECONFIG VTX(PRESS OK)");
     strcpy(osd_buf[4] + osd_menu_offset + 3, "NEED TO RECONFIG BW ON GOGGLE");
     strcpy(osd_buf[5] + osd_menu_offset + 3, "> OK");
+}
+
+void camera_menu_show_saving(void) {
+    memset(osd_buf, 0x20, sizeof(osd_buf));
+    strcpy(osd_buf[1] + osd_menu_offset + 3, "SAVING CAMERA PARAMETERS");
+    strcpy(osd_buf[2] + osd_menu_offset + 3, "DO NOT POWER OFF THE VTX");
 }
 
 void camera_menu_cursor_update(uint8_t erase) {
@@ -508,13 +519,13 @@ void camera_profile_menu_toggle(uint8_t op) {
         if (camera_profile_menu == CAMERA_PROFILE_NUM)
             camera_profile_menu = 0;
         camera_setting_reg_menu_update();
-        reset_isp_need |= camera_set(camera_setting_reg_menu, 0);
+        reset_isp_need |= camera_set(camera_setting_reg_menu, 0, 0);
     } else if (op == BTN_LEFT) {
         camera_profile_menu--;
         if (camera_profile_menu > CAMERA_PROFILE_NUM)
             camera_profile_menu = CAMERA_PROFILE_NUM - 1;
         camera_setting_reg_menu_update();
-        reset_isp_need |= camera_set(camera_setting_reg_menu, 0);
+        reset_isp_need |= camera_set(camera_setting_reg_menu, 0, 0);
     }
 }
 
@@ -563,7 +574,7 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
             if (camera_setting_reg_menu[item] > camera_attribute[item][CAM_SETTING_ITEM_MAX])
                 camera_setting_reg_menu[item] = camera_attribute[item][CAM_SETTING_ITEM_MAX];
 
-            camera_set(camera_setting_reg_menu, 0);
+            camera_set(camera_setting_reg_menu, 0, 0);
         } else if (op == BTN_LEFT) {
             step = camera_menu_long_press(op, last_op, 0);
             if (((camera_setting_reg_menu[item] - step) & 0xff) > camera_setting_reg_menu[item]) // overflow
@@ -574,7 +585,7 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
             if (camera_setting_reg_menu[item] < camera_attribute[item][CAM_SETTING_ITEM_MIN])
                 camera_setting_reg_menu[item] = camera_attribute[item][CAM_SETTING_ITEM_MIN];
 
-            camera_set(camera_setting_reg_menu, 0);
+            camera_set(camera_setting_reg_menu, 0, 0);
         } else if (op == BTN_MID) {
             step = camera_menu_long_press(op, last_op, 1);
         }
@@ -597,7 +608,7 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
                 camera_setting_reg_menu[item] = camera_attribute[item][CAM_SETTING_ITEM_MIN];
 
             if (camMenuStatus != CAM_STATUS_VDO_FMT) { // vdo format will be configured when exit camera menu
-                camera_set(camera_setting_reg_menu, 0);
+                camera_set(camera_setting_reg_menu, 0, 0);
             }
         } else if (op == BTN_LEFT) {
             camera_setting_reg_menu[item]--;
@@ -608,7 +619,7 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
                 camera_setting_reg_menu[item] = camera_attribute[item][CAM_SETTING_ITEM_MAX];
 
             if (camMenuStatus != CAM_STATUS_VDO_FMT) { // vdo format will be configured when exit camera menu
-                camera_set(camera_setting_reg_menu, 0);
+                camera_set(camera_setting_reg_menu, 0, 0);
             }
         }
         break;
@@ -623,8 +634,8 @@ uint8_t camera_status_update(uint8_t op) {
 
     uint8_t ret = 0;
     static uint8_t step = 1;
-    // static uint8_t cnt;
     static uint8_t last_op = BTN_RIGHT;
+    static uint16_t saving_start_sec = 0;
 
     if (op >= BTN_INVALID)
         return ret;
@@ -638,14 +649,11 @@ uint8_t camera_status_update(uint8_t op) {
     switch (camMenuStatus) {
     case CAM_STATUS_IDLE:
         if (op == BTN_MID) {
-            camera_profile_menu = camera_profile_eep;
-            camera_setting_reg_menu_update();
-
-            camera_menu_long_press(op, last_op, 1);
             reset_isp_need = 0;
+            camera_menu_cursor_update(0);
+            camera_menu_long_press(op, last_op, 1);
 
             camMenuStatus = CAM_STATUS_PROFILE;
-            camera_menu_cursor_update(0);
         }
         break;
 
@@ -684,9 +692,11 @@ uint8_t camera_status_update(uint8_t op) {
         camera_menu_item_toggle(op);
 
         if (op == BTN_RIGHT) {
+            uint8_t video_mode = camera_setting_reg_menu[11];
             camera_setting_profile_reset(camera_profile_menu);
             camera_setting_reg_menu_update();
-            camera_set(camera_setting_reg_menu, 0);
+            camera_setting_reg_menu[11] = video_mode;
+            camera_set(camera_setting_reg_menu, 0, 0);
             camera_menu_draw_value();
         }
         break;
@@ -699,7 +709,7 @@ uint8_t camera_status_update(uint8_t op) {
 
         if (op == BTN_RIGHT) {
             camera_setting_reg_menu_update();
-            camera_set(camera_setting_reg_menu, 0);
+            camera_set(camera_setting_reg_menu, 0, 0);
 
             camMenuStatus = CAM_STATUS_IDLE;
             ret = 1;
@@ -714,7 +724,7 @@ uint8_t camera_status_update(uint8_t op) {
         if (op == BTN_RIGHT) {
             camera_profile_eep = camera_profile_menu;
             camera_profile_write();
-            reset_isp_need |= camera_set(camera_setting_reg_menu, 1);
+            reset_isp_need |= camera_set(camera_setting_reg_menu, 1, 0);
             camera_setting_reg_eep_update();
             camera_setting_profile_write(0xff);
 
@@ -725,16 +735,16 @@ uint8_t camera_status_update(uint8_t op) {
                 }
             }
             if (RF_BW_check()) {
+                camera_menu_show_repower();
                 camMenuStatus = CAM_STATUS_REPOWER;
-                ret = 0;
             } else {
-                camMenuStatus = CAM_STATUS_IDLE;
-                ret = 1;
+                camera_menu_show_saving();
+                saving_start_sec = seconds;
+                camMenuStatus = CAM_STATUS_SAVING;
             }
         }
         break;
     case CAM_STATUS_REPOWER:
-        camera_menu_show_repower();
         if (op == BTN_RIGHT) {
 #ifdef _DEBUG_MODE
             debugf("\r\nRF_Delay_Init: None");
@@ -752,6 +762,15 @@ uint8_t camera_status_update(uint8_t op) {
                 WriteReg(0, 0x8F, 0x11);
             }
             DM6300_AUXADC_Calib();
+
+            camera_menu_show_saving();
+            saving_start_sec = seconds;
+            camMenuStatus = CAM_STATUS_SAVING;
+        }
+        break;
+
+    case CAM_STATUS_SAVING:
+        if (seconds - saving_start_sec > 1) {
             camMenuStatus = CAM_STATUS_IDLE;
             ret = 1;
         }

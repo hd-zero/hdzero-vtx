@@ -406,10 +406,12 @@ uint32_t RUNCAM_Read(uint8_t cam_id, uint32_t addr) {
 }
 
 /*
-    return 0: false
-           1: success
+    [return]
+    0: only read
+    1: read and write
 */
 uint8_t RUNCAM_Read_Write(uint8_t cam_id, uint32_t addr, uint32_t val) {
+    uint8_t ret = 0;
     uint32_t rdata;
 
     if (cam_id == RUNCAM_MICRO_V1)
@@ -418,10 +420,9 @@ uint8_t RUNCAM_Read_Write(uint8_t cam_id, uint32_t addr, uint32_t val) {
         rdata = RUNCAM_Read(cam_id, addr);
 
     if (rdata != val) {
-        if (RUNCAM_Write(cam_id, addr, val) == 0)
-            return 1;
-        else
-            return 0;
-    } else
-        return 1;
+        RUNCAM_Write(cam_id, addr, val);
+        ret = 1;
+    }
+
+    return ret;
 }
