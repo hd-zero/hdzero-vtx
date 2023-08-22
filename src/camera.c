@@ -650,10 +650,10 @@ uint8_t camera_status_update(uint8_t op) {
     case CAM_STATUS_IDLE:
         if (op == BTN_MID) {
             reset_isp_need = 0;
-            camera_menu_cursor_update(0);
             camera_menu_long_press(op, last_op, 1);
 
             camMenuStatus = CAM_STATUS_PROFILE;
+            camera_menu_cursor_update(0);
         }
         break;
 
