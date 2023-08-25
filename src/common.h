@@ -67,9 +67,9 @@
 // #define EXTEND_BUF1
 
 // mode
-// #define _RF_CALIB
-// #define REV_UART
-// #define VIDEO_PAT
+#define _RF_CALIB
+#define REV_UART
+#define VIDEO_PAT
 // #define FIX_EEP
 
 #ifndef _RF_CALIB
