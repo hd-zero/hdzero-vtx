@@ -1121,7 +1121,7 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
             if (dm6300_init_done) {
                 if (cur_pwr != nxt_pwr) {
 #ifndef VIDEO_PAT
-#ifdef HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
                     if ((nxt_pwr == 3) && (!g_IS_ARMED))
                         pwr_lmt_done = 0;
                     else
