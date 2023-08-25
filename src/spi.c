@@ -15,6 +15,14 @@
         while (i--) \
             ;       \
     }
+#ifdef HDZERO_FREESTYLE_V2
+#define SPI_DLY1    \
+    {               \
+        int i = 5;  \
+        while (i--) \
+            ;       \
+    }
+#endif
 
 void SPI_Init() {
     SET_CS(1);
@@ -29,7 +37,11 @@ void SPI_Write_Byte(uint8_t dat) {
         SPI_DLY;
 
         SET_DO((dat >> i) & 0x01);
+#ifdef HDZERO_FREESTYLE_V2
+        SPI_DLY1;
+#else
         SPI_DLY;
+#endif
 
         SET_CK(1);
         SPI_DLY;

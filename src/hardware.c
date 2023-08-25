@@ -384,7 +384,7 @@ void GetVtxParameter() {
 #ifdef _RF_CALIB
             for (i = 0; i < FREQ_NUM_INTERNAL; i++) {
                 for (j = 0; j <= POWER_MAX; j++) {
-                    I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, table_power[0][i][j]);
+                    I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, table_power[i][j]);
                 }
             }
 #endif
