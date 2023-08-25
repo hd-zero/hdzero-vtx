@@ -74,6 +74,7 @@ typedef enum {
     CAM_STATUS_EXIT,
     CAM_STATUS_SAVE_EXIT,
     CAM_STATUS_REPOWER,
+    CAM_STATUS_SAVING,
 
     CAM_STATUS_END,
 } camera_status_e;

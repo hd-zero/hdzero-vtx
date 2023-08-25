@@ -17,6 +17,7 @@
 
 uint8_t KEYBOARD_ON = 0; // avoid conflict between keyboard and cam_control
 uint8_t EE_VALID = 0;
+uint8_t lowband_lock = 1;
 
 #if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
 uint8_t powerLock = 1;
@@ -92,10 +93,12 @@ CODE_SEG const uint8_t BPLED[] = {
     0x83, // b
     0xC6, // C
     0x8E, // F
-    0x0E  // F.
+    0x0E, // F.
+    0x47, // L.
 };
 
 uint8_t dispF_cnt = 0xff;
+uint8_t dispL_cnt = 0xff;
 
 uint8_t cameraLost = 0;
 
@@ -301,7 +304,7 @@ void Setting_Save() {
 }
 
 void CFG_Back() {
-    RF_FREQ = (RF_FREQ > FREQ_MAX_EXT) ? 0 : RF_FREQ;
+    RF_FREQ = (RF_FREQ >= FREQ_NUM) ? 0 : RF_FREQ;
     RF_POWER = (RF_POWER > POWER_MAX) ? 0 : RF_POWER;
     LP_MODE = (LP_MODE > 2) ? 0 : LP_MODE;
     PIT_MODE = (PIT_MODE > PIT_0MW) ? PIT_OFF : PIT_MODE;
@@ -313,9 +316,10 @@ void CFG_Back() {
 void GetVtxParameter() {
     unsigned char CODE_SEG *ptr = (unsigned char CODE_SEG *)0xFFE8;
     uint8_t i, j;
-    XDATA_SEG uint8_t tab[FREQ_MAX + 1][POWER_MAX + 1];
+    XDATA_SEG uint8_t tab[FREQ_NUM_EXTERNAL][POWER_MAX + 1];
     uint8_t flash_vld = 1;
     uint8_t ee_vld = 1;
+    uint8_t tab_min[4] = {255, 255, 255, 255};
 
     EE_VALID = !I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_EEP_VLD, 0xFF);
 
@@ -326,18 +330,33 @@ void GetVtxParameter() {
     if (EE_VALID) { // eeprom valid
 
 #ifdef FIX_EEP
-        for (i = 0; i <= FREQ_MAX; i++) {
+        for (i = 0; i < FREQ_NUM_INTERNAL; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
-                I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, table_power[i][j]);
+                I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, table_power[0][i][j]);
             }
         }
 #endif
-        // RF Tab
-        for (i = 0; i <= FREQ_MAX; i++) {
+        // race band
+        for (i = 0; i < FREQ_NUM_INTERNAL; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
                 tab[i][j] = I2C_Read8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j);
+                if (tab[i][j] < tab_min[j])
+                    tab_min[j] = tab[i][j];
                 if (tab[i][j] == 0xFF)
                     ee_vld = 0;
+            }
+        }
+
+        // fatshark band
+        for (j = 0; j <= POWER_MAX; j++) {
+            tab[8][j] = tab[3][j];
+            tab[9][j] = tab[4][j];
+        }
+
+        // low band
+        for (i = 10; i < FREQ_NUM_EXTERNAL; i++) {
+            for (j = 0; j <= POWER_MAX; j++) {
+                tab[i][j] = tab_min[j] - 4;
             }
         }
 
@@ -345,7 +364,7 @@ void GetVtxParameter() {
 #ifdef _DEBUG_MODE
             debugf("\r\nUSE EEPROM for rf_pwr_tab.");
 #endif
-            for (i = 0; i <= FREQ_MAX; i++) {
+            for (i = 0; i < FREQ_NUM_EXTERNAL; i++) {
                 for (j = 0; j <= POWER_MAX; j++) {
                     table_power[i][j] = tab[i][j];
 #ifndef _RF_CALIB
@@ -357,34 +376,22 @@ void GetVtxParameter() {
 #endif
                 }
             }
-
-            // ch9 5760M use ch4 5769M;ch10 5800 use ch5 5806
-            for (j = 0; j <= POWER_MAX; j++) {
-                table_power[8][j] = tab[3][j];
-                table_power[9][j] = tab[4][j];
-                if (j == 0) { // 25mw +3dbm
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
-#else
-                    table_power[8][j] += 0x0C;
-                    table_power[9][j] += 0x0C;
-#endif
-                }
-            }
         } else {
 #ifdef _DEBUG_MODE
             debugf("\r\nEEPROM is NOT initialized. Use default rf_pwr_tab.");
 #endif
 
 #ifdef _RF_CALIB
-            for (i = 0; i <= FREQ_MAX; i++) {
+            for (i = 0; i < FREQ_NUM_INTERNAL; i++) {
                 for (j = 0; j <= POWER_MAX; j++) {
-                    I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, table_power[i][j]);
+                    I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, table_power[0][i][j]);
                 }
             }
 #endif
         }
 
         // VTX Setting
+        lowband_lock = 0x01 & I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_LOWBAND_LOCK);
         RF_FREQ = I2C_Read8(ADDR_EEPROM, EEP_ADDR_RF_FREQ);
         RF_POWER = I2C_Read8(ADDR_EEPROM, EEP_ADDR_RF_POWER);
         LP_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_LPMODE);
@@ -420,45 +427,11 @@ void GetVtxParameter() {
         powerLock = 0x01 & I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_POWER_LOCK);
 #endif
     } else {
-        for (i = 0; i <= FREQ_MAX; i++) {
-            for (j = 0; j <= POWER_MAX; j++) {
-                tab[i][j] = *ptr;
-                ptr++;
-                if (tab[i][j] == 0xFF)
-                    flash_vld = 0;
-            }
-        }
-
-        if (flash_vld) { // flash valid
-#ifdef _DEBUG_MODE
-            debugf("\r\nUse Flash rf_pwr_tab space.");
-#endif
-            for (i = 0; i <= FREQ_MAX; i++) {
-                for (j = 0; j <= POWER_MAX; j++) {
-                    table_power[i][j] = tab[i][j];
-                    if (j == 0)
-                        table_power[i][j] += 0x0c;
-                }
-            }
-
-            // ch9 5760M use ch4 5769M;ch10 5800 use ch5 5806
-            for (j = 0; j <= POWER_MAX; j++) {
-                table_power[8][j] = tab[3][j];
-                table_power[9][j] = tab[4][j];
-                if (j == 0) { // 25mw +3dbm
-                    table_power[8][j] += 0x0C;
-                    table_power[9][j] += 0x0C;
-                }
-            }
-        }
-#ifdef _DEBUG_MODE
-        else
-            debugf("\r\nUse default rf_pwr_tab.");
-#endif
+        CFG_Back();
     }
 
 #ifdef _DEBUG_DM6300
-    for (i = 0; i <= FREQ_MAX_EXT; i++) {
+    for (i = 0; i < FREQ_NUM_EXTERNAL; i++) {
         debugf("\r\nrf_pwr_tab[%d]=", (uint16_t)i);
         for (j = 0; j <= POWER_MAX; j++)
             debugf(" %x", (uint16_t)table_power[i][j]);
@@ -1159,17 +1132,20 @@ void Button1_SP() {
         cfg_step = 1;
         if ((RF_FREQ == 8) || (RF_FREQ == 9))
             dispF_cnt = 0;
+        else if (RF_FREQ > 9)
+            dispL_cnt = 0;
         CFG_Back();
 
         break;
     case 1:
-        if (RF_FREQ >= FREQ_MAX_EXT)
+        RF_FREQ++;
+        if (RF_FREQ == FREQ_NUM)
             RF_FREQ = 0;
-        else
-            RF_FREQ++;
 
         if ((RF_FREQ == 8) || (RF_FREQ == 9))
             dispF_cnt = 0;
+        else if (RF_FREQ > 9)
+            dispL_cnt = 0;
         Imp_RF_Param();
         Setting_Save();
         msp_set_vtx_config(RF_POWER, 1);
@@ -1287,8 +1263,11 @@ void Flicker_MAX(uint8_t ch, uint8_t cnt) {
 void BlinkPhase() {
     uint8_t bp = 0;
 
-    if (cfg_step == 1 && (dispF_cnt < DISPF_TIME)) { // display 'F' band
+    if (cfg_step == 1 && dispF_cnt < DISP_TIME) { // display 'F' band
         bp = BPLED[14];
+        set_segment(bp);
+    } else if (cfg_step == 1 && dispL_cnt < DISP_TIME) { // display 'L' band
+        bp = BPLED[15];
         set_segment(bp);
     } else {
         switch (cfg_step) {
@@ -1305,6 +1284,8 @@ void BlinkPhase() {
                 bp = BPLED[2];
             else if (RF_FREQ == 9) // F4
                 bp = BPLED[4];
+            else
+                bp = BPLED[RF_FREQ - 9];
             set_segment(bp);
             break;
 
@@ -1456,12 +1437,9 @@ void LED_Task() {
 
 uint8_t RF_BW_check(void) {
     uint8_t ret = 0;
-#if (0)
-    // disbale 540P60, fix me.
     if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90 && camera_setting_reg_set[11] == 2)
         RF_BW = BW_17M;
     else
-#endif
         RF_BW = BW_27M;
 
     if (RF_BW != RF_BW_last) {

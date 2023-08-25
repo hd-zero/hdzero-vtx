@@ -116,7 +116,7 @@
 
 #define CFG_TO_SEC  10
 #define CAM_DET_DLY 1000
-#define DISPF_TIME  3 // 3/8s
+#define DISP_TIME   3 // 3/8s
 
 // gpio
 #define SCL     P0_0
@@ -174,6 +174,14 @@
 #define FREQ_R8 (uint16_t)5917
 #define FREQ_F2 (uint16_t)5760
 #define FREQ_F4 (uint16_t)5800
+#define FREQ_L1 (uint16_t)5362
+#define FREQ_L2 (uint16_t)5399
+#define FREQ_L3 (uint16_t)5436
+#define FREQ_L4 (uint16_t)5473
+#define FREQ_L5 (uint16_t)5510
+#define FREQ_L6 (uint16_t)5547
+#define FREQ_L7 (uint16_t)5584
+#define FREQ_L8 (uint16_t)5621
 
 #define INVALID_CHANNEL 0xff
 
