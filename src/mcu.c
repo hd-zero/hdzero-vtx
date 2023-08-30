@@ -210,6 +210,10 @@ void timer_task() {
 void RF_Delay_Init() {
     static uint8_t SA_saved = 0;
 
+#ifdef _RF_CALIB
+    return;
+#endif
+
     if (tramp_lock)
         return;
 
