@@ -1121,7 +1121,7 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
     }
 
     if (needSaveEEP)
-        Setting_Save();
+        ; // Setting_Save();
 
 #ifdef _DEBUG_MODE
     debugf("\r\nparseMspVtx_V2 pwr:%x, pit:%x", (uint16_t)nxt_pwr, (uint16_t)fc_pit_rx);
@@ -1898,14 +1898,14 @@ void set_vtx_param() {
 
         first_arm = 1;
         PIT_MODE = PIT_OFF;
-        Setting_Save();
+        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
         if (!TEAM_RACE)
-            msp_set_vtx_config(RF_POWER, 1);
+            ; // msp_set_vtx_config(RF_POWER, 1);
     } else if (!g_IS_ARMED && g_IS_ARMED_last) {
         if (LP_MODE == 1) {
             DM6300_SetPower(0, RF_FREQ, 0); // limit power to 25mW during disarmed
             cur_pwr = 0;
-#ifdef _DEBUG_MDOE
+#ifdef _DEBUG_MODE
             debugf("\n\rEnter LP_MODE");
 #endif
         }
