@@ -978,16 +978,12 @@ void Flicker_LED(uint8_t n) {
 }
 
 void video_detect(void) {
-    const uint8_t timeout_tc = 5;
-    static uint16_t last_sec = 0;
-    static uint8_t sec = 0;
+    const uint8_t timeout_tc = 10;
+    static uint32_t last_sec = 0;
     static uint8_t timeout_cnt = 0;
-    uint16_t val = 0;
+    uint8_t vloss = 0;
 
-    if (last_sec != seconds) {
-        last_sec = seconds;
-        sec++;
-
+    if (timer_8hz) {
 #ifdef _DEBUG_TC3587
         debugf("\r\nTC3587 reg:");
         val = I2C_Read16(ADDR_TC3587, 0x0062);
@@ -1044,45 +1040,33 @@ void video_detect(void) {
         if (heat_protect)
             return;
 
-        if (camera_type == CAMERA_TYPE_RESERVED) {
-            cameraLost = 1;
-            return;
-        }
+        vloss = (ReadReg(0, 0x02) >> 4) & 1;
 
-        if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 ||
-            camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 ||
-            camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
-            val |= I2C_Read16(ADDR_TC3587, 0x006A);
-            val |= I2C_Read16(ADDR_TC3587, 0x006E);
-            if (val)
-                timeout_cnt = 0;
-            else if (timeout_cnt < timeout_tc)
+        if (vloss) {
+            if (timeout_cnt < timeout_tc)
                 timeout_cnt++;
-#ifdef _DEBUG_CAMERA
-            debugf("\r\nvideo_detect:%d %d", val, (uint16_t)timeout_cnt);
-#endif
-            if (timeout_cnt == timeout_tc)
-                cameraLost = 1;
-            else {
-                cameraLost = 0;
-            }
-            return;
+        } else {
+            timeout_cnt = 0;
         }
 
-        cameraLost = (ReadReg(0, 0x02) >> 4) & 1;
+        if (timeout_cnt == timeout_tc) {
+            cameraLost = 1;
 
-        if (sec == 3) {
-            sec = 0;
-            if (cameraLost) { // video loss
+            if (camera_type == CAMERA_TYPE_OUTDATED) {
                 if (video_format == VDO_FMT_720P50) {
                     Set_720P60(IS_RX);
                     video_format = VDO_FMT_720P60;
-                } else if (video_format == VDO_FMT_720P60) {
+                } else {
                     Set_720P50(IS_RX);
                     video_format = VDO_FMT_720P50;
                 }
+                WAIT(200);
             }
+
+        } else {
+            cameraLost = 0;
         }
+        // debugf("\r\nvideo_detect:%d %d %d", vloss, (uint16_t)timeout_cnt, (uint16_t)cameraLost);
     }
 }
 
