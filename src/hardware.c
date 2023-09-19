@@ -623,6 +623,9 @@ void PowerAutoSwitch() {
 
 #ifdef HDZERO_WHOOP_LITE
     pwr_offset >>= 1;
+#elif defined HDZERO_FREESTYLE_V2
+    if (pwr_offset > 16)
+        pwr_offset = 16;
 #endif
 
     if ((!g_IS_ARMED) && (last_ofs == pwr_offset))
