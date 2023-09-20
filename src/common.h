@@ -66,7 +66,7 @@
 // #define REV_UART
 // #define VIDEO_PAT
 // #define FIX_EEP
-#define RESET_CONFIG
+// #define RESET_CONFIG
 
 #ifndef _RF_CALIB
 // #define _DEBUG_MODE
