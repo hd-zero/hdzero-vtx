@@ -1265,13 +1265,13 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
             VirtualBtn = BTN_ENTER;
         else if (IS_LO_yaw && IS_MID_roll && IS_MID_pitch)
             VirtualBtn = BTN_EXIT;
-        else if (IS_MID_yaw && IS_MID_roll && IS_HI_pitch)
+        else if (IS_MID_yaw && IS_MID_roll && IS_HI_pitch && !IS_HI_throttle)
             VirtualBtn = BTN_UP;
-        else if (IS_MID_yaw && IS_MID_roll && IS_LO_pitch)
+        else if (IS_MID_yaw && IS_MID_roll && IS_LO_pitch && !IS_HI_throttle)
             VirtualBtn = BTN_DOWN;
-        else if (IS_MID_yaw && IS_LO_roll && IS_MID_pitch)
+        else if (IS_MID_yaw && IS_LO_roll && IS_MID_pitch && !IS_HI_throttle)
             VirtualBtn = BTN_LEFT;
-        else if (IS_MID_yaw && IS_HI_roll && IS_MID_pitch)
+        else if (IS_MID_yaw && IS_HI_roll && IS_MID_pitch && !IS_HI_throttle)
             VirtualBtn = BTN_RIGHT;
         else
             VirtualBtn = BTN_INVALID;
