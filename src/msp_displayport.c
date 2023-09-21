@@ -946,6 +946,9 @@ void parse_get_osd_canvas(void) {
     if (msp_rx_buf[0] == HD_HMAX0 && msp_rx_buf[1] == HD_VMAX0) {
         resolution = HD_5018;
         osd_menu_offset = 8;
+    } else if (msp_rx_buf[0] == SD_HMAX && msp_rx_buf[1] == SD_VMAX) {
+        resolution = SD_3016;
+        osd_menu_offset = 0;
     }
 }
 
