@@ -28,6 +28,7 @@
 #define MSP_CMD_RC_BYTE             0x69 // 105 //out message
 #define MSP_CMD_DISPLAYPORT_BYTE    0xB6 // 182 // in message
 #define MSP_CMD_SET_OSD_CANVAS_BYTE 0xBC // 188 // in message
+#define MSP_CMD_GET_OSD_CANVAS_BYTE 0xBD // 188 //out message
 
 #define DP_HEADER0 0x56
 #define DP_HEADER1 0x80
@@ -97,7 +98,7 @@ typedef enum {
     CUR_STATUS,
     CUR_FC_VARIANT,
     CUR_VTX_CONFIG,
-    CUR_SET_OSD_CANVAS,
+    CUR_GET_OSD_CANVAS,
     CUR_OTHERS
 } cur_cmd_e;
 
