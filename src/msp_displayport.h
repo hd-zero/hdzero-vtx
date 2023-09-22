@@ -135,6 +135,7 @@ typedef enum {
     VTX_MENU_PIT_MODE,
     VTX_MENU_OFFSET_25MW,
     VTX_MENU_TEAM_RACE,
+    VTX_MENU_SHORTCUT,
     VTX_MENU_EXIT,
     VTX_MENU_SAVE_EXIT,
 } vtx_menu_state_e;

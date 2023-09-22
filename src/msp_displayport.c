@@ -40,6 +40,7 @@ uint8_t vtx_pit;
 uint8_t vtx_pit_save = PIT_OFF;
 uint8_t vtx_offset = 0;
 uint8_t vtx_team_race = 0;
+uint8_t vtx_shortcut = 0;
 uint8_t first_arm = 0;
 
 uint8_t fc_pwr_rx = 0;
@@ -1345,6 +1346,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
             vtx_pit = PIT_OFF;
             vtx_offset = OFFSET_25MW;
             vtx_team_race = TEAM_RACE;
+            vtx_shortcut = SHORTCUT;
             if (SA_lock) {
                 // PIT_MODE = 2;
                 vtx_pit = PIT_P1MW;
@@ -1530,7 +1532,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
 
                 case VTX_MENU_TEAM_RACE:
                     if (VirtualBtn == BTN_DOWN)
-                        vtx_menu_state = VTX_MENU_EXIT;
+                        vtx_menu_state = VTX_MENU_SHORTCUT;
                     else if (VirtualBtn == BTN_UP)
                         vtx_menu_state = VTX_MENU_OFFSET_25MW;
                     else if (VirtualBtn == BTN_LEFT) {
@@ -1545,7 +1547,16 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     update_vtx_menu_param(vtx_menu_state);
                     break;
 
-                // exit
+                case VTX_MENU_SHORTCUT:
+                    if (VirtualBtn == BTN_DOWN)
+                        vtx_menu_state = VTX_MENU_EXIT;
+                    else if (VirtualBtn == BTN_UP)
+                        vtx_menu_state = VTX_MENU_TEAM_RACE;
+                    else if (VirtualBtn == BTN_LEFT || VirtualBtn == BTN_RIGHT) {
+                        vtx_shortcut = 1 - vtx_shortcut;
+                    }
+                    update_vtx_menu_param(vtx_menu_state);
+                    break;
                 case VTX_MENU_EXIT:
                     if (VirtualBtn == BTN_DOWN) {
                         vtx_menu_state = VTX_MENU_SAVE_EXIT;
@@ -1561,7 +1572,6 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     }
                     break;
 
-                // save&exit
                 case VTX_MENU_SAVE_EXIT:
                     if (VirtualBtn == BTN_DOWN) {
                         vtx_menu_state = VTX_MENU_CHANNEL;
@@ -1579,6 +1589,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                             PIT_MODE = vtx_pit;
                             vtx_pit_save = vtx_pit;
                             OFFSET_25MW = vtx_offset;
+                            SHORTCUT = vtx_shortcut;
                             CFG_Back();
                             Setting_Save();
                         } else {
@@ -1662,26 +1673,27 @@ void vtx_menu_init() {
     strcpy(osd_buf[5] + osd_menu_offset + 2, " PIT_MODE");
     strcpy(osd_buf[6] + osd_menu_offset + 2, " OFFSET_25MW");
     strcpy(osd_buf[7] + osd_menu_offset + 2, " TEAM_RACE");
-    strcpy(osd_buf[8] + osd_menu_offset + 2, " EXIT  ");
-    strcpy(osd_buf[9] + osd_menu_offset + 2, " SAVE&EXIT");
-    strcpy(osd_buf[10] + osd_menu_offset + 2, "------INFO------");
-    strcpy(osd_buf[11] + osd_menu_offset + 2, " VTX");
-    strcpy(osd_buf[12] + osd_menu_offset + 2, " VER");
-    strcpy(osd_buf[13] + osd_menu_offset + 2, " LIFETIME");
+    strcpy(osd_buf[8] + osd_menu_offset + 2, " SHORTCUTS");
+    strcpy(osd_buf[9] + osd_menu_offset + 2, " EXIT  ");
+    strcpy(osd_buf[10] + osd_menu_offset + 2, " SAVE&EXIT");
+    strcpy(osd_buf[11] + osd_menu_offset + 2, "------INFO------");
+    strcpy(osd_buf[12] + osd_menu_offset + 2, " VTX");
+    strcpy(osd_buf[13] + osd_menu_offset + 2, " VER");
+    strcpy(osd_buf[14] + osd_menu_offset + 2, " LIFETIME");
 #ifdef USE_TEMPERATURE_SENSOR
-    strcpy(osd_buf[14] + osd_menu_offset + 2, " TEMPERATURE");
+    strcpy(osd_buf[15] + osd_menu_offset + 2, " TEMPERATURE");
 #endif
 
-    for (i = 2; i < 8; i++) {
+    for (i = 2; i < 9; i++) {
         osd_buf[i][osd_menu_offset + 19] = '<';
         osd_buf[i][osd_menu_offset + 26] = '>';
     }
 
     // draw variant
-    strcpy(osd_buf[11] + osd_menu_offset + 13, VTX_NAME);
+    strcpy(osd_buf[12] + osd_menu_offset + 13, VTX_NAME);
 
     // draw version
-    strcpy(osd_buf[12] + osd_menu_offset + 13, VTX_VERSION_STRING);
+    strcpy(osd_buf[13] + osd_menu_offset + 13, VTX_VERSION_STRING);
 
     vtx_channel = RF_FREQ;
     vtx_power = RF_POWER;
@@ -1689,6 +1701,7 @@ void vtx_menu_init() {
     vtx_pit = PIT_MODE;
     vtx_offset = OFFSET_25MW;
     vtx_team_race = TEAM_RACE;
+    vtx_shortcut = SHORTCUT;
     update_vtx_menu_param(0);
 }
 
@@ -1700,10 +1713,11 @@ void update_vtx_menu_param(uint8_t state) {
     const char *lowPowerString[] = {"  OFF", "   ON", "  1ST"};
     const char *pitString[] = {"  OFF", " P1MW", "  0MW"};
     const char *treamRaceString[] = {"  OFF", "MODE1", "MODE2"};
+    const char *shortcutString[] = {"MODE1", "MODE2"};
 
     // cursor
     state += 2;
-    for (i = 2; i < 10; i++) {
+    for (i = 2; i < 11; i++) {
         if (i == state)
             osd_buf[i][osd_menu_offset + 2] = '>';
         else
@@ -1742,19 +1756,21 @@ void update_vtx_menu_param(uint8_t state) {
 
     strcpy(osd_buf[7] + osd_menu_offset + 20, treamRaceString[vtx_team_race]);
 
+    strcpy(osd_buf[8] + osd_menu_offset + 20, shortcutString[vtx_shortcut]);
+
     ParseLifeTime(hourString, minuteString);
-    osd_buf[13][osd_menu_offset + 16] = hourString[0];
-    osd_buf[13][osd_menu_offset + 17] = hourString[1];
-    osd_buf[13][osd_menu_offset + 18] = hourString[2];
-    osd_buf[13][osd_menu_offset + 19] = hourString[3];
-    osd_buf[13][osd_menu_offset + 20] = 'H';
-    osd_buf[13][osd_menu_offset + 21] = minuteString[0];
-    osd_buf[13][osd_menu_offset + 22] = minuteString[1];
-    osd_buf[13][osd_menu_offset + 23] = 'M';
+    osd_buf[14][osd_menu_offset + 16] = hourString[0];
+    osd_buf[14][osd_menu_offset + 17] = hourString[1];
+    osd_buf[14][osd_menu_offset + 18] = hourString[2];
+    osd_buf[14][osd_menu_offset + 19] = hourString[3];
+    osd_buf[14][osd_menu_offset + 20] = 'H';
+    osd_buf[14][osd_menu_offset + 21] = minuteString[0];
+    osd_buf[14][osd_menu_offset + 22] = minuteString[1];
+    osd_buf[14][osd_menu_offset + 23] = 'M';
 #ifdef USE_TEMPERATURE_SENSOR
-    osd_buf[14][osd_menu_offset + 16] = (temperature >> 2) / 100 + '0';
-    osd_buf[14][osd_menu_offset + 17] = ((temperature >> 2) % 100) / 10 + '0';
-    osd_buf[14][osd_menu_offset + 18] = ((temperature >> 2) % 10) + '0';
+    osd_buf[15][osd_menu_offset + 16] = (temperature >> 2) / 100 + '0';
+    osd_buf[15][osd_menu_offset + 17] = ((temperature >> 2) % 100) / 10 + '0';
+    osd_buf[15][osd_menu_offset + 18] = ((temperature >> 2) % 10) + '0';
 #endif
 }
 
@@ -1766,6 +1782,7 @@ void save_vtx_param() {
     vtx_pit_save = vtx_pit;
     OFFSET_25MW = vtx_offset;
     TEAM_RACE = vtx_team_race;
+    SHORTCUT = vtx_shortcut;
     CFG_Back();
     Setting_Save();
     Imp_RF_Param();
