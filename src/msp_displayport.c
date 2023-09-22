@@ -1250,6 +1250,10 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
     uint8_t IS_HI_roll = IS_HI(roll);
     uint8_t IS_LO_roll = IS_LO(roll);
     uint8_t IS_MID_roll = IS_MID(roll);
+    uint8_t stick_cmd_enter_0mw = (IS_LO_yaw && IS_LO_throttle && IS_HI_roll && IS_LO_pitch && SHORTCUT == 0) ||
+                                  (IS_LO_yaw && IS_HI_throttle && IS_HI_roll && IS_HI_pitch && SHORTCUT == 1);
+    uint8_t stick_cmd_exit_0mw = (IS_HI_yaw && IS_LO_throttle && IS_LO_roll && IS_LO_pitch && SHORTCUT == 0) ||
+                                 (IS_HI_yaw && IS_HI_throttle && IS_LO_roll && IS_HI_pitch && SHORTCUT == 1);
 
     if (g_IS_ARMED && (cms_state != CMS_OSD)) {
         fc_init();
@@ -1281,20 +1285,17 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
     switch (cms_state) {
     case CMS_OSD:
         if (!g_IS_ARMED) {
-            if (IS_HI_yaw && IS_LO_throttle && IS_LO_roll && IS_LO_pitch) {
-                if (cur_pwr == POWER_MAX + 2) {
-                    cms_state = CMS_EXIT_0MW;
-                    // debugf("\r\ncms_state(%x),cur_pwr(%x)",cms_state, cur_pwr);
-                    cms_cnt = 0;
-                    break;
-                }
-                /*if(!SA_lock)*/ {
-                    cms_state = CMS_ENTER_VTX_MENU;
-                    // debugf("\r\ncms_state(%x)",cms_state);
-                    vtx_menu_init();
-                    vtx_menu_state = VTX_MENU_CHANNEL;
-                }
-            } else if (IS_LO_yaw && IS_LO_throttle && IS_HI_roll && IS_LO_pitch) {
+            if (stick_cmd_exit_0mw && (cur_pwr == POWER_MAX + 2)) {
+                cms_state = CMS_EXIT_0MW;
+                // debugf("\r\ncms_state(%x),cur_pwr(%x)",cms_state, cur_pwr);
+                cms_cnt = 0;
+                break;
+            } else if (IS_HI_yaw && IS_LO_throttle && IS_LO_roll && IS_LO_pitch) {
+                cms_state = CMS_ENTER_VTX_MENU;
+                // debugf("\r\ncms_state(%x)",cms_state);
+                vtx_menu_init();
+                vtx_menu_state = VTX_MENU_CHANNEL;
+            } else if (stick_cmd_enter_0mw) {
                 if (cur_pwr != POWER_MAX + 2) {
                     cms_state = CMS_ENTER_0MW;
                     // debugf("\r\ncms_state(%x)",cms_state);
@@ -1311,7 +1312,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
         break;
 
     case CMS_ENTER_0MW:
-        if (IS_LO_yaw && IS_LO_throttle && IS_HI_roll && IS_LO_pitch)
+        if (stick_cmd_enter_0mw)
             cms_cnt++;
         else {
             cms_state = CMS_OSD;
@@ -1557,12 +1558,13 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     }
                     update_vtx_menu_param(vtx_menu_state);
                     break;
+
                 case VTX_MENU_EXIT:
                     if (VirtualBtn == BTN_DOWN) {
                         vtx_menu_state = VTX_MENU_SAVE_EXIT;
                         update_vtx_menu_param(vtx_menu_state);
                     } else if (VirtualBtn == BTN_UP) {
-                        vtx_menu_state = VTX_MENU_TEAM_RACE;
+                        vtx_menu_state = VTX_MENU_SHORTCUT;
                         update_vtx_menu_param(vtx_menu_state);
                     } else if (VirtualBtn == BTN_RIGHT) {
                         vtx_menu_state = VTX_MENU_CHANNEL;
