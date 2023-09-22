@@ -1227,7 +1227,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
      *
      *                throttle(油门) -                                          pitch(俯仰) -
      */
-    static uint8_t vtx_state = 0;
+    static uint8_t vtx_menu_state = VTX_MENU_CHANNEL;
     uint8_t mid = 0;
     static uint8_t last_mid = 1;
     static uint8_t cms_cnt;
@@ -1291,7 +1291,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     cms_state = CMS_ENTER_VTX_MENU;
                     // debugf("\r\ncms_state(%x)",cms_state);
                     vtx_menu_init();
-                    vtx_state = 0;
+                    vtx_menu_state = VTX_MENU_CHANNEL;
                 }
             } else if (IS_LO_yaw && IS_LO_throttle && IS_HI_roll && IS_LO_pitch) {
                 if (cur_pwr != POWER_MAX + 2) {
@@ -1382,13 +1382,12 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
     case CMS_VTX_MENU: {
         if (!g_IS_ARMED) {
             if (last_mid) {
-                switch (vtx_state) {
-                // channel
-                case 0:
+                switch (vtx_menu_state) {
+                case VTX_MENU_CHANNEL:
                     if (VirtualBtn == BTN_DOWN)
-                        vtx_state = 1;
+                        vtx_menu_state = VTX_MENU_POWER;
                     else if (VirtualBtn == BTN_UP)
-                        vtx_state = 7;
+                        vtx_menu_state = VTX_MENU_SAVE_EXIT;
                     else if (VirtualBtn == BTN_RIGHT) {
                         if (SA_lock == 0) {
                             vtx_channel++;
@@ -1402,15 +1401,14 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                                 vtx_channel = FREQ_NUM - 1;
                         }
                     }
-                    update_vtx_menu_param(vtx_state);
+                    update_vtx_menu_param(vtx_menu_state);
                     break;
 
-                // power
-                case 1:
+                case VTX_MENU_POWER:
                     if (VirtualBtn == BTN_DOWN)
-                        vtx_state = 2;
+                        vtx_menu_state = VTX_MENU_LP_MODE;
                     else if (VirtualBtn == BTN_UP)
-                        vtx_state = 0;
+                        vtx_menu_state = VTX_MENU_CHANNEL;
                     else if (VirtualBtn == BTN_RIGHT) {
                         if (SA_lock)
                             ;
@@ -1440,15 +1438,14 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                                 vtx_power = POWER_MAX;
                         }
                     }
-                    update_vtx_menu_param(vtx_state);
+                    update_vtx_menu_param(vtx_menu_state);
                     break;
 
-                // lp_mode
-                case 2:
+                case VTX_MENU_LP_MODE:
                     if (VirtualBtn == BTN_DOWN)
-                        vtx_state = 3;
+                        vtx_menu_state = VTX_MENU_PIT_MODE;
                     else if (VirtualBtn == BTN_UP)
-                        vtx_state = 1;
+                        vtx_menu_state = VTX_MENU_POWER;
                     else if (VirtualBtn == BTN_LEFT) {
                         if (SA_lock)
                             ;
@@ -1470,15 +1467,14 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                                 vtx_lp = 0;
                         }
                     }
-                    update_vtx_menu_param(vtx_state);
+                    update_vtx_menu_param(vtx_menu_state);
                     break;
 
-                // pit_mode
-                case 3:
+                case VTX_MENU_PIT_MODE:
                     if (VirtualBtn == BTN_DOWN)
-                        vtx_state = 4;
+                        vtx_menu_state = VTX_MENU_OFFSET_25MW;
                     else if (VirtualBtn == BTN_UP)
-                        vtx_state = 2;
+                        vtx_menu_state = VTX_MENU_LP_MODE;
                     else if (VirtualBtn == BTN_RIGHT) {
                         if (SA_lock)
                             ;
@@ -1502,15 +1498,14 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                                 vtx_pit--;
                         }
                     }
-                    update_vtx_menu_param(vtx_state);
+                    update_vtx_menu_param(vtx_menu_state);
                     break;
 
-                // offset_25mw
-                case 4:
+                case VTX_MENU_OFFSET_25MW:
                     if (VirtualBtn == BTN_DOWN)
-                        vtx_state = 5;
+                        vtx_menu_state = VTX_MENU_TEAM_RACE;
                     else if (VirtualBtn == BTN_UP)
-                        vtx_state = 3;
+                        vtx_menu_state = VTX_MENU_PIT_MODE;
                     else if (VirtualBtn == BTN_RIGHT) {
                         if (vtx_offset == 10)
                             vtx_offset = vtx_offset;
@@ -1530,15 +1525,14 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                         else
                             vtx_offset--;
                     }
-                    update_vtx_menu_param(vtx_state);
+                    update_vtx_menu_param(vtx_menu_state);
                     break;
 
-                // 0mw_boot
-                case 5:
+                case VTX_MENU_TEAM_RACE:
                     if (VirtualBtn == BTN_DOWN)
-                        vtx_state = 6;
+                        vtx_menu_state = VTX_MENU_EXIT;
                     else if (VirtualBtn == BTN_UP)
-                        vtx_state = 4;
+                        vtx_menu_state = VTX_MENU_OFFSET_25MW;
                     else if (VirtualBtn == BTN_LEFT) {
                         vtx_team_race--;
                         if (vtx_team_race > 2)
@@ -1548,19 +1542,19 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                         if (vtx_team_race > 2)
                             vtx_team_race = 0;
                     }
-                    update_vtx_menu_param(vtx_state);
+                    update_vtx_menu_param(vtx_menu_state);
                     break;
 
                 // exit
-                case 6:
+                case VTX_MENU_EXIT:
                     if (VirtualBtn == BTN_DOWN) {
-                        vtx_state = 7;
-                        update_vtx_menu_param(vtx_state);
+                        vtx_menu_state = VTX_MENU_SAVE_EXIT;
+                        update_vtx_menu_param(vtx_menu_state);
                     } else if (VirtualBtn == BTN_UP) {
-                        vtx_state = 5;
-                        update_vtx_menu_param(vtx_state);
+                        vtx_menu_state = VTX_MENU_TEAM_RACE;
+                        update_vtx_menu_param(vtx_menu_state);
                     } else if (VirtualBtn == BTN_RIGHT) {
-                        vtx_state = 0;
+                        vtx_menu_state = VTX_MENU_CHANNEL;
                         cms_state = CMS_OSD;
                         fc_init();
                         msp_tx_cnt = 0;
@@ -1568,15 +1562,15 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     break;
 
                 // save&exit
-                case 7:
+                case VTX_MENU_SAVE_EXIT:
                     if (VirtualBtn == BTN_DOWN) {
-                        vtx_state = 0;
-                        update_vtx_menu_param(vtx_state);
+                        vtx_menu_state = VTX_MENU_CHANNEL;
+                        update_vtx_menu_param(vtx_menu_state);
                     } else if (VirtualBtn == BTN_UP) {
-                        vtx_state = 6;
-                        update_vtx_menu_param(vtx_state);
+                        vtx_menu_state = VTX_MENU_EXIT;
+                        update_vtx_menu_param(vtx_menu_state);
                     } else if (VirtualBtn == BTN_RIGHT) {
-                        vtx_state = 0;
+                        vtx_menu_state = VTX_MENU_CHANNEL;
                         cms_state = CMS_OSD;
                         if (SA_lock || tramp_lock) {
                             RF_FREQ = vtx_channel;
@@ -1698,7 +1692,7 @@ void vtx_menu_init() {
     update_vtx_menu_param(0);
 }
 
-void update_vtx_menu_param(uint8_t vtx_state) {
+void update_vtx_menu_param(uint8_t state) {
     uint8_t i;
     uint8_t hourString[4];
     uint8_t minuteString[2];
@@ -1708,9 +1702,9 @@ void update_vtx_menu_param(uint8_t vtx_state) {
     const char *treamRaceString[] = {"  OFF", "MODE1", "MODE2"};
 
     // cursor
-    vtx_state += 2;
+    state += 2;
     for (i = 2; i < 10; i++) {
-        if (i == vtx_state)
+        if (i == state)
             osd_buf[i][osd_menu_offset + 2] = '>';
         else
             osd_buf[i][osd_menu_offset + 2] = ' ';
