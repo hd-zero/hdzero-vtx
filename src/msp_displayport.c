@@ -1246,7 +1246,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
 
     uint8_t IS_HI_throttle = IS_HI(throttle);
     uint8_t IS_LO_throttle = IS_LO(throttle);
-    // uint8_t IS_MID_throttle = IS_MID(throttle);
+    uint8_t IS_MID_throttle = IS_MID(throttle);
 
     uint8_t IS_HI_pitch = IS_HI(pitch);
     uint8_t IS_LO_pitch = IS_LO(pitch);
@@ -1267,17 +1267,17 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
         VirtualBtn = BTN_MID;
     } else {
         mid = 0;
-        if (IS_HI_yaw && IS_MID_roll && IS_MID_pitch)
+        if (IS_HI_yaw && IS_MID_roll && IS_MID_pitch && IS_MID_throttle)
             VirtualBtn = BTN_ENTER;
         else if (IS_LO_yaw && IS_MID_roll && IS_MID_pitch)
             VirtualBtn = BTN_EXIT;
-        else if (IS_MID_yaw && IS_MID_roll && IS_HI_pitch)
+        else if (IS_MID_yaw && IS_MID_roll && IS_HI_pitch && !IS_HI_throttle)
             VirtualBtn = BTN_UP;
-        else if (IS_MID_yaw && IS_MID_roll && IS_LO_pitch)
+        else if (IS_MID_yaw && IS_MID_roll && IS_LO_pitch && !IS_HI_throttle)
             VirtualBtn = BTN_DOWN;
-        else if (IS_MID_yaw && IS_LO_roll && IS_MID_pitch)
+        else if (IS_MID_yaw && IS_LO_roll && IS_MID_pitch && !IS_HI_throttle)
             VirtualBtn = BTN_LEFT;
-        else if (IS_MID_yaw && IS_HI_roll && IS_MID_pitch)
+        else if (IS_MID_yaw && IS_HI_roll && IS_MID_pitch && !IS_HI_throttle)
             VirtualBtn = BTN_RIGHT;
         else
             VirtualBtn = BTN_INVALID;
