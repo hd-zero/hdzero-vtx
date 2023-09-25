@@ -1715,7 +1715,7 @@ void update_vtx_menu_param(uint8_t state) {
     const char *lowPowerString[] = {"  OFF", "   ON", "  1ST"};
     const char *pitString[] = {"  OFF", " P1MW", "  0MW"};
     const char *treamRaceString[] = {"  OFF", "MODE1", "MODE2"};
-    const char *shortcutString[] = {"MODE1", "MODE2"};
+    const char *shortcutString[] = {"OPT_A", "OPT_B"};
 
     // cursor
     state += 2;
