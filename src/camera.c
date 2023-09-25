@@ -240,6 +240,9 @@ void camera_setting_read(void) {
         return;
 
     camera_type_last = camera_reg_read_eep(EEP_ADDR_CAM_TYPE);
+#ifdef RESET_CONFIG
+    camera_type_last = CAMERA_TYPE_UNKNOW;
+#endif
     if (camera_type_last != camera_type) {
         camera_profile_reset();
         camera_profile_write();
