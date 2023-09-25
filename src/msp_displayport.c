@@ -95,7 +95,7 @@ uint8_t boot_0mw_done = 0;
 #ifdef USE_MSP
 void msp_set_osd_canvas(void);
 void msp_set_inav_osd_canvas(void);
-void parse_set_osd_canvas(void);
+void parse_get_osd_canvas(void);
 
 uint8_t msp_cmp_fc_variant(const char *variant) {
     uint8_t i;
@@ -273,8 +273,8 @@ uint8_t msp_read_one_frame() {
                 cur_cmd = CUR_FC_VARIANT;
             } else if (rx == MSP_CMD_VTX_CONFIG_BYTE) {
                 cur_cmd = CUR_VTX_CONFIG;
-            } else if (rx == MSP_CMD_SET_OSD_CANVAS_BYTE) {
-                cur_cmd = CUR_SET_OSD_CANVAS;
+            } else if (rx == MSP_CMD_GET_OSD_CANVAS_BYTE) {
+                cur_cmd = CUR_GET_OSD_CANVAS;
             } else
                 cur_cmd = CUR_OTHERS;
 
@@ -305,8 +305,8 @@ uint8_t msp_read_one_frame() {
                     parse_variant();
                 else if (cur_cmd == CUR_VTX_CONFIG)
                     parse_vtx_config();
-                else if (cur_cmd == CUR_SET_OSD_CANVAS)
-                    parse_set_osd_canvas();
+                else if (cur_cmd == CUR_GET_OSD_CANVAS)
+                    parse_get_osd_canvas();
                 else if (cur_cmd == CUR_DISPLAYPORT)
                     ret = parse_displayport(osd_len);
                 full_frame = 1;
@@ -724,11 +724,12 @@ void msp_send_header(uint8_t dl) {
 void msp_cmd_tx() // send 3 commands to FC
 {
     uint8_t i;
-    uint8_t const count = (fc_lock & FC_VTX_CONFIG_LOCK) ? 3 : 4;
-    uint8_t msp_cmd[4] = {
+    uint8_t const count = (fc_lock & FC_VTX_CONFIG_LOCK) ? 4 : 5;
+    uint8_t const msp_cmd[5] = {
         MSP_CMD_FC_VARIANT_BYTE,
         MSP_CMD_STATUS_BYTE,
         MSP_CMD_RC_BYTE,
+        MSP_CMD_GET_OSD_CANVAS_BYTE,
         MSP_CMD_VTX_CONFIG_BYTE,
     };
 
@@ -969,10 +970,14 @@ void msp_set_inav_osd_canvas(void) {
     }
 }
 
-void parse_set_osd_canvas(void) {
-    resolution = HD_5018;
-    // debugf("\r\nparse_set_osd_canvas");
-    osd_menu_offset = 8;
+void parse_get_osd_canvas(void) {
+    if (msp_rx_buf[0] == HD_HMAX0 && msp_rx_buf[1] == HD_VMAX0) {
+        resolution = HD_5018;
+        osd_menu_offset = 8;
+    } else if (msp_rx_buf[0] == SD_HMAX && msp_rx_buf[1] == SD_VMAX) {
+        resolution = SD_3016;
+        osd_menu_offset = 0;
+    }
 }
 
 void parseMspVtx_V2(uint16_t const cmd_u16) {
