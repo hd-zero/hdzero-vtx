@@ -29,6 +29,9 @@ volatile BIT_TYPE RS_Xbusy1 = 0;
 #endif
 
 void uart_set_baudrate(uint8_t baudIndex) {
+#if defined _DEBUG_MODE || defined _RF_CALIB
+    baudIndex = 0;
+#endif
     switch (baudIndex) {
     case 0: // 115200
         CKCON = 0x1F;
