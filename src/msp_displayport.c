@@ -1847,8 +1847,8 @@ void set_vtx_param() {
 
     if (!g_IS_ARMED) {
         // configurate pitmode when power-up or setting_vtx
-        if (PIT_MODE) {
-            if (!pit_mode_cfg_done) {
+        if (!pit_mode_cfg_done) {
+            if (PIT_MODE) {
                 if (vtx_pit_save == PIT_0MW) {
                     WriteReg(0, 0x8F, 0x10);
                     dm6300_init_done = 0;
@@ -1871,17 +1871,17 @@ void set_vtx_param() {
 #endif
                     cur_pwr = POWER_MAX + 1;
                 }
-                pit_mode_cfg_done = 1;
             }
-        } else if (LP_MODE) {
-            if (!lp_mode_cfg_done) {
+            pit_mode_cfg_done = 1;
+        } else if (!lp_mode_cfg_done) {
+            if (LP_MODE) {
                 DM6300_SetPower(0, RF_FREQ, 0); // limit power to 25mW
                 cur_pwr = 0;
 #ifdef _DEBUG_MODE
                 debugf("\n\rEnter LP_MODE");
 #endif
-                lp_mode_cfg_done = 1;
             }
+            lp_mode_cfg_done = 1;
         }
     }
 
