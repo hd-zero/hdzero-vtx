@@ -118,7 +118,7 @@ void SA_Response(uint8_t cmd) {
         tbuf[7] = freq_new_h;         // cur_freq_h
         tbuf[8] = freq_new_l;         // cur_freq_l
         tbuf[9] = SA_dbm;             // power dbm
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
         if (powerLock) {
             tbuf[10] = 1 + 1; // amount of power level
             for (i = 0; i <= 1; i++)
@@ -249,7 +249,7 @@ void SA_Update(uint8_t cmd) {
                 }
             } else {
                 cur_pwr = dbm_to_pwr(SA_dbm);
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
                 if (powerLock)
                     cur_pwr &= 0x01;
 #endif
@@ -258,7 +258,7 @@ void SA_Update(uint8_t cmd) {
                     pwr_init = cur_pwr;
                 else {
 #ifndef VIDEO_PAT
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
                     if ((RF_POWER == 3) && (!g_IS_ARMED))
                         pwr_lmt_done = 0;
                     else
@@ -364,7 +364,7 @@ void SA_Update(uint8_t cmd) {
                     temp_err = 1;
                 } else {
 #ifndef VIDEO_PAT
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
                     if ((RF_POWER == 3) && (!g_IS_ARMED)) {
                         pwr_lmt_done = 0;
                         cur_pwr = 3;

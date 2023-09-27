@@ -96,7 +96,7 @@ uint8_t boot_0mw_done = 0;
 #ifdef USE_MSP
 void msp_set_osd_canvas(void);
 void msp_set_inav_osd_canvas(void);
-void parse_set_osd_canvas(void);
+void parse_get_osd_canvas(void);
 
 uint8_t msp_cmp_fc_variant(const char *variant) {
     uint8_t i;
@@ -274,8 +274,8 @@ uint8_t msp_read_one_frame() {
                 cur_cmd = CUR_FC_VARIANT;
             } else if (rx == MSP_CMD_VTX_CONFIG_BYTE) {
                 cur_cmd = CUR_VTX_CONFIG;
-            } else if (rx == MSP_CMD_SET_OSD_CANVAS_BYTE) {
-                cur_cmd = CUR_SET_OSD_CANVAS;
+            } else if (rx == MSP_CMD_GET_OSD_CANVAS_BYTE) {
+                cur_cmd = CUR_GET_OSD_CANVAS;
             } else
                 cur_cmd = CUR_OTHERS;
 
@@ -306,8 +306,8 @@ uint8_t msp_read_one_frame() {
                     parse_variant();
                 else if (cur_cmd == CUR_VTX_CONFIG)
                     parse_vtx_config();
-                else if (cur_cmd == CUR_SET_OSD_CANVAS)
-                    parse_set_osd_canvas();
+                else if (cur_cmd == CUR_GET_OSD_CANVAS)
+                    parse_get_osd_canvas();
                 else if (cur_cmd == CUR_DISPLAYPORT)
                     ret = parse_displayport(osd_len);
                 full_frame = 1;
@@ -482,9 +482,31 @@ uint8_t get_tx_data_5680() // prepare data to VRX
 
 // VTX temp and overhot
 #ifdef USE_TEMPERATURE_SENSOR
+#if defined HDZERO_FREESTYLE_V2
+    temp = temperature >> 2;
+    if (temp > 90)
+        temp = 8;
+    else if (temp > 85)
+        temp = 7;
+    else if (temp > 80)
+        temp = 6;
+    else if (temp > 75)
+        temp = 5;
+    else if (temp > 70)
+        temp = 4;
+    else if (temp > 60)
+        temp = 3;
+    else if (temp > 50)
+        temp = 2;
+    else if (temp > 40)
+        temp = 1;
+    else
+        temp = 0;
+#else
     temp = temperature_level() >> 1;
     if (temp > 8)
         temp = 8;
+#endif
     tx_buf[10] = 0x80 | (heat_protect << 6) | temp;
 #else
     tx_buf[10] = 0;
@@ -703,11 +725,12 @@ void msp_send_header(uint8_t dl) {
 void msp_cmd_tx() // send 3 commands to FC
 {
     uint8_t i;
-    uint8_t const count = (fc_lock & FC_VTX_CONFIG_LOCK) ? 3 : 4;
-    uint8_t msp_cmd[4] = {
+    uint8_t const count = (fc_lock & FC_VTX_CONFIG_LOCK) ? 4 : 5;
+    uint8_t const msp_cmd[5] = {
         MSP_CMD_FC_VARIANT_BYTE,
         MSP_CMD_STATUS_BYTE,
         MSP_CMD_RC_BYTE,
+        MSP_CMD_GET_OSD_CANVAS_BYTE,
         MSP_CMD_VTX_CONFIG_BYTE,
     };
 
@@ -781,7 +804,7 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     crc ^= 0x06; // band count
     CMS_tx(0x08);
     crc ^= 0x08; // channel count
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
     if (powerLock) {
         CMS_tx(3);
         crc ^= (3); // power count
@@ -855,9 +878,15 @@ uint8_t parse_vtx_band_and_channel(uint8_t const band, uint8_t const channel) {
             return INVALID_CHANNEL;
         }
     } else if (band == 5) { // race band
-        return (channel - 1);
-    } else if (band == 6) {
-        return (channel + 9); // low band
+        if (channel >= 1 && channel <= 8)
+            return (channel - 1);
+        else
+            return INVALID_CHANNEL;
+    } else if (band == 6) { // low band
+        if (channel >= 1 && channel <= 8)
+            return (channel + 1);
+        else
+            return INVALID_CHANNEL;
     } else {
         return INVALID_CHANNEL;
     }
@@ -942,10 +971,14 @@ void msp_set_inav_osd_canvas(void) {
     }
 }
 
-void parse_set_osd_canvas(void) {
-    resolution = HD_5018;
-    // debugf("\r\nparse_set_osd_canvas");
-    osd_menu_offset = 8;
+void parse_get_osd_canvas(void) {
+    if (msp_rx_buf[0] == HD_HMAX0 && msp_rx_buf[1] == HD_VMAX0) {
+        resolution = HD_5018;
+        osd_menu_offset = 8;
+    } else if (msp_rx_buf[0] == SD_HMAX && msp_rx_buf[1] == SD_VMAX) {
+        resolution = SD_3016;
+        osd_menu_offset = 0;
+    }
 }
 
 void parseMspVtx_V2(uint16_t const cmd_u16) {
@@ -1048,7 +1081,7 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
             vtx_pit_save = PIT_MODE;
         } else {
 #ifndef VIDEO_PAT
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
             if ((RF_POWER == 3) && (!g_IS_ARMED))
                 pwr_lmt_done = 0;
             else
@@ -1100,7 +1133,7 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
             if (dm6300_init_done) {
                 if (cur_pwr != nxt_pwr) {
 #ifndef VIDEO_PAT
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
                     if ((nxt_pwr == 3) && (!g_IS_ARMED))
                         pwr_lmt_done = 0;
                     else
@@ -1241,7 +1274,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
 
     uint8_t IS_HI_throttle = IS_HI(throttle);
     uint8_t IS_LO_throttle = IS_LO(throttle);
-    // uint8_t IS_MID_throttle = IS_MID(throttle);
+    uint8_t IS_MID_throttle = IS_MID(throttle);
 
     uint8_t IS_HI_pitch = IS_HI(pitch);
     uint8_t IS_LO_pitch = IS_LO(pitch);
@@ -1266,17 +1299,17 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
         VirtualBtn = BTN_MID;
     } else {
         mid = 0;
-        if (IS_HI_yaw && IS_MID_roll && IS_MID_pitch)
+        if (IS_HI_yaw && IS_MID_roll && IS_MID_pitch && IS_MID_throttle)
             VirtualBtn = BTN_ENTER;
         else if (IS_LO_yaw && IS_MID_roll && IS_MID_pitch)
             VirtualBtn = BTN_EXIT;
-        else if (IS_MID_yaw && IS_MID_roll && IS_HI_pitch)
+        else if (IS_MID_yaw && IS_MID_roll && IS_HI_pitch && !IS_HI_throttle)
             VirtualBtn = BTN_UP;
-        else if (IS_MID_yaw && IS_MID_roll && IS_LO_pitch)
+        else if (IS_MID_yaw && IS_MID_roll && IS_LO_pitch && !IS_HI_throttle)
             VirtualBtn = BTN_DOWN;
-        else if (IS_MID_yaw && IS_LO_roll && IS_MID_pitch)
+        else if (IS_MID_yaw && IS_LO_roll && IS_MID_pitch && !IS_HI_throttle)
             VirtualBtn = BTN_LEFT;
-        else if (IS_MID_yaw && IS_HI_roll && IS_MID_pitch)
+        else if (IS_MID_yaw && IS_HI_roll && IS_MID_pitch && !IS_HI_throttle)
             VirtualBtn = BTN_RIGHT;
         else
             VirtualBtn = BTN_INVALID;
@@ -1419,7 +1452,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                             ;
                         else {
                             vtx_power++;
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
                             if (powerLock)
                                 vtx_power &= 0x01;
 #endif
@@ -1433,7 +1466,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                             ;
                         else {
                             vtx_power--;
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
                             if (powerLock)
                                 vtx_power &= 0x01;
 #endif
@@ -1884,7 +1917,7 @@ void set_vtx_param() {
             debugf("\n\rExit PIT or LP");
 #endif
 #ifndef VIDEO_PAT
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
             if (RF_POWER == 3 && !g_IS_ARMED)
                 pwr_lmt_done = 0;
             else
@@ -1895,7 +1928,7 @@ void set_vtx_param() {
                 cur_pwr = RF_POWER;
             }
         } else if (heat_protect) {
-#ifdef HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
             WriteReg(0, 0x8F, 0x00);
             WriteReg(0, 0x8F, 0x01);
             DM6300_Init(RF_FREQ, RF_BW);
@@ -1996,7 +2029,7 @@ void InitVtxTable() {
     power_table[0] = bf_vtx_power_table[0];
     power_table[1] = bf_vtx_power_table[1];
 
-#if defined HDZERO_FREESTYLE
+#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
     if (!powerLock) {
         // if we dont have power lock, enable 500mw and 1W
         power_table[2] = bf_vtx_power_500mW;
