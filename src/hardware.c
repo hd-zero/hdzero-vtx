@@ -1475,7 +1475,7 @@ void uart_baudrate_detect(void) {
 #ifdef USE_TRAMP
     // tramp protocol need 115200 bps.
     return;
-#endif
+#else
     if (seconds - msp_lst_rcv_sec >= 20) {
         msp_lst_rcv_sec = seconds;
         BAUDRATE++;
@@ -1483,6 +1483,7 @@ void uart_baudrate_detect(void) {
         uart_set_baudrate(BAUDRATE);
         Setting_Save();
     }
+#endif
 }
 
 void vtx_paralized(void) {
