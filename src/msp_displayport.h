@@ -130,6 +130,18 @@ typedef enum {
 } cms_state_e;
 
 typedef enum {
+    VTX_MENU_CHANNEL,
+    VTX_MENU_POWER,
+    VTX_MENU_LP_MODE,
+    VTX_MENU_PIT_MODE,
+    VTX_MENU_OFFSET_25MW,
+    VTX_MENU_TEAM_RACE,
+    VTX_MENU_SHORTCUT,
+    VTX_MENU_EXIT,
+    VTX_MENU_SAVE_EXIT,
+} vtx_menu_state_e;
+
+typedef enum {
     DISPLAY_OSD,
     DISPLAY_CMS,
 } disp_mode_e;
@@ -155,7 +167,7 @@ void parseMspVtx_V2(uint16_t const cmd_u16);
 uint8_t parse_displayport(uint8_t len);
 void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throttle);
 void vtx_menu_init();
-void update_vtx_menu_param(uint8_t vtx_state);
+void update_vtx_menu_param(uint8_t state);
 void save_vtx_param();
 void msp_set_vtx_config(uint8_t power, uint8_t save);
 void set_vtx_param();

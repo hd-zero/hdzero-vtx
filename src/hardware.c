@@ -44,6 +44,7 @@ uint8_t PIT_MODE = 0;
 uint8_t OFFSET_25MW = 0; // 0~10 -> 0~10    11~20 -> -1~-10
 uint8_t TEAM_RACE = 0;
 uint8_t BAUDRATE = 0;
+uint8_t SHORTCUT = 0;
 
 uint8_t RF_BW = BW_27M;
 uint8_t RF_BW_last = BW_27M;
@@ -285,6 +286,7 @@ void Setting_Save() {
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_TEAM_RACE, TEAM_RACE);
+        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SHORTCUT, SHORTCUT);
 #ifdef _DEBUG_MODE
         if (!err)
             debugf("\r\nEEPROM write success");
@@ -300,6 +302,7 @@ void Setting_Save() {
     debugf("    OFFSET_25MW=%d\r\n", (uint16_t)OFFSET_25MW);
     debugf("    BAUDRATE=%d\r\n", (uint16_t)BAUDRATE);
     debugf("    TEAM_RACE=%d\r\n", (uint16_t)TEAM_RACE);
+    debugf("    SHORTCUT=%d\r\n", (uint16_t)SHORTCUT);
 #endif
 }
 
@@ -309,8 +312,9 @@ void CFG_Back() {
     LP_MODE = (LP_MODE > 2) ? 0 : LP_MODE;
     PIT_MODE = (PIT_MODE > PIT_0MW) ? PIT_OFF : PIT_MODE;
     OFFSET_25MW = (OFFSET_25MW > 20) ? 0 : OFFSET_25MW;
-    TEAM_RACE = (TEAM_RACE > 2) ? 0 : TEAM_RACE;
     BAUDRATE = (BAUDRATE > 1) ? 0 : BAUDRATE;
+    TEAM_RACE = (TEAM_RACE > 2) ? 0 : TEAM_RACE;
+    SHORTCUT = (SHORTCUT > 1) ? 0 : SHORTCUT;
 }
 
 void GetVtxParameter() {
@@ -398,6 +402,7 @@ void GetVtxParameter() {
         PIT_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_PITMODE);
         OFFSET_25MW = I2C_Read8(ADDR_EEPROM, EEP_ADDR_25MW);
         TEAM_RACE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_TEAM_RACE);
+        SHORTCUT = I2C_Read8(ADDR_EEPROM, EEP_ADDR_SHORTCUT);
 #ifdef USE_TRAMP
         // tramp protocol need 115200 bps.
         BAUDRATE = 0;
@@ -413,6 +418,7 @@ void GetVtxParameter() {
         OFFSET_25MW = 0;
         TEAM_RACE = 0;
         BAUDRATE = 0;
+        SHORTCUT = 0;
         I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
         I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
         I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
@@ -420,6 +426,7 @@ void GetVtxParameter() {
         I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
         I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_TEAM_RACE, TEAM_RACE);
         I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
+        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SHORTCUT, SHORTCUT);
 #endif
 #ifdef _DEBUG_MODE
         debugf("\r\nUSE EEPROM for VTX setting:RF_FREQ=%d, RF_POWER=%d, LPMODE=%d PIT_MODE=%d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
@@ -1474,7 +1481,7 @@ void uart_baudrate_detect(void) {
 #ifdef USE_TRAMP
     // tramp protocol need 115200 bps.
     return;
-#endif
+#else
     if (seconds - msp_lst_rcv_sec >= 20) {
         msp_lst_rcv_sec = seconds;
         BAUDRATE++;
@@ -1482,6 +1489,7 @@ void uart_baudrate_detect(void) {
         uart_set_baudrate(BAUDRATE);
         Setting_Save();
     }
+#endif
 }
 
 void vtx_paralized(void) {

@@ -38,6 +38,7 @@ typedef enum {
 #define EEP_ADDR_VTX_CONFIG   0x8A
 #define EEP_ADDR_BAUDRATE     0x8B
 #define EEP_ADDR_LOWBAND_LOCK 0x8C
+#define EEP_ADDR_SHORTCUT     0x8D
 #define EEP_ADDR_DCOC_EN      0xC0
 #define EEP_ADDR_DCOC_IH      0xC1
 #define EEP_ADDR_DCOC_IL      0xC2
@@ -114,6 +115,7 @@ extern uint8_t EE_VALID;
 extern uint8_t RF_BW;
 extern uint8_t RF_BW_last;
 extern uint8_t BAUDRATE;
+extern uint8_t SHORTCUT;
 
 extern uint8_t pwr_offset;
 extern uint8_t heat_protect;

@@ -290,6 +290,7 @@ void RF_Delay_Init() {
             DM6300_SetPower(0, RF_FREQ, 0);
             cur_pwr = RF_POWER;
             WriteReg(0, 0x8F, 0x11);
+            rf_delay_init_done = 1;
         }
         DM6300_AUXADC_Calib();
     }
