@@ -166,7 +166,7 @@
 #define Rom_ready() RS_ready()
 
 #define FREQ_R1 (uint16_t)5658
-#define FREQ_R2 (uint16_t)5696
+#define FREQ_R2 (uint16_t)5695
 #define FREQ_R3 (uint16_t)5732
 #define FREQ_R4 (uint16_t)5769
 #define FREQ_R5 (uint16_t)5806
