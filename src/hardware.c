@@ -1083,7 +1083,8 @@ void video_detect(void) {
 
         if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 ||
             camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 ||
-            camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
+            camera_type == CAMERA_TYPE_RUNCAM_NANO_90 ||
+            camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
             val |= I2C_Read16(ADDR_TC3587, 0x006A);
             val |= I2C_Read16(ADDR_TC3587, 0x006E);
             if (val)
