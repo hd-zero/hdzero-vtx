@@ -135,6 +135,9 @@ void camera_mode_detect(uint8_t init) {
             LED_BLUE_ON;
             led_status = ON;
             break;
+        } else {
+            LED_BLUE_OFF;
+            led_status = OFF;
         }
     }
     RF_BW = BW_27M;
