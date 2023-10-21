@@ -180,7 +180,6 @@ void main(void) {
 
 void timer_task() {
     static uint16_t cur_ms10x_1sd16 = 0, last_ms10x_1sd16 = 0;
-    static uint8_t timer_cnt = 0;
     cur_ms10x_1sd16 = timer_ms10x;
 
     if (((cur_ms10x_1sd16 - last_ms10x_1sd16) >= TIMER0_1SD16) || (cur_ms10x_1sd16 < last_ms10x_1sd16)) {

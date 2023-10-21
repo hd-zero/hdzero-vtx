@@ -103,6 +103,8 @@ uint8_t dispL_cnt = 0xff;
 
 uint8_t cameraLost = 0;
 
+uint8_t timer_cnt = 0;
+
 void LED_Init();
 
 void Set_720P50(uint8_t page) {
@@ -1439,7 +1441,15 @@ void LED_Flip() {
     }
 }
 void LED_Task() {
-    if (cameraLost) {
+    if (dm6300_lost) {
+        if (timer_cnt == 0 || timer_cnt == 4) {
+            LED_BLUE_ON;
+            led_status = ON;
+        } else if (timer_cnt == 2 || timer_cnt == 6) {
+            LED_BLUE_OFF;
+            led_status = OFF;
+        }
+    } else if (cameraLost) {
         if (led_status == ON) {
             LED_BLUE_OFF;
             led_status = OFF;

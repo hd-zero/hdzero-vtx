@@ -141,4 +141,7 @@ extern uint8_t temp_err;
 extern uint8_t rf_delay_init_done;
 
 extern int16_t temperature;
+
+extern uint8_t timer_cnt;
+
 #endif /* __HARDWARE_H_ */
