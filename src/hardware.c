@@ -1010,11 +1010,10 @@ void Flicker_LED(uint8_t n) {
 }
 
 void video_detect(void) {
-    const uint8_t timeout_tc = 5;
     static uint16_t last_sec = 0;
     static uint8_t sec = 0;
-    static uint8_t timeout_cnt = 0;
-    uint16_t val = 0;
+    uint16_t video_type_id = 0;
+    uint8_t i;
 
     if (last_sec != seconds) {
         last_sec = seconds;
@@ -1075,29 +1074,29 @@ void video_detect(void) {
 
         if (heat_protect)
             return;
-
+#if (0)
         if (camera_type == CAMERA_TYPE_RESERVED) {
             cameraLost = 1;
             return;
         }
-
+#endif
         if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 ||
             camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 ||
-            camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
-            val |= I2C_Read16(ADDR_TC3587, 0x006A);
-            val |= I2C_Read16(ADDR_TC3587, 0x006E);
-            if (val)
-                timeout_cnt = 0;
-            else if (timeout_cnt < timeout_tc)
-                timeout_cnt++;
-#ifdef _DEBUG_CAMERA
-            debugf("\r\nvideo_detect:%d %d", val, (uint16_t)timeout_cnt);
-#endif
-            if (timeout_cnt == timeout_tc)
-                cameraLost = 1;
-            else {
-                cameraLost = 0;
+            camera_type == CAMERA_TYPE_RUNCAM_NANO_90 ||
+            camera_type == CAMERA_TYPE_RESERVED) {
+            i = 0;
+            video_type_id = 0;
+            while (video_type_id == 0) {
+                video_type_id = I2C_Read16(ADDR_TC3587, 0x006A);
+                i++;
+                if (i == 10)
+                    break;
+                WAIT(1);
             }
+            cameraLost = (video_type_id != 0x1E); // YUV422
+#ifdef _DEBUG_CAMERA
+            debugf("\r\nvideo_TypeID:%d, cameraLost:%d", video_type_id, uint16_t(val));
+#endif
             return;
         }
 
