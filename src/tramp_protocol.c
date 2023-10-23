@@ -52,34 +52,58 @@ static uint16_t get_freq(void) {
     uint16_t freq = 0;
     switch (RF_FREQ) {
     case 0:
-        freq = 5658;
+        freq = FREQ_R1;
         break;
     case 1:
-        freq = 5695;
+        freq = FREQ_R2;
         break;
     case 2:
-        freq = 5732;
+        freq = FREQ_R3;
         break;
     case 3:
-        freq = 5769;
+        freq = FREQ_R4;
         break;
     case 4:
-        freq = 5806;
+        freq = FREQ_R5;
         break;
     case 5:
-        freq = 5843;
+        freq = FREQ_R6;
         break;
     case 6:
-        freq = 5880;
+        freq = FREQ_R7;
         break;
     case 7:
-        freq = 5917;
+        freq = FREQ_R8;
         break;
     case 8:
-        freq = 5760;
+        freq = FREQ_F2;
         break;
     case 9:
-        freq = 5800;
+        freq = FREQ_F4;
+        break;
+    case 10:
+        freq = FREQ_L1;
+        break;
+    case 11:
+        freq = FREQ_L2;
+        break;
+    case 12:
+        freq = FREQ_L3;
+        break;
+    case 13:
+        freq = FREQ_L4;
+        break;
+    case 14:
+        freq = FREQ_L5;
+        break;
+    case 15:
+        freq = FREQ_L6;
+        break;
+    case 16:
+        freq = FREQ_L7;
+        break;
+    case 17:
+        freq = FREQ_L8;
         break;
     default:
         break;
@@ -90,41 +114,68 @@ static uint16_t get_freq(void) {
 static void set_freq(uint16_t freq) {
     uint8_t ch = 0xff;
     switch (freq) {
-    case 5658:
+    case FREQ_R1:
         ch = 0;
         break;
-    case 5695:
+    case FREQ_R2:
         ch = 1;
         break;
-    case 5732:
+    case FREQ_R3:
         ch = 2;
         break;
-    case 5769:
+    case FREQ_R4:
         ch = 3;
         break;
-    case 5806:
+    case FREQ_R5:
         ch = 4;
         break;
-    case 5843:
+    case FREQ_R6:
         ch = 5;
         break;
-    case 5880:
+    case FREQ_R7:
         ch = 6;
         break;
-    case 5917:
+    case FREQ_R8:
         ch = 7;
         break;
-    case 5760:
+    case FREQ_F2:
         ch = 8;
         break;
-    case 5800:
+    case FREQ_F4:
         ch = 9;
+        break;
+    case FREQ_L1:
+        ch = 10;
+        break;
+    case FREQ_L2:
+        ch = 11;
+        break;
+    case FREQ_L3:
+        ch = 12;
+        break;
+    case FREQ_L4:
+        ch = 13;
+        break;
+    case FREQ_L5:
+        ch = 14;
+        break;
+    case FREQ_L6:
+        ch = 15;
+        break;
+    case FREQ_L7:
+        ch = 16;
+        break;
+    case FREQ_L8:
+        ch = 17;
         break;
     default:
         break;
     }
 
     if (ch != 0xff) {
+        if (ch > 9 && !lowband_lock) {
+            return;
+        }
         RF_FREQ = ch;
         if (dm6300_init_done) {
             DM6300_SetChannel(RF_FREQ);
@@ -224,10 +275,10 @@ static uint8_t tramp_reply(void) {
     case 'r': {
         tbuf[0] = 0x0f;
         tbuf[1] = 'r';
-        tbuf[2] = 5658 & 0xff;
-        tbuf[3] = 5658 >> 8;
-        tbuf[4] = 5917 & 0xff;
-        tbuf[5] = 5917 >> 8;
+        tbuf[2] = FREQ_L1 & 0xff;
+        tbuf[3] = FREQ_L1 >> 8;
+        tbuf[4] = FREQ_R8 & 0xff;
+        tbuf[5] = FREQ_R8 >> 8;
         tbuf[6] = 200 & 0xff;
         tbuf[7] = 200 >> 8;
 
