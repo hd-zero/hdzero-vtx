@@ -100,6 +100,7 @@ uint8_t temperature_level(void);
 void vtx_paralized(void);
 
 void timer_task();
+void RF_Delay_Init();
 
 #if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
 extern uint8_t powerLock;
@@ -141,4 +142,7 @@ extern uint8_t temp_err;
 extern uint8_t rf_delay_init_done;
 
 extern int16_t temperature;
+
+extern uint8_t timer_cnt;
+
 #endif /* __HARDWARE_H_ */
