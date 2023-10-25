@@ -23,7 +23,7 @@ uint32_t dcoc_ih = 0x075F0000;
 uint32_t dcoc_qh = 0x075F0000;
 
 uint8_t dm6300_init_done = 0;
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
 uint8_t table_power[FREQ_NUM_EXTERNAL][POWER_MAX + 1] = {
     {0x70, 0x68, 0x5c, 0x60},
     {0x70, 0x68, 0x5c, 0x60},
@@ -278,7 +278,7 @@ uint16_t DM6300_GetFreqByChannel(uint8_t const ch) {
 }
 
 void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset) {
-#ifdef HDZERO_FREESTYLE
+#ifdef HDZERO_FREESTYLE_V1
     uint16_t a_tab[4] = {0x204, 0x11F, 0x21F, 0x31F};
 #elif defined HDZERO_FREESTYLE_V2
     uint16_t a_tab[4] = {0x21F, 0x21F, 0x31F, 0x31F};
