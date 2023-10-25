@@ -804,7 +804,7 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     crc ^= 0x06; // band count
     CMS_tx(0x08);
     crc ^= 0x08; // channel count
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
     if (powerLock) {
         CMS_tx(3);
         crc ^= (3); // power count
@@ -1081,7 +1081,7 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
             vtx_pit_save = PIT_MODE;
         } else {
 #ifndef VIDEO_PAT
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
             if ((RF_POWER == 3) && (!g_IS_ARMED))
                 pwr_lmt_done = 0;
             else
@@ -1133,7 +1133,7 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
             if (dm6300_init_done) {
                 if (cur_pwr != nxt_pwr) {
 #ifndef VIDEO_PAT
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
                     if ((nxt_pwr == 3) && (!g_IS_ARMED))
                         pwr_lmt_done = 0;
                     else
@@ -1452,7 +1452,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                             ;
                         else {
                             vtx_power++;
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
                             if (powerLock)
                                 vtx_power &= 0x01;
 #endif
@@ -1466,7 +1466,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                             ;
                         else {
                             vtx_power--;
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
                             if (powerLock)
                                 vtx_power &= 0x01;
 #endif
@@ -1917,7 +1917,7 @@ void set_vtx_param() {
             debugf("\n\rExit PIT or LP");
 #endif
 #ifndef VIDEO_PAT
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
             if (RF_POWER == 3 && !g_IS_ARMED)
                 pwr_lmt_done = 0;
             else
@@ -1928,7 +1928,7 @@ void set_vtx_param() {
                 cur_pwr = RF_POWER;
             }
         } else if (heat_protect) {
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
             WriteReg(0, 0x8F, 0x00);
             WriteReg(0, 0x8F, 0x01);
             DM6300_Init(RF_FREQ, RF_BW);
@@ -2029,7 +2029,7 @@ void InitVtxTable() {
     power_table[0] = bf_vtx_power_table[0];
     power_table[1] = bf_vtx_power_table[1];
 
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
     if (!powerLock) {
         // if we dont have power lock, enable 500mw and 1W
         power_table[2] = bf_vtx_power_500mW;

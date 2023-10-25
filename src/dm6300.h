@@ -4,7 +4,7 @@
 #include "common.h"
 #include "hardware.h"
 
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
 #define PIT_POWER 0x18 // 2dbm
 #else
 #define PIT_POWER 0x26

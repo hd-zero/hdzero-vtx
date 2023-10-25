@@ -54,7 +54,7 @@ typedef enum {
 #define FREQ_NUM_EXTERNAL 18
 extern uint8_t lowband_lock;
 #define FREQ_NUM (lowband_lock ? 10 : 18)
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
 #define POWER_MAX 3
 #else
 #define POWER_MAX 1
@@ -102,7 +102,7 @@ void vtx_paralized(void);
 void timer_task();
 void RF_Delay_Init();
 
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
 extern uint8_t powerLock;
 #endif
 extern uint8_t RF_FREQ;
