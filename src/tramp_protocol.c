@@ -173,7 +173,7 @@ static void set_freq(uint16_t freq) {
     }
 
     if (ch != 0xff) {
-        if (ch > 9 && !lowband_lock) {
+        if (ch > 9 && lowband_lock) {
             ;
         } else {
             RF_FREQ = ch;
