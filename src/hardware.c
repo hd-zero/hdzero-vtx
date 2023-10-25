@@ -13,6 +13,7 @@
 #include "sfr_ext.h"
 #include "smartaudio_protocol.h"
 #include "spi.h"
+#include "tramp_protocol.h"
 #include "uart.h"
 
 uint8_t KEYBOARD_ON = 0; // avoid conflict between keyboard and cam_control
@@ -102,6 +103,8 @@ uint8_t dispF_cnt = 0xff;
 uint8_t dispL_cnt = 0xff;
 
 uint8_t cameraLost = 0;
+
+uint8_t timer_cnt = 0;
 
 void LED_Init();
 
@@ -1010,11 +1013,10 @@ void Flicker_LED(uint8_t n) {
 }
 
 void video_detect(void) {
-    const uint8_t timeout_tc = 5;
     static uint16_t last_sec = 0;
     static uint8_t sec = 0;
-    static uint8_t timeout_cnt = 0;
-    uint16_t val = 0;
+    uint16_t video_type_id = 0;
+    uint8_t i;
 
     if (last_sec != seconds) {
         last_sec = seconds;
@@ -1075,29 +1077,29 @@ void video_detect(void) {
 
         if (heat_protect)
             return;
-
+#if (0)
         if (camera_type == CAMERA_TYPE_RESERVED) {
             cameraLost = 1;
             return;
         }
-
+#endif
         if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 ||
             camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 ||
-            camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
-            val |= I2C_Read16(ADDR_TC3587, 0x006A);
-            val |= I2C_Read16(ADDR_TC3587, 0x006E);
-            if (val)
-                timeout_cnt = 0;
-            else if (timeout_cnt < timeout_tc)
-                timeout_cnt++;
-#ifdef _DEBUG_CAMERA
-            debugf("\r\nvideo_detect:%d %d", val, (uint16_t)timeout_cnt);
-#endif
-            if (timeout_cnt == timeout_tc)
-                cameraLost = 1;
-            else {
-                cameraLost = 0;
+            camera_type == CAMERA_TYPE_RUNCAM_NANO_90 ||
+            camera_type == CAMERA_TYPE_RESERVED) {
+            i = 0;
+            video_type_id = 0;
+            while (video_type_id == 0) {
+                video_type_id = I2C_Read16(ADDR_TC3587, 0x006A);
+                i++;
+                if (i == 10)
+                    break;
+                WAIT(1);
             }
+            cameraLost = (video_type_id != 0x1E); // YUV422
+#ifdef _DEBUG_CAMERA
+            debugf("\r\nvideo_TypeID:%d, cameraLost:%d", video_type_id, uint16_t(val));
+#endif
             return;
         }
 
@@ -1439,7 +1441,15 @@ void LED_Flip() {
     }
 }
 void LED_Task() {
-    if (cameraLost) {
+    if (dm6300_lost) {
+        if (timer_cnt == 0 || timer_cnt == 4) {
+            LED_BLUE_ON;
+            led_status = ON;
+        } else if (timer_cnt == 2 || timer_cnt == 6) {
+            LED_BLUE_OFF;
+            led_status = OFF;
+        }
+    } else if (cameraLost) {
         if (led_status == ON) {
             LED_BLUE_OFF;
             led_status = OFF;
@@ -1502,5 +1512,122 @@ void vtx_paralized(void) {
     while (1) {
         LED_Flip();
         WAIT(50);
+    }
+}
+
+void timer_task() {
+    static uint16_t cur_ms10x_1sd16 = 0, last_ms10x_1sd16 = 0;
+    cur_ms10x_1sd16 = timer_ms10x;
+
+    if (((cur_ms10x_1sd16 - last_ms10x_1sd16) >= TIMER0_1SD16) || (cur_ms10x_1sd16 < last_ms10x_1sd16)) {
+        last_ms10x_1sd16 = cur_ms10x_1sd16;
+        timer_cnt++;
+        timer_cnt &= 15;
+        if (timer_cnt == 15) { // every second, 1Hz
+            btn1_tflg = 1;
+            pwr_tflg = 1;
+            cfg_tflg = 1;
+            seconds++;
+            pwr_sflg = 1;
+        }
+
+        timer_2hz = ((timer_cnt & 7) == 7);
+        timer_4hz = ((timer_cnt & 3) == 3);
+        timer_8hz = ((timer_cnt & 1) == 1);
+        timer_16hz = 1;
+    } else {
+        timer_2hz = 0;
+        timer_4hz = 0;
+        timer_8hz = 0;
+        timer_16hz = 0;
+    }
+}
+
+void RF_Delay_Init() {
+    static uint8_t SA_saved = 0;
+
+#ifdef _RF_CALIB
+    return;
+#endif
+
+    if (tramp_lock)
+        return;
+
+    if (SA_saved == 0) {
+        if (seconds >= WAIT_SA_CONFIG) {
+            I2C_Write8(ADDR_EEPROM, EEP_ADDR_SA_LOCK, SA_lock);
+            SA_saved = 1;
+#ifdef _DEBUG_MODE
+            debugf("\r\nSave SA_lock(%x) to EEPROM", (uint16_t)SA_lock);
+#endif
+        }
+    }
+
+    // init_rf
+    if (seconds < WAIT_SA_CONFIG) { // wait for SA config vtx
+        if (seconds < WAIT_SA_LOCK)
+            return;
+        else if (SA_lock)
+            return;
+        else
+            seconds = WAIT_SA_CONFIG;
+    } else if (rf_delay_init_done)
+        return;
+    else if (dm6300_init_done)
+        return;
+    else
+        rf_delay_init_done = 1;
+
+    if (last_SA_lock) {
+#ifdef _DEBUG_MODE
+        debugf("\r\nRF_Delay_Init: SA");
+#endif
+        pwr_lmt_sec = PWR_LMT_SEC;
+        if (SA_lock) {
+            if (pwr_init == POWER_MAX + 2) { // 0mW
+                RF_POWER = POWER_MAX + 2;
+                cur_pwr = POWER_MAX + 2;
+            } else if (PIT_MODE) {
+                Init_6300RF(ch_init, POWER_MAX + 1);
+#ifdef _DEBUG_MODE
+                debugf("\r\n ch%x, pwr%x", (uint16_t)ch_init, (uint16_t)cur_pwr);
+#endif
+            } else {
+                Init_6300RF(ch_init, pwr_init);
+#ifdef _DEBUG_MODE
+                debugf("\r\n ch%x, pwr%x", (uint16_t)ch_init, (uint16_t)cur_pwr);
+#endif
+            }
+            DM6300_AUXADC_Calib();
+        }
+    } else if (!mspVtxLock) {
+#ifdef _DEBUG_MODE
+        debugf("\r\nRF_Delay_Init: None");
+#endif
+        if (TEAM_RACE == 0x01)
+            vtx_paralized();
+#if (0)
+        if (PIT_MODE == PIT_0MW) {
+            pwr_lmt_done = 1;
+            RF_POWER = POWER_MAX + 2;
+            cur_pwr = POWER_MAX + 2;
+            vtx_pit = PIT_0MW;
+        } else if (PIT_MODE == PIT_P1MW) {
+#else
+        if (PIT_MODE != PIT_OFF) {
+#endif
+            Init_6300RF(RF_FREQ, POWER_MAX + 1);
+            vtx_pit = PIT_P1MW;
+        } else {
+            WriteReg(0, 0x8F, 0x00);
+            WriteReg(0, 0x8F, 0x01);
+            DM6300_Init(RF_FREQ, RF_BW);
+            DM6300_SetChannel(RF_FREQ);
+            DM6300_SetPower(0, RF_FREQ, 0);
+            cur_pwr = RF_POWER;
+            WriteReg(0, 0x8F, 0x11);
+            rf_delay_init_done = 1;
+        }
+        DM6300_AUXADC_Calib();
     }
 }

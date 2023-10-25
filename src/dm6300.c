@@ -23,6 +23,7 @@ uint32_t dcoc_ih = 0x075F0000;
 uint32_t dcoc_qh = 0x075F0000;
 
 uint8_t dm6300_init_done = 0;
+uint8_t dm6300_lost = 0;
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
 uint8_t table_power[FREQ_NUM_EXTERNAL][POWER_MAX + 1] = {
     {0x70, 0x68, 0x5c, 0x60},
@@ -875,10 +876,20 @@ CODE_SEG const dm6300_reg_value_t dm6300_init_regs[] = {
     {0x3, 0x018, 0x00000001},
     {0x3, 0x018, 0x00000000}};
 
+uint8_t DM6300_detect(void) {
+    uint32_t rdat = 0;
+    SPI_Write(0x3, 0xFF0, 0x18);
+    SPI_Read(0x3, 0x254, &rdat);
+
+    return rdat != 0x18;
+}
+
 void DM6300_Init(uint8_t ch, BWType_e bw) {
     int i;
     uint32_t dat;
 
+    // dm6300 detect
+    dm6300_lost = DM6300_detect();
     // 01_INIT
     DM6300_init1();
 
