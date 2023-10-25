@@ -174,15 +174,16 @@ static void set_freq(uint16_t freq) {
 
     if (ch != 0xff) {
         if (ch > 9 && !lowband_lock) {
-            return;
-        }
-        RF_FREQ = ch;
-        if (dm6300_init_done) {
-            DM6300_SetChannel(RF_FREQ);
+            ;
+        } else {
+            RF_FREQ = ch;
+            if (dm6300_init_done) {
+                DM6300_SetChannel(RF_FREQ);
+            }
         }
 #ifdef _DEBUG_TRAMP
-        _outchar('0' + RF_FREQ / 10);
-        _outchar('0' + RF_FREQ % 10);
+        _outchar('0' + ch / 10);
+        _outchar('0' + ch % 10);
 #endif
     }
 }
