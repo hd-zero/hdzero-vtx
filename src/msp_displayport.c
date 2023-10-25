@@ -1425,13 +1425,13 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_menu_state = VTX_MENU_SAVE_EXIT;
                     else if (VirtualBtn == BTN_RIGHT) {
-                        if (SA_lock == 0) {
+                        if ((SA_lock || tramp_lock) == 0) {
                             vtx_channel++;
                             if (vtx_channel == FREQ_NUM)
                                 vtx_channel = 0;
                         }
                     } else if (VirtualBtn == BTN_LEFT) {
-                        if (SA_lock == 0) {
+                        if ((SA_lock || tramp_lock) == 0) {
                             vtx_channel--;
                             if (vtx_channel >= FREQ_NUM)
                                 vtx_channel = FREQ_NUM - 1;
@@ -1446,11 +1446,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_menu_state = VTX_MENU_CHANNEL;
                     else if (VirtualBtn == BTN_RIGHT) {
-                        if (SA_lock)
-                            ;
-                        else if (tramp_lock)
-                            ;
-                        else {
+                        if ((SA_lock || tramp_lock) == 0) {
                             vtx_power++;
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
                             if (powerLock)
@@ -1460,11 +1456,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                                 vtx_power = 0;
                         }
                     } else if (VirtualBtn == BTN_LEFT) {
-                        if (SA_lock)
-                            ;
-                        else if (tramp_lock)
-                            ;
-                        else {
+                        if ((SA_lock || tramp_lock) == 0) {
                             vtx_power--;
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
                             if (powerLock)
@@ -1483,21 +1475,13 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_menu_state = VTX_MENU_POWER;
                     else if (VirtualBtn == BTN_LEFT) {
-                        if (SA_lock)
-                            ;
-                        else if (tramp_lock)
-                            ;
-                        else {
+                        if ((SA_lock || tramp_lock) == 0) {
                             vtx_lp--;
                             if (vtx_lp > 2)
                                 vtx_lp = 2;
                         }
                     } else if (VirtualBtn == BTN_RIGHT) {
-                        if (SA_lock)
-                            ;
-                        else if (tramp_lock)
-                            ;
-                        else {
+                        if ((SA_lock || tramp_lock) == 0) {
                             vtx_lp++;
                             if (vtx_lp > 2)
                                 vtx_lp = 0;
@@ -1512,22 +1496,14 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_menu_state = VTX_MENU_LP_MODE;
                     else if (VirtualBtn == BTN_RIGHT) {
-                        if (SA_lock)
-                            ;
-                        else if (tramp_lock)
-                            ;
-                        else {
+                        if ((SA_lock || tramp_lock) == 0) {
                             if (vtx_pit == PIT_0MW)
                                 vtx_pit = PIT_OFF;
                             else
                                 vtx_pit++;
                         }
                     } else if (VirtualBtn == BTN_LEFT) {
-                        if (SA_lock)
-                            ;
-                        else if (tramp_lock)
-                            ;
-                        else {
+                        if ((SA_lock || tramp_lock) == 0) {
                             if (vtx_pit == PIT_OFF)
                                 vtx_pit = PIT_0MW;
                             else
@@ -1570,13 +1546,17 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_menu_state = VTX_MENU_OFFSET_25MW;
                     else if (VirtualBtn == BTN_LEFT) {
-                        vtx_team_race--;
-                        if (vtx_team_race > 2)
-                            vtx_team_race = 2;
+                        if ((SA_lock || tramp_lock) == 0) {
+                            vtx_team_race--;
+                            if (vtx_team_race > 2)
+                                vtx_team_race = 2;
+                        }
                     } else if (VirtualBtn == BTN_RIGHT) {
-                        vtx_team_race++;
-                        if (vtx_team_race > 2)
-                            vtx_team_race = 0;
+                        if ((SA_lock || tramp_lock) == 0) {
+                            vtx_team_race++;
+                            if (vtx_team_race > 2)
+                                vtx_team_race = 0;
+                        }
                     }
                     update_vtx_menu_param(vtx_menu_state);
                     break;
