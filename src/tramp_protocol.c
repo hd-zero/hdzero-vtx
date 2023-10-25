@@ -181,7 +181,8 @@ static void set_freq(uint16_t freq) {
             DM6300_SetChannel(RF_FREQ);
         }
 #ifdef _DEBUG_TRAMP
-        _outchar('0' + RF_FREQ);
+        _outchar('0' + RF_FREQ / 10);
+        _outchar('0' + RF_FREQ % 10);
 #endif
     }
 }
