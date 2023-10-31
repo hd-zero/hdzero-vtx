@@ -878,9 +878,16 @@ CODE_SEG const dm6300_reg_value_t dm6300_init_regs[] = {
 
 uint8_t DM6300_detect(void) {
     uint32_t rdat = 0;
-    SPI_Write(0x3, 0xFF0, 0x18);
-    SPI_Read(0x3, 0x254, &rdat);
+    SPI_Write(0x6, 0xFF0, 0x18);
+    SPI_Read(0x6, 0xFF0, &rdat);
 
+#ifdef _DEBUG_MODE
+    if (rdat != 0x18) {
+        debugf("\r\ndm6300 lost");
+    } else {
+        debugf("\r\ndm6300 alive");
+    }
+#endif
     return rdat != 0x18;
 }
 
