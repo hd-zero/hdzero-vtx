@@ -884,7 +884,7 @@ uint8_t parse_vtx_band_and_channel(uint8_t const band, uint8_t const channel) {
             return INVALID_CHANNEL;
     } else if (band == 6) { // low band
         if (channel >= 1 && channel <= 8)
-            return (channel + 1);
+            return (channel + 9);
         else
             return INVALID_CHANNEL;
     } else {
