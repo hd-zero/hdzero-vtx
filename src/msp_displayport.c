@@ -184,6 +184,8 @@ void msp_task() {
     if (timer_8hz) {
         len = get_tx_data_5680();
         insert_tx_buf(len);
+        if (dispE_cnt < DISP_TIME)
+            dispE_cnt++;
         if (dispF_cnt < DISP_TIME)
             dispF_cnt++;
         if (dispL_cnt < DISP_TIME)
@@ -757,11 +759,16 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     if (channel < 8) { // race band
         band = 5;
         channel = channel + 1;
-    } else if (channel < 10) { // fatshark band
+    } else if (channel < 9) { // e band
+        band = 3;
+        channel = 1;
+    } else if (channel < 12) { // fatshark band
         band = 4;
-        if (channel == 8)
+        if (channel == 9)
+            channel = 1;
+        else if (channel == 10)
             channel = 2;
-        else if (channel == 9)
+        else if (channel == 11)
             channel = 4;
         else {
             // internal error... should not happen
@@ -770,7 +777,7 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
         }
     } else { // low band
         band = 6;
-        channel = channel - 9;
+        channel = channel - 11;
     }
 
     msp_send_header(0);
@@ -868,30 +875,6 @@ void parse_rc() {
     update_cms_menu(roll, pitch, yaw, throttle);
 }
 
-uint8_t parse_vtx_band_and_channel(uint8_t const band, uint8_t const channel) {
-    if (band == 4) { // fatshark band
-        if (channel == 2) {
-            return 8;
-        } else if (channel == 4) {
-            return 9;
-        } else {
-            return INVALID_CHANNEL;
-        }
-    } else if (band == 5) { // race band
-        if (channel >= 1 && channel <= 8)
-            return (channel - 1);
-        else
-            return INVALID_CHANNEL;
-    } else if (band == 6) { // low band
-        if (channel >= 1 && channel <= 8)
-            return (channel + 9);
-        else
-            return INVALID_CHANNEL;
-    } else {
-        return INVALID_CHANNEL;
-    }
-}
-
 uint8_t msp_vtx_set_channel(uint8_t const channel) {
     if (channel == INVALID_CHANNEL || channel == RF_FREQ)
         return 0;
@@ -936,7 +919,7 @@ void parse_vtx_config() {
         fc_pwr_rx = 0;
 
     // Check configured band
-    nxt_ch = parse_vtx_band_and_channel(msp_rx_buf[1], msp_rx_buf[2]);
+    nxt_ch = bfChannel_to_channel(((msp_rx_buf[1] - 1) << 3) + (msp_rx_buf[2] - 1));
     if (nxt_ch == INVALID_CHANNEL) {
         // Validate frequency
         uint16_t const fc_frequency = ((uint16_t)msp_rx_buf[6] << 8) + msp_rx_buf[5];
@@ -1036,7 +1019,7 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
         needSaveEEP = 1;
     }
     // update channel
-    nxt_ch = parse_vtx_band_and_channel(msp_rx_buf[1], msp_rx_buf[2]);
+    nxt_ch = bfChannel_to_channel(((msp_rx_buf[1] - 1) << 3) + (msp_rx_buf[2] - 1));
     if (nxt_ch == INVALID_CHANNEL) {
         // Note: BF sends band index 0 when frequency setting is used.
         //       Won't harm to validate frequency is all cases.
@@ -1743,15 +1726,20 @@ void update_vtx_menu_param(uint8_t state) {
     if (vtx_channel < 8) {
         osd_buf[2][osd_menu_offset + 23] = 'R';
         osd_buf[2][osd_menu_offset + 24] = vtx_channel + '1';
-    } else if (vtx_channel < 10) {
+    } else if (vtx_channel < 9) {
+        osd_buf[2][osd_menu_offset + 23] = 'E';
+        osd_buf[2][osd_menu_offset + 24] = '1';
+    } else if (vtx_channel < 12) {
         osd_buf[2][osd_menu_offset + 23] = 'F';
-        if (vtx_channel == 8)
+        if (vtx_channel == 9)
+            osd_buf[2][osd_menu_offset + 24] = '1';
+        else if (vtx_channel == 10)
             osd_buf[2][osd_menu_offset + 24] = '2';
-        else if (vtx_channel == 9)
+        else if (vtx_channel == 11)
             osd_buf[2][osd_menu_offset + 24] = '4';
     } else {
         osd_buf[2][osd_menu_offset + 23] = 'L';
-        osd_buf[2][osd_menu_offset + 24] = '1' + vtx_channel - 10;
+        osd_buf[2][osd_menu_offset + 24] = '1' + vtx_channel - 12;
     }
 
     strcpy(osd_buf[3] + osd_menu_offset + 20, powerString[vtx_power]);
@@ -1940,6 +1928,35 @@ void set_vtx_param() {
     g_IS_ARMED_last = g_IS_ARMED;
 }
 
+uint8_t channel_to_bfChannel(uint8_t const channel) {
+
+    if (channel < 8)
+        return channel + 32; // R1...R8
+    if (channel == 8)
+        return 16; // E1
+    if (channel == 9)
+        return 24; // F1
+    if (channel == 10)
+        return 25; // F2
+    if (channel == 11)
+        return 27; // F4
+    return INVALID_CHANNEL;
+}
+
+uint8_t bfChannel_to_channel(uint8_t const channel) {
+    if (channel == 16)
+        return 8;
+    if (channel == 24)
+        return 9;
+    if (channel == 25)
+        return 10;
+    else if (channel == 27)
+        return 11;
+    else if (channel >= 32 && channel < 40)
+        return channel - 32;
+    return INVALID_CHANNEL;
+}
+
 #ifdef INIT_VTX_TABLE
 #define FACTORY_BAND 0 // BF requires band to be CUSTOM with VTX_MSP
 
@@ -1948,10 +1965,10 @@ CODE_SEG const uint8_t bf_vtx_band_table[7][31] = {
     {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x01, 0x08, 'B', 'O', 'S', 'C', 'A', 'M', '_', 'A', 'A', FACTORY_BAND, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
     /*BOSCAM_B*/
     {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x02, 0x08, 'B', 'O', 'S', 'C', 'A', 'M', '_', 'B', 'B', FACTORY_BAND, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
-    /*BOSCAM_R*/
-    {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x03, 0x08, 'B', 'O', 'S', 'C', 'A', 'M', '_', 'E', 'E', FACTORY_BAND, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+    /*BOSCAM_E*/
+    {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x03, 0x08, 'B', 'O', 'S', 'C', 'A', 'M', '_', 'E', 'E', FACTORY_BAND, 0x08, 0x49, 0x16, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
     /*FATSHARK*/
-    {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x04, 0x08, 'F', 'A', 'T', 'S', 'H', 'A', 'R', 'K', 'F', FACTORY_BAND, 0x08, 0x00, 0x00, 0x80, 0x16, 0x00, 0x00, 0xa8, 0x16, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+    {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x04, 0x08, 'F', 'A', 'T', 'S', 'H', 'A', 'R', 'K', 'F', FACTORY_BAND, 0x08, 0x6C, 0x16, 0x80, 0x16, 0x00, 0x00, 0xa8, 0x16, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
     /*RACEBAND*/
     {/*0x24,0x4d,0x3c,*/ 0x1d, 0xe3, 0x05, 0x08, 'R', 'A', 'C', 'E', 'B', 'A', 'N', 'D', 'R', FACTORY_BAND, 0x08, 0x1a, 0x16, 0x3f, 0x16, 0x64, 0x16, 0x89, 0x16, 0xae, 0x16, 0xd3, 0x16, 0xf8, 0x16, 0x1d, 0x17},
     /*LOWBAND*/

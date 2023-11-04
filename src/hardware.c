@@ -97,8 +97,10 @@ CODE_SEG const uint8_t BPLED[] = {
     0x8E, // F
     0x0E, // F.
     0x47, // L.
+    0x06, // E.
 };
 
+uint8_t dispE_cnt = 0xff;
 uint8_t dispF_cnt = 0xff;
 uint8_t dispL_cnt = 0xff;
 
@@ -1158,9 +1160,11 @@ void Button1_SP() {
     switch (cfg_step) {
     case 0:
         cfg_step = 1;
-        if ((RF_FREQ == 8) || (RF_FREQ == 9))
+        if (RF_FREQ == 8)
+            dispE_cnt = 0;
+        else if ((RF_FREQ == 9) || (RF_FREQ == 10) || (RF_FREQ == 11))
             dispF_cnt = 0;
-        else if (RF_FREQ > 9)
+        else if (RF_FREQ > 11)
             dispL_cnt = 0;
         CFG_Back();
 
@@ -1170,9 +1174,11 @@ void Button1_SP() {
         if (RF_FREQ == FREQ_NUM)
             RF_FREQ = 0;
 
-        if ((RF_FREQ == 8) || (RF_FREQ == 9))
+        if (RF_FREQ == 8)
+            dispE_cnt = 0;
+        else if ((RF_FREQ == 9) || (RF_FREQ == 10) || (RF_FREQ == 11))
             dispF_cnt = 0;
-        else if (RF_FREQ > 9)
+        else if (RF_FREQ > 11)
             dispL_cnt = 0;
         Imp_RF_Param();
         Setting_Save();
@@ -1291,10 +1297,16 @@ void Flicker_MAX(uint8_t ch, uint8_t cnt) {
 void BlinkPhase() {
     uint8_t bp = 0;
 
-    if (cfg_step == 1 && dispF_cnt < DISP_TIME) { // display 'F' band
+    if (cfg_step == 1 && dispE_cnt < DISP_TIME) {
+        // display 'E' band
+        bp = BPLED[16];
+        set_segment(bp);
+    } else if (cfg_step == 1 && dispF_cnt < DISP_TIME) {
+        // display 'F' band
         bp = BPLED[14];
         set_segment(bp);
-    } else if (cfg_step == 1 && dispL_cnt < DISP_TIME) { // display 'L' band
+    } else if (cfg_step == 1 && dispL_cnt < DISP_TIME) {
+        // display 'L' band
         bp = BPLED[15];
         set_segment(bp);
     } else {
@@ -1306,14 +1318,18 @@ void BlinkPhase() {
 #endif
 
         case 1:
-            if (RF_FREQ <= 7)
+            if (RF_FREQ < 8)
                 bp = BPLED[RF_FREQ + 1];
-            else if (RF_FREQ == 8) // F2
+            else if (RF_FREQ == 8) // E1
+                bp = BPLED[1];
+            else if (RF_FREQ == 9) // F1
+                bp = BPLED[1];
+            else if (RF_FREQ == 10) // F2
                 bp = BPLED[2];
-            else if (RF_FREQ == 9) // F4
+            else if (RF_FREQ == 11) // F4
                 bp = BPLED[4];
             else
-                bp = BPLED[RF_FREQ - 9];
+                bp = BPLED[RF_FREQ - 11];
             set_segment(bp);
             break;
 

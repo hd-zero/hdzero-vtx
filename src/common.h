@@ -173,6 +173,8 @@
 #define FREQ_R6 (uint16_t)5843
 #define FREQ_R7 (uint16_t)5880
 #define FREQ_R8 (uint16_t)5917
+#define FREQ_E1 (uint16_t)5705
+#define FREQ_F1 (uint16_t)5740
 #define FREQ_F2 (uint16_t)5760
 #define FREQ_F4 (uint16_t)5800
 #define FREQ_L1 (uint16_t)5362

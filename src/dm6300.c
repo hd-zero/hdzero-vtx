@@ -26,6 +26,7 @@ uint8_t dm6300_init_done = 0;
 uint8_t dm6300_lost = 0;
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
 uint8_t table_power[FREQ_NUM_EXTERNAL][POWER_MAX + 1] = {
+    // race band
     {0x70, 0x68, 0x5c, 0x60},
     {0x70, 0x68, 0x5c, 0x60},
     {0x70, 0x68, 0x60, 0x60},
@@ -34,9 +35,12 @@ uint8_t table_power[FREQ_NUM_EXTERNAL][POWER_MAX + 1] = {
     {0x78, 0x74, 0x64, 0x5b},
     {0x7a, 0x77, 0x64, 0x5b},
     {0x7a, 0x77, 0x64, 0x5b},
+    // e band
+    {0x70, 0x68, 0x5c, 0x60}, // E1
     // fatshark band
-    {0x72, 0x6d, 0x60, 0x60},
-    {0x74, 0x70, 0x62, 0x5c},
+    {0x70, 0x68, 0x60, 0x60}, // F1
+    {0x72, 0x6d, 0x60, 0x60}, // F2
+    {0x74, 0x70, 0x62, 0x5c}, // F4
     // low band
     {0x70, 0x68, 0x5c, 0x60},
     {0x70, 0x68, 0x5c, 0x60},
@@ -58,9 +62,12 @@ uint8_t table_power[FREQ_NUM_EXTERNAL][POWER_MAX + 1] = {
     {0x70, 0x7B},
     {0x72, 0x7E},
     {0x71, 0x7C},
+    // e band
+    {0x79, 0x83}, // E1
     // fatshark band
-    {0x73, 0x7E},
-    {0x72, 0x7C},
+    {0x75, 0x80}, // F1
+    {0x73, 0x7E}, // F2
+    {0x72, 0x7C}, // F4
     // low band
     {0x79, 0x83},
     {0x79, 0x83},
@@ -84,9 +91,15 @@ const uint32_t tab[3][FREQ_NUM_EXTERNAL] = {
         0x3A3F,
         0x3A9E,
         0x3AFC,
+
+        // E band
+        0x38DF, // E1
+
         // fatshark bank
-        0x3840,
-        0x38A4,
+        0x3938, // F1
+        0x3840, // F2
+        0x38A4, // F4
+
         // low band
         0x3574,
         0x35D2,
@@ -107,9 +120,15 @@ const uint32_t tab[3][FREQ_NUM_EXTERNAL] = {
         0x98,
         0x99,
         0x9a,
+
+        // E band
+        0x94, // E1
+
         // fatshark bank
-        0x96,
-        0x97,
+        0x95, // F1
+        0x96, // F2
+        0x97, // F4
+
         // low band
         0x8B,
         0x8C,
@@ -130,9 +149,14 @@ const uint32_t tab[3][FREQ_NUM_EXTERNAL] = {
         0x52AAAB,
         0x400000,
         0x2D5555,
+        // E band
+        0x122AAAB, // E1
+
         // fatshark bank
-        0x000000,
-        0x155555,
+        0xF55555, // F1
+        0x000000, // F2
+        0x155555, // F4
+
         // low band
         0x1455555,
         0x132AAAB,
@@ -155,9 +179,15 @@ const uint32_t freq_tab[FREQ_NUM_EXTERNAL] = {
     116780,
     117560,
     118280,
+
+    // e band
+    114100, // E1
+
     // fatshark bank
-    115200,
-    116000,
+    114800, // F1
+    115200, // F2
+    116000, // F4
+
     // low band
     107240,
     107980,
@@ -178,6 +208,8 @@ const uint16_t frequencies[] = {
     FREQ_R6,
     FREQ_R7,
     FREQ_R8,
+    FREQ_E1,
+    FREQ_F1,
     FREQ_F2,
     FREQ_F4,
     FREQ_L1,
@@ -241,14 +273,7 @@ void DM6300_SetChannel(uint8_t ch) {
 
     if (ch >= FREQ_NUM)
         ch = 0;
-    /*#ifndef _RF_CALIB
-    #ifndef _DEBUG_MODE
-        else if(ch == 5) ch = 7;
-        else if(ch == 6) ch = 5;
-        else if(ch == 7) ch = 6;
-    #endif
-    #endif
-    */
+
     dm6300_set_channel_regs[12].dat = 0x00008000 + (init6300_fcnt & 0xFF);
     dm6300_set_channel_regs[13].dat = init6300_fnum[ch];
 
@@ -290,7 +315,7 @@ void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset) {
 #ifdef _DEBUG_MODE
     debugf("\r\nDM6300 set power:%x, offset:%x", (uint16_t)pwr, (uint16_t)offset);
 #endif
-    if (freq > 9)
+    if (freq >= FREQ_NUM)
         freq = 0;
     SPI_Write(0x6, 0xFF0, 0x00000018);
 
