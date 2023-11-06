@@ -1217,7 +1217,10 @@ uint8_t parse_displayport(uint8_t len) {
             if (len == 0)
                 return 0;
             else {
-                page_extend = msp_rx_buf[3] & 0x01;
+                if (msp_cmp_fc_variant("BTFL"))
+                    page_extend = 0;
+                else
+                    page_extend = msp_rx_buf[3] & 0x01;
                 state_osd = MSP_OSD_WRITE;
             }
             break;
