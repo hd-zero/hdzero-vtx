@@ -1088,6 +1088,7 @@ void video_detect(void) {
         if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 ||
             camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 ||
             camera_type == CAMERA_TYPE_RUNCAM_NANO_90 ||
+            camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3 ||
             camera_type == CAMERA_TYPE_RESERVED) {
             i = 0;
             video_type_id = 0;
