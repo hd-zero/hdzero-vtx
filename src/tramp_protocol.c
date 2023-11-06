@@ -48,129 +48,8 @@ void trampResponse(void) {
     tr_read(); // fix me!
 }
 
-static uint16_t get_freq(void) {
-    uint16_t freq = 0;
-    switch (RF_FREQ) {
-    case 0:
-        freq = FREQ_R1;
-        break;
-    case 1:
-        freq = FREQ_R2;
-        break;
-    case 2:
-        freq = FREQ_R3;
-        break;
-    case 3:
-        freq = FREQ_R4;
-        break;
-    case 4:
-        freq = FREQ_R5;
-        break;
-    case 5:
-        freq = FREQ_R6;
-        break;
-    case 6:
-        freq = FREQ_R7;
-        break;
-    case 7:
-        freq = FREQ_R8;
-        break;
-    case 8:
-        freq = FREQ_F2;
-        break;
-    case 9:
-        freq = FREQ_F4;
-        break;
-    case 10:
-        freq = FREQ_L1;
-        break;
-    case 11:
-        freq = FREQ_L2;
-        break;
-    case 12:
-        freq = FREQ_L3;
-        break;
-    case 13:
-        freq = FREQ_L4;
-        break;
-    case 14:
-        freq = FREQ_L5;
-        break;
-    case 15:
-        freq = FREQ_L6;
-        break;
-    case 16:
-        freq = FREQ_L7;
-        break;
-    case 17:
-        freq = FREQ_L8;
-        break;
-    default:
-        break;
-    }
-    return freq;
-}
-
 static void set_freq(uint16_t freq) {
-    uint8_t ch = 0xff;
-    switch (freq) {
-    case FREQ_R1:
-        ch = 0;
-        break;
-    case FREQ_R2:
-        ch = 1;
-        break;
-    case FREQ_R3:
-        ch = 2;
-        break;
-    case FREQ_R4:
-        ch = 3;
-        break;
-    case FREQ_R5:
-        ch = 4;
-        break;
-    case FREQ_R6:
-        ch = 5;
-        break;
-    case FREQ_R7:
-        ch = 6;
-        break;
-    case FREQ_R8:
-        ch = 7;
-        break;
-    case FREQ_F2:
-        ch = 8;
-        break;
-    case FREQ_F4:
-        ch = 9;
-        break;
-    case FREQ_L1:
-        ch = 10;
-        break;
-    case FREQ_L2:
-        ch = 11;
-        break;
-    case FREQ_L3:
-        ch = 12;
-        break;
-    case FREQ_L4:
-        ch = 13;
-        break;
-    case FREQ_L5:
-        ch = 14;
-        break;
-    case FREQ_L6:
-        ch = 15;
-        break;
-    case FREQ_L7:
-        ch = 16;
-        break;
-    case FREQ_L8:
-        ch = 17;
-        break;
-    default:
-        break;
-    }
+    uint8_t ch = DM6300_GetChannelByFreq(freq);
 
     if (ch != 0xff) {
         if (ch > 9 && lowband_lock) {
@@ -261,7 +140,7 @@ static void set_power(uint16_t power) {
 // Process response and return code if valid else 0
 static uint8_t tramp_reply(void) {
     const uint8_t respCode = rbuf[1];
-    uint16_t freq = get_freq();
+    uint16_t freq = DM6300_GetFreqByChannel(RF_FREQ);
     uint16_t power = get_power();
     const uint8_t locked = 0;
     uint8_t pitmode = 0;

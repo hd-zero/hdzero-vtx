@@ -51,9 +51,9 @@ typedef enum {
 #define EEP_ADDR_EEP_VLD      0xFF
 
 #define FREQ_NUM_INTERNAL 8
-#define FREQ_NUM_EXTERNAL 18
+#define FREQ_NUM_EXTERNAL 20
 extern uint8_t lowband_lock;
-#define FREQ_NUM (lowband_lock ? 10 : 18)
+#define FREQ_NUM (lowband_lock ? 12 : 20)
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
 #define POWER_MAX 3
 #else
@@ -136,6 +136,7 @@ extern uint8_t ch_init;
 
 extern uint8_t led_status;
 
+extern uint8_t dispE_cnt;
 extern uint8_t dispF_cnt;
 extern uint8_t dispL_cnt;
 extern uint8_t temp_err;

@@ -171,6 +171,8 @@ void update_vtx_menu_param(uint8_t state);
 void save_vtx_param();
 void msp_set_vtx_config(uint8_t power, uint8_t save);
 void set_vtx_param();
+uint8_t channel_to_bfChannel(uint8_t const channel);
+uint8_t bfChannel_to_channel(uint8_t const channel);
 #ifdef INIT_VTX_TABLE
 void InitVtxTable();
 #endif

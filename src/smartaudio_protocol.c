@@ -82,27 +82,6 @@ uint8_t pwr_to_dbm(uint8_t pwr) {
         return 14;
 }
 
-uint8_t channel_to_bfChannel(uint8_t const channel) {
-
-    if (channel < 8)
-        return channel + 32; // R1...R8
-    if (channel == 8)
-        return 25; // F2
-    if (channel == 9)
-        return 27; // F4
-    return INVALID_CHANNEL;
-}
-
-uint8_t bfChannel_to_channel(uint8_t const channel) {
-    if (channel == 25)
-        return 8;
-    else if (channel == 27)
-        return 9;
-    else if (channel >= 32 && channel < 40)
-        return channel - 32;
-    return INVALID_CHANNEL;
-}
-
 void SA_Response(uint8_t cmd) {
     uint8_t i, crc, tx_len;
     uint8_t tbuf[20];
