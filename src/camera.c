@@ -30,7 +30,8 @@ void camera_type_detect(void) {
     runcam_type_detect();
     if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 ||
         camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 ||
-        camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
+        camera_type == CAMERA_TYPE_RUNCAM_NANO_90 ||
+        camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
         camera_mfr = CAMERA_MFR_RUNCAM;
 #ifdef _DEBUG_CAMERA
         debugf("\r\ncamera mfr : RUNCAM");
@@ -41,17 +42,21 @@ void camera_type_detect(void) {
 }
 
 void camera_ratio_detect(void) {
-    if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1) {
+    switch (camera_type) {
+    case CAMERA_TYPE_RUNCAM_MICRO_V1:
         camRatio = 0;
-    } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2) {
-        if (camera_setting_reg_set[11] == 0)
-            camRatio = 1;
-        else
-            camRatio = 0;
-    } else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
+        break;
+    case CAMERA_TYPE_RUNCAM_MICRO_V2:
+    case CAMERA_TYPE_RUNCAM_MICRO_V3:
+        camRatio = (camera_setting_reg_set[11] == 0);
+        break;
+    case CAMERA_TYPE_RUNCAM_NANO_90:
         camRatio = 1;
-    } else
+        break;
+    default:
         camRatio = 0;
+        break;
+    }
 }
 
 void camera_mode_detect(uint8_t init) {
@@ -84,7 +89,7 @@ void camera_mode_detect(uint8_t init) {
         Init_TC3587(0);
         video_format = VDO_FMT_720P60;
         I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
-    } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2) {
+    } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 || camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
         if (camera_setting_reg_set[11] == 3) {
             Set_1080P30(IS_RX);
             video_format = VDO_FMT_1080P30;
@@ -240,6 +245,9 @@ void camera_setting_read(void) {
         return;
 
     camera_type_last = camera_reg_read_eep(EEP_ADDR_CAM_TYPE);
+#ifdef RESET_CONFIG
+    camera_type_last = CAMERA_TYPE_UNKNOW;
+#endif
     if (camera_type_last != camera_type) {
         camera_profile_reset();
         camera_profile_write();
@@ -346,6 +354,7 @@ void camera_menu_draw_value(void) {
     const char *switch_str[] = {"    OFF", "     ON"};
     const char *resolution_runcam_micro_v2[] = {"      4:3 ", " 16:9CROP ", " 16:9FULL ", "  1080@30 "};
     const char *resolution_runcam_nano_90[] = {"   540P@90", "540@90CROP", "   540P@60", "960X720@60"};
+    const char *resolution_runcam_micro_v3[] = {"      4:3 ", " 16:9CROP ", " 16:9FULL ", "  1080@30 "};
 
     uint8_t str[4];
     uint8_t i;
@@ -426,6 +435,8 @@ void camera_menu_draw_value(void) {
                     strcpy(&osd_buf[i][osd_menu_offset + 19], resolution_runcam_micro_v2[camera_setting_reg_menu[i - 1]]);
                 } else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
                     strcpy(&osd_buf[i][osd_menu_offset + 19], resolution_runcam_nano_90[camera_setting_reg_menu[i - 1]]);
+                } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
+                    strcpy(&osd_buf[i][osd_menu_offset + 19], resolution_runcam_micro_v3[camera_setting_reg_menu[i - 1]]);
                 }
                 osd_buf[i][osd_menu_offset + 29] = '>';
                 break;

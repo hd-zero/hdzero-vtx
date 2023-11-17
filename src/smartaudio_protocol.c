@@ -82,27 +82,6 @@ uint8_t pwr_to_dbm(uint8_t pwr) {
         return 14;
 }
 
-uint8_t channel_to_bfChannel(uint8_t const channel) {
-
-    if (channel < 8)
-        return channel + 32; // R1...R8
-    if (channel == 8)
-        return 25; // F2
-    if (channel == 9)
-        return 27; // F4
-    return INVALID_CHANNEL;
-}
-
-uint8_t bfChannel_to_channel(uint8_t const channel) {
-    if (channel == 25)
-        return 8;
-    else if (channel == 27)
-        return 9;
-    else if (channel >= 32 && channel < 40)
-        return channel - 32;
-    return INVALID_CHANNEL;
-}
-
 void SA_Response(uint8_t cmd) {
     uint8_t i, crc, tx_len;
     uint8_t tbuf[20];
@@ -118,7 +97,7 @@ void SA_Response(uint8_t cmd) {
         tbuf[7] = freq_new_h;         // cur_freq_h
         tbuf[8] = freq_new_l;         // cur_freq_l
         tbuf[9] = SA_dbm;             // power dbm
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
         if (powerLock) {
             tbuf[10] = 1 + 1; // amount of power level
             for (i = 0; i <= 1; i++)
@@ -249,7 +228,7 @@ void SA_Update(uint8_t cmd) {
                 }
             } else {
                 cur_pwr = dbm_to_pwr(SA_dbm);
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
                 if (powerLock)
                     cur_pwr &= 0x01;
 #endif
@@ -258,7 +237,7 @@ void SA_Update(uint8_t cmd) {
                     pwr_init = cur_pwr;
                 else {
 #ifndef VIDEO_PAT
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
                     if ((RF_POWER == 3) && (!g_IS_ARMED))
                         pwr_lmt_done = 0;
                     else
@@ -364,7 +343,7 @@ void SA_Update(uint8_t cmd) {
                     temp_err = 1;
                 } else {
 #ifndef VIDEO_PAT
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
                     if ((RF_POWER == 3) && (!g_IS_ARMED)) {
                         pwr_lmt_done = 0;
                         cur_pwr = 3;

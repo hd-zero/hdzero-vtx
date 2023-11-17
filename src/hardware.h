@@ -38,6 +38,7 @@ typedef enum {
 #define EEP_ADDR_VTX_CONFIG   0x8A
 #define EEP_ADDR_BAUDRATE     0x8B
 #define EEP_ADDR_LOWBAND_LOCK 0x8C
+#define EEP_ADDR_SHORTCUT     0x8D
 #define EEP_ADDR_DCOC_EN      0xC0
 #define EEP_ADDR_DCOC_IH      0xC1
 #define EEP_ADDR_DCOC_IL      0xC2
@@ -50,10 +51,10 @@ typedef enum {
 #define EEP_ADDR_EEP_VLD      0xFF
 
 #define FREQ_NUM_INTERNAL 8
-#define FREQ_NUM_EXTERNAL 18
+#define FREQ_NUM_EXTERNAL 20
 extern uint8_t lowband_lock;
-#define FREQ_NUM (lowband_lock ? 10 : 18)
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#define FREQ_NUM (lowband_lock ? 12 : 20)
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
 #define POWER_MAX 3
 #else
 #define POWER_MAX 1
@@ -99,8 +100,9 @@ uint8_t temperature_level(void);
 void vtx_paralized(void);
 
 void timer_task();
+void RF_Delay_Init();
 
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
 extern uint8_t powerLock;
 #endif
 extern uint8_t RF_FREQ;
@@ -114,6 +116,7 @@ extern uint8_t EE_VALID;
 extern uint8_t RF_BW;
 extern uint8_t RF_BW_last;
 extern uint8_t BAUDRATE;
+extern uint8_t SHORTCUT;
 
 extern uint8_t pwr_offset;
 extern uint8_t heat_protect;
@@ -133,10 +136,14 @@ extern uint8_t ch_init;
 
 extern uint8_t led_status;
 
+extern uint8_t dispE_cnt;
 extern uint8_t dispF_cnt;
 extern uint8_t dispL_cnt;
 extern uint8_t temp_err;
 extern uint8_t rf_delay_init_done;
 
 extern int16_t temperature;
+
+extern uint8_t timer_cnt;
+
 #endif /* __HARDWARE_H_ */

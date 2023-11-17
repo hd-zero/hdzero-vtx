@@ -4,7 +4,7 @@
 #include "common.h"
 #include "hardware.h"
 
-#if defined HDZERO_FREESTYLE || HDZERO_FREESTYLE_V2
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
 #define PIT_POWER 0x18 // 2dbm
 #else
 #define PIT_POWER 0x26
@@ -37,4 +37,5 @@ extern uint8_t table_power[FREQ_NUM_EXTERNAL][POWER_MAX + 1];
 extern uint32_t dcoc_ih, dcoc_qh;
 
 extern uint8_t dm6300_init_done;
+extern uint8_t dm6300_lost;
 #endif /* __DM6300_H_ */
