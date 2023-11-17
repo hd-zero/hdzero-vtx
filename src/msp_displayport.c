@@ -2072,4 +2072,32 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     (void)save;
 }
 
+uint8_t bfChannel_to_channel(uint8_t const channel) {
+    if (channel == 16)
+        return 8;
+    if (channel == 24)
+        return 9;
+    if (channel == 25)
+        return 10;
+    else if (channel == 27)
+        return 11;
+    else if (channel >= 32 && channel < 40)
+        return channel - 32;
+    return INVALID_CHANNEL;
+}
+
+uint8_t channel_to_bfChannel(uint8_t const channel) {
+
+    if (channel < 8)
+        return channel + 32; // R1...R8
+    if (channel == 8)
+        return 16; // E1
+    if (channel == 9)
+        return 24; // F1
+    if (channel == 10)
+        return 25; // F2
+    if (channel == 11)
+        return 27; // F4
+    return INVALID_CHANNEL;
+}
 #endif
