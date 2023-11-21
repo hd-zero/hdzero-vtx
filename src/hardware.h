@@ -94,7 +94,7 @@ void Flicker_LED(uint8_t n);
 void LED_Flip();
 void LED_Task();
 
-uint8_t RF_BW_check(void);
+uint8_t RF_BW_will_check(void);
 void uart_baudrate_detect(void);
 uint8_t temperature_level(void);
 void vtx_paralized(void);

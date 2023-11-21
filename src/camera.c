@@ -734,21 +734,22 @@ uint8_t camera_status_update(uint8_t op) {
 
         if (op == BTN_RIGHT) {
             camera_profile_eep = camera_profile_menu;
-            camera_profile_write();
-            reset_isp_need |= camera_set(camera_setting_reg_menu, 1, 0);
-            camera_setting_reg_eep_update();
-            camera_setting_profile_write(0xff);
 
-            if (reset_isp_need) {
-                if (camera_mfr == CAMERA_MFR_RUNCAM) {
-                    runcam_reset_isp();
-                    camera_mode_detect(0);
-                }
-            }
-            if (RF_BW_check()) {
+            if (RF_BW_will_check()) {
                 camera_menu_show_repower();
                 camMenuStatus = CAM_STATUS_REPOWER;
             } else {
+                camera_profile_write();
+                reset_isp_need |= camera_set(camera_setting_reg_menu, 1, 0);
+                camera_setting_reg_eep_update();
+                camera_setting_profile_write(0xff);
+
+                if (reset_isp_need) {
+                    if (camera_mfr == CAMERA_MFR_RUNCAM) {
+                        runcam_reset_isp();
+                        camera_mode_detect(0);
+                    }
+                }
                 camera_menu_show_saving();
                 saving_start_sec = seconds;
                 camMenuStatus = CAM_STATUS_SAVING;
@@ -760,6 +761,17 @@ uint8_t camera_status_update(uint8_t op) {
 #ifdef _DEBUG_MODE
             debugf("\r\nRF_Delay_Init: None");
 #endif
+            camera_profile_write();
+            reset_isp_need |= camera_set(camera_setting_reg_menu, 1, 0);
+            camera_setting_reg_eep_update();
+            camera_setting_profile_write(0xff);
+            if (reset_isp_need) {
+                if (camera_mfr == CAMERA_MFR_RUNCAM) {
+                    runcam_reset_isp();
+                    camera_mode_detect(0);
+                }
+            }
+
             if (PIT_MODE != PIT_OFF) {
                 Init_6300RF(RF_FREQ, POWER_MAX + 1);
                 vtx_pit = PIT_P1MW;

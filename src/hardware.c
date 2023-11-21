@@ -1488,9 +1488,9 @@ void LED_Task() {
     }
 }
 
-uint8_t RF_BW_check(void) {
+uint8_t RF_BW_will_check(void) {
     uint8_t ret = 0;
-    if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90 && camera_setting_reg_set[11] == 2)
+    if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90 && camera_setting_reg_menu[11] == 2)
         RF_BW = BW_17M;
     else
         RF_BW = BW_27M;
