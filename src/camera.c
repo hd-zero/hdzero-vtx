@@ -735,7 +735,7 @@ uint8_t camera_status_update(uint8_t op) {
         if (op == BTN_RIGHT) {
             camera_profile_eep = camera_profile_menu;
 
-            if (RF_BW_will_check()) {
+            if (RF_BW_to_be_changed()) {
                 camera_menu_show_repower();
                 camMenuStatus = CAM_STATUS_REPOWER;
             } else {
