@@ -1344,6 +1344,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
             vtx_lp = LP_MODE;
             PIT_MODE = PIT_0MW;
             vtx_pit = PIT_0MW;
+            vtx_shortcut = SHORTCUT;
             if (!SA_lock) {
                 save_vtx_param();
             } else {
