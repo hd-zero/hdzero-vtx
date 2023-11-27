@@ -33,6 +33,7 @@ The Blue LED provides these status indications:
 - flicker 3x after boot indicates MSP signaling is detected.
 - OFF = camera lost (check camera and cabling)
 - ON/OFF @ 2hz = heat protection
+- ON/OFF @ 2hz quickly = dm6300 is broken
 - ON/OFF @ 8hz = 0MW pitt mode active
 - ON/OFF @ 4hz = 0.1mw pitt mode active
 - ON solid = VTX operation normal
