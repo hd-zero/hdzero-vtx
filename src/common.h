@@ -85,6 +85,8 @@
 // #define _DEBUG_SPI
 // #define _DEBUG_TRAMP
 #endif
+#define USE_TP9950
+#define USE_TEMPERATURE_SENSOR
 
 #define Raceband
 #define USE_EFUSE
