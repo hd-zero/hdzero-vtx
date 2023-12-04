@@ -52,9 +52,12 @@ typedef enum {
 } ButtonEvent_e;
 
 typedef enum {
+    UNKN = 0,
+    ARDU,
     BTFL,
+    EMUF,
     INAV,
-    ARDU
+    QUIC
 } fc_variant_e;
 
 typedef enum {
