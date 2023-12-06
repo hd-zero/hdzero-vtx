@@ -90,61 +90,51 @@ void camera_mode_detect(uint8_t init) {
     agc_en &= 0xFB;
     I2C_Write8(ADDR_TP9950, 0x06, agc_en);
 
-    while (1) {
-        I2C_Write8(ADDR_TP9950, 0x02, 0xca);
-        I2C_Write8(ADDR_TP9950, 0x0b, 0xc0);
-        I2C_Write8(ADDR_TP9950, 0x0c, 0x03);
-        I2C_Write8(ADDR_TP9950, 0x0d, 0x50);
-        I2C_Write8(ADDR_TP9950, 0x15, 0x13);
-        I2C_Write8(ADDR_TP9950, 0x16, 0x16);
-        I2C_Write8(ADDR_TP9950, 0x17, 0x00);
-        I2C_Write8(ADDR_TP9950, 0x18, 0x19);
-        I2C_Write8(ADDR_TP9950, 0x19, 0xD0);
-        I2C_Write8(ADDR_TP9950, 0x1a, 0x25);
-        I2C_Write8(ADDR_TP9950, 0x20, 0x30);
-        I2C_Write8(ADDR_TP9950, 0x21, 0x84);
-        I2C_Write8(ADDR_TP9950, 0x22, 0x36);
-        I2C_Write8(ADDR_TP9950, 0x23, 0x3c);
-        I2C_Write8(ADDR_TP9950, 0x26, 0x05);
-        I2C_Write8(ADDR_TP9950, 0x2b, 0x60);
-        I2C_Write8(ADDR_TP9950, 0x2c, 0x0a);
-        I2C_Write8(ADDR_TP9950, 0x2d, 0x30);
-        I2C_Write8(ADDR_TP9950, 0x2e, 0x70);
-        I2C_Write8(ADDR_TP9950, 0x30, 0x48);
-        I2C_Write8(ADDR_TP9950, 0x31, 0xbb);
-        I2C_Write8(ADDR_TP9950, 0x32, 0x2e);
-        I2C_Write8(ADDR_TP9950, 0x33, 0x90);
-        I2C_Write8(ADDR_TP9950, 0x39, 0x1c);
-        I2C_Write8(ADDR_TP9950, 0x3B, 0x26);
-        I2C_Write8(ADDR_TP9950, 0x18, 0x19);
-        I2C_Write8(ADDR_TP9950, 0x40, 0x08);
-        I2C_Write8(ADDR_TP9950, 0x13, 0x04);
-        I2C_Write8(ADDR_TP9950, 0x14, 0x04);
-        I2C_Write8(ADDR_TP9950, 0x40, 0x00);
-        I2C_Write8(ADDR_TP9950, 0x35, 0x05);
-        I2C_Write8(ADDR_TP9950, 0xfa, 0x08);
-        I2C_Write8(ADDR_TP9950, 0x4C, 0x40);
-        I2C_Write8(ADDR_TP9950, 0x4e, 0x05);
+    I2C_Write8(ADDR_TP9950, 0x02, 0xca);
+    I2C_Write8(ADDR_TP9950, 0x0b, 0xc0);
+    I2C_Write8(ADDR_TP9950, 0x0c, 0x03);
+    I2C_Write8(ADDR_TP9950, 0x0d, 0x50);
+    I2C_Write8(ADDR_TP9950, 0x15, 0x13);
+    I2C_Write8(ADDR_TP9950, 0x16, 0x16);
+    I2C_Write8(ADDR_TP9950, 0x17, 0x00);
+    I2C_Write8(ADDR_TP9950, 0x18, 0x19);
+    I2C_Write8(ADDR_TP9950, 0x19, 0xD0);
+    I2C_Write8(ADDR_TP9950, 0x1a, 0x25);
+    I2C_Write8(ADDR_TP9950, 0x20, 0x30);
+    I2C_Write8(ADDR_TP9950, 0x21, 0x84);
+    I2C_Write8(ADDR_TP9950, 0x22, 0x36);
+    I2C_Write8(ADDR_TP9950, 0x23, 0x3c);
+    I2C_Write8(ADDR_TP9950, 0x26, 0x05);
+    I2C_Write8(ADDR_TP9950, 0x2b, 0x60);
+    I2C_Write8(ADDR_TP9950, 0x2c, 0x0a);
+    I2C_Write8(ADDR_TP9950, 0x2d, 0x30);
+    I2C_Write8(ADDR_TP9950, 0x2e, 0x70);
+    I2C_Write8(ADDR_TP9950, 0x30, 0x48);
+    I2C_Write8(ADDR_TP9950, 0x31, 0xbb);
+    I2C_Write8(ADDR_TP9950, 0x32, 0x2e);
+    I2C_Write8(ADDR_TP9950, 0x33, 0x90);
+    I2C_Write8(ADDR_TP9950, 0x39, 0x1c);
+    I2C_Write8(ADDR_TP9950, 0x3B, 0x26);
+    I2C_Write8(ADDR_TP9950, 0x18, 0x19);
+    I2C_Write8(ADDR_TP9950, 0x40, 0x08);
+    I2C_Write8(ADDR_TP9950, 0x13, 0x04);
+    I2C_Write8(ADDR_TP9950, 0x14, 0x04);
+    I2C_Write8(ADDR_TP9950, 0x40, 0x00);
+    I2C_Write8(ADDR_TP9950, 0x35, 0x05);
+    I2C_Write8(ADDR_TP9950, 0xfa, 0x08);
+    I2C_Write8(ADDR_TP9950, 0x4C, 0x40);
+    I2C_Write8(ADDR_TP9950, 0x4e, 0x05);
 
-        I2C_Write8(ADDR_TP9950, 0x1c, 0x06);
-        I2C_Write8(ADDR_TP9950, 0x1d, 0x72);
-        // **** soft reset **** //
-        I2C_Write8(ADDR_TP9950, 0x06, 0xb2);
+    I2C_Write8(ADDR_TP9950, 0x1c, 0x06);
+    I2C_Write8(ADDR_TP9950, 0x1d, 0x72);
+    // **** soft reset **** //
+    I2C_Write8(ADDR_TP9950, 0x06, 0xb2);
 
-        WAIT(CAM_DET_DLY);
-        frame = I2C_Read8(ADDR_TP9950, 0x01);
-        debugf("\r\n720P60 0x01 = %2x", (uint16_t)frame);
-        if (frame == 0x7E) {
-            video_format = VDO_FMT_720P60;
-            camera_type = CAMERA_TYPE_OUTDATED;
-            LED_BLUE_ON;
-            led_status = ON;
-            break;
-        } else {
-            LED_BLUE_OFF;
-            led_status = OFF;
-        }
-    }
+    video_format = VDO_FMT_720P60;
+    camera_type = CAMERA_TYPE_OUTDATED;
+    LED_BLUE_ON;
+    led_status = ON;
+
     RF_BW = BW_27M;
     RF_BW_last = RF_BW;
 }
