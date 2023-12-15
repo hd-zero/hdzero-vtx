@@ -16,6 +16,7 @@
 // #define FOXEER_VTX
 // #define HDZERO_RACE_V3
 // #define HDZERO_FREESTYLE_V2
+// #define HDZERO_PICO
 
 /* define VTX ID start */
 #if defined HDZERO_WHOOP
@@ -34,6 +35,8 @@
 #define VTX_ID 0x5a
 #elif defined HDZERO_FREESTYLE_V2
 #define VTX_ID 0x5b
+#elif defined HDZERO_PICO
+#define VTX_ID 0x5c
 #else
 #define VTX_ID 0x00
 #endif
@@ -55,6 +58,8 @@
 #define VTX_NAME "HDZ RACE V3"
 #elif defined HDZERO_FREESTYLE_V2
 #define VTX_NAME "HDZ FREESTYLE V2"
+#elif defined HDZERO_PICO
+#define VTX_NAME "HDZ PICO"
 #else
 #define VTX_NAME "  "
 #endif
@@ -85,8 +90,6 @@
 // #define _DEBUG_SPI
 // #define _DEBUG_TRAMP
 #endif
-#define USE_TP9950
-#define USE_TEMPERATURE_SENSOR
 
 #define Raceband
 #define USE_EFUSE

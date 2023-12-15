@@ -67,6 +67,8 @@ void camera_mode_detect(uint8_t init) {
     uint32_t agc_en = 0;
     uint8_t id = 0;
 
+    init = 0;
+
     TC3587_RSTB = 0;
     WAIT(100);
     TC3587_RSTB = 1;
