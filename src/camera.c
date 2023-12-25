@@ -139,6 +139,17 @@ void camera_mode_detect(uint8_t init) {
 
     RF_BW = BW_27M;
     RF_BW_last = RF_BW;
+
+#ifdef _RF_CALIB
+    WAIT(1000);
+    if (I2C_Read8(ADDR_TP9950, 0x01) != 0x7E) { // if camera lost
+        WriteReg(0, 0x50, 0x01);                // set to video pattern
+    }
+    RF_POWER = 0;
+    RF_FREQ = 0;
+    Init_6300RF(RF_FREQ, RF_POWER);
+    DM6300_AUXADC_Calib();
+#endif
 }
 #else
 void camera_mode_detect(uint8_t init) {

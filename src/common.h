@@ -120,9 +120,8 @@
 #define WAIT_SA_CONFIG 3
 #endif
 
-#define CFG_TO_SEC  10
-#define CAM_DET_DLY 1000
-#define DISP_TIME   3 // 3/8s
+#define CFG_TO_SEC 10
+#define DISP_TIME  3 // 3/8s
 
 // gpio
 #define SCL     P0_0
