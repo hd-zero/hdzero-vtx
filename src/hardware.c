@@ -356,10 +356,12 @@ void GetVtxParameter() {
             }
         }
 
-        // fatshark band
+        // E/F band
         for (j = 0; j <= POWER_MAX; j++) {
-            tab[8][j] = tab[3][j];
-            tab[9][j] = tab[4][j];
+            tab[8][j] = tab[0][j];  // E1 <- R1
+            tab[9][j] = tab[2][j];  // F1 <- R3
+            tab[10][j] = tab[3][j]; // F2 <- R4
+            tab[11][j] = tab[4][j]; // F4 <- R5
         }
 
         // low band
