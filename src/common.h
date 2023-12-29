@@ -16,7 +16,7 @@
 // #define FOXEER_VTX
 // #define HDZERO_RACE_V3
 // #define HDZERO_FREESTYLE_V2
-// #define HDZERO_PICO
+// #define HDZERO_ECO
 
 /* define VTX ID start */
 #if defined HDZERO_WHOOP
@@ -35,7 +35,7 @@
 #define VTX_ID 0x5a
 #elif defined HDZERO_FREESTYLE_V2
 #define VTX_ID 0x5b
-#elif defined HDZERO_PICO
+#elif defined HDZERO_ECO
 #define VTX_ID 0x5c
 #else
 #define VTX_ID 0x00
@@ -58,8 +58,8 @@
 #define VTX_NAME "HDZ RACE V3"
 #elif defined HDZERO_FREESTYLE_V2
 #define VTX_NAME "HDZ FREESTYLE V2"
-#elif defined HDZERO_PICO
-#define VTX_NAME "HDZ PICO"
+#elif defined HDZERO_ECO
+#define VTX_NAME "HDZ ECO"
 #else
 #define VTX_NAME "  "
 #endif
