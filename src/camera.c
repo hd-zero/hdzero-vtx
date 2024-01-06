@@ -54,6 +54,11 @@ void camera_ratio_detect(void) {
     case CAMERA_TYPE_RUNCAM_NANO_90:
         camRatio = 1;
         break;
+#ifdef HDZERO_ECO
+    case CAMERA_TYPE_OUTDATED:
+        camRatio = 1;
+        break;
+#endif
     default:
         camRatio = 0;
         break;
@@ -134,6 +139,7 @@ void camera_mode_detect(uint8_t init) {
 
     video_format = VDO_FMT_720P60;
     camera_type = CAMERA_TYPE_OUTDATED;
+    camera_ratio_detect();
     LED_BLUE_ON;
     led_status = ON;
 
