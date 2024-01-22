@@ -93,7 +93,7 @@ void Set_1080P30(uint8_t page);
 void Flicker_LED(uint8_t n);
 void LED_Flip();
 void LED_Task();
-
+void Set_Blue_LED(uint8_t flag);
 uint8_t RF_BW_to_be_changed(void);
 void uart_baudrate_detect(void);
 uint8_t temperature_level(void);
