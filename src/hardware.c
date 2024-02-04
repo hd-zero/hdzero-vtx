@@ -72,6 +72,41 @@ uint8_t cur_pwr = 0;
 
 uint8_t led_status = 0;
 
+// Blue LED diagnostic encoding, in 1/16s blocks over 4s (64 flags)
+// Short pulse 1/4s (4 flags)
+// Long pulse 1s    (16 flags)
+// OFF   3/8s       (6 flags)
+
+// SS
+// XXXX------XXXX---------------------------------------------------
+const uint8_t diag_led_flags_cameralost[64] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0,
+                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+// SSS
+// XXXX------XXXX------XXXX-----------------------------------------
+const uint8_t diag_led_flags_heatprotect[64] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0,
+                                                0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+                                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+// SSSS
+// XXXX------XXXX------XXXX------XXXX-------------------------------
+const uint8_t diag_led_flags_dm6300lost[64] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0,
+                                               0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1,
+                                               1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+// LS
+// XXXXXXXXXXXXXXXX------XXXX-------------------------------------
+const uint8_t diag_led_flags_0mW[64] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                        0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+// LSS
+// XXXXXXXXXXXXXXXX------XXXX------XXXX---------------------------
+const uint8_t diag_led_flags_pit[64] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                        0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 uint8_t temp_err = 0;
 #ifdef USE_TEMPERATURE_SENSOR
 int16_t temp0 = 0;
@@ -107,6 +142,7 @@ uint8_t dispL_cnt = 0xff;
 uint8_t cameraLost = 0;
 
 uint8_t timer_cnt = 0;
+uint8_t led_timer_cnt = 0;
 
 void LED_Init();
 
@@ -1461,32 +1497,30 @@ void LED_Flip() {
 }
 void LED_Task() {
     if (dm6300_lost) {
-        if (timer_cnt == 0 || timer_cnt == 4) {
-            LED_BLUE_ON;
-            led_status = ON;
-        } else if (timer_cnt == 2 || timer_cnt == 6) {
-            LED_BLUE_OFF;
-            led_status = OFF;
-        }
+        Set_Blue_LED(diag_led_flags_dm6300lost[led_timer_cnt]);
+
     } else if (cameraLost) {
-        if (led_status == ON) {
-            LED_BLUE_OFF;
-            led_status = OFF;
-        }
+        Set_Blue_LED(diag_led_flags_cameralost[led_timer_cnt]);
+
     } else if (heat_protect) {
-        if (timer_2hz)
-            LED_Flip();
+        Set_Blue_LED(diag_led_flags_heatprotect[led_timer_cnt]);
+
     } else if (cur_pwr == POWER_MAX + 2) {
-        if (timer_8hz) {
-            LED_Flip();
-        }
+        Set_Blue_LED(diag_led_flags_0mW[led_timer_cnt]);
+
     } else if (PIT_MODE != PIT_OFF) {
-        if (timer_4hz) {
-            LED_Flip();
-        }
-    } else if (led_status == OFF) {
+        Set_Blue_LED(diag_led_flags_pit[led_timer_cnt]);
+    } else
+        Set_Blue_LED(1);
+}
+
+void Set_Blue_LED(uint8_t flag) {
+    if (flag) {
         LED_BLUE_ON;
         led_status = ON;
+    } else {
+        LED_BLUE_OFF;
+        led_status = OFF;
     }
 }
 
@@ -1557,6 +1591,11 @@ void timer_task() {
         timer_4hz = ((timer_cnt & 3) == 3);
         timer_8hz = ((timer_cnt & 1) == 1);
         timer_16hz = 1;
+
+        // 4s timeframe for led diagnostic encoding
+        led_timer_cnt++;
+        led_timer_cnt &= 63;
+
     } else {
         timer_2hz = 0;
         timer_4hz = 0;
