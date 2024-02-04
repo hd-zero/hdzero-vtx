@@ -124,14 +124,14 @@
 #define DISP_TIME  3 // 3/8s
 
 // gpio
-#define SCL     P0_0
+#define SCL     P0_2
 #define SDA     P0_1
-#define CAM_SCL P0_0
+#define CAM_SCL P0_2
 #define CAM_SDA P0_1
 #ifdef USE_PA_EN
 #define PA_EN P0_2
 #elif !defined USE_TC3587_LED
-#define LED_1 P0_2
+#define LED_1 P0_0
 #endif
 #if defined USE_SMARTAUDIO_SW
 #define SUART_PORT P0_3
