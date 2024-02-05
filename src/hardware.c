@@ -442,10 +442,9 @@ void GetVtxParameter() {
 // last_SA_lock
 #if defined USE_SMARTAUDIO_SW || defined USE_SMARTAUDIO_HW
         last_SA_lock = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK);
-        WAIT(10);
         if (last_SA_lock == 0xff) {
             last_SA_lock = 0;
-            I2C_Write8(ADDR_EEPROM, EEP_ADDR_SA_LOCK, last_SA_lock);
+            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK, last_SA_lock);
         }
 #ifdef _DEBUG_MODE
         debugf("\r\nlast_SA_lock %x", (uint16_t)last_SA_lock);
@@ -1577,7 +1576,7 @@ void RF_Delay_Init() {
 
     if (SA_saved == 0) {
         if (seconds >= WAIT_SA_CONFIG) {
-            I2C_Write8(ADDR_EEPROM, EEP_ADDR_SA_LOCK, SA_lock);
+            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK, SA_lock);
             SA_saved = 1;
 #ifdef _DEBUG_MODE
             debugf("\r\nSave SA_lock(%x) to EEPROM", (uint16_t)SA_lock);
