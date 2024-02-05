@@ -1133,8 +1133,10 @@ void video_detect(void) {
         }
 
         cameraLost = (ReadReg(0, 0x02) >> 4) & 1;
-        if (camera_type == CAMERA_TYPE_OUTDATED)
+        if (camera_type == CAMERA_TYPE_OUTDATED) {
+            cameraLost |= (I2C_Read8(ADDR_TP9950, 0x01) != 0x7E);
             return;
+        }
 
         if (sec == 3) {
             sec = 0;
