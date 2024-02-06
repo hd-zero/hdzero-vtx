@@ -124,7 +124,7 @@ uint8_t I2C_Write8_Wait(uint16_t ms, uint8_t slave_addr, uint8_t reg_addr, uint8
     uint8_t ret;
     ret = I2C_Write8(slave_addr, reg_addr, val);
     WAIT(ms + 2);
-    return
+    return ret;
 }
 
 uint8_t I2C_Write16(uint8_t slave_addr, uint16_t reg_addr, uint16_t val) {
