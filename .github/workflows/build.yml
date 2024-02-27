@@ -7,7 +7,7 @@ jobs:
       targets: ${{ steps.set-targets.outputs.targets }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - id: set-targets
         run: echo "targets=[$(grep -r "\[env:" targets/*.ini | sed 's/.*:\(.*\)].*/"\1"/' | tr '\n' ',')]" >> $GITHUB_OUTPUT
 
@@ -23,15 +23,15 @@ jobs:
         uses: rlespinasse/github-slug-action@v4
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
       - name: Cache pip
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ matrix.target }}
@@ -42,7 +42,7 @@ jobs:
           pip install platformio
 
       - name: Cache PlatformIO
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.platformio
           key: ${{ runner.os }}-platformio
@@ -55,7 +55,7 @@ jobs:
           platformio run -e ${{ matrix.target }}
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.target }}
           path: .pio/build/${{ matrix.target }}/HDZERO_TX.bin
