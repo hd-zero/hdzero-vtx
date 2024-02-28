@@ -1543,12 +1543,15 @@ void uart_baudrate_detect(void) {
     // tramp protocol need 115200 bps.
     return;
 #else
-    if (seconds - msp_lst_rcv_sec >= 20) {
-        msp_lst_rcv_sec = seconds;
-        BAUDRATE++;
-        CFG_Back();
-        uart_set_baudrate(BAUDRATE);
-        Setting_Save();
+    static uint8_t once_done = 0;
+    if (once_done == 0) {
+        if (seconds - msp_lst_rcv_sec >= 10) {
+            msp_lst_rcv_sec = seconds;
+            BAUDRATE++;
+            CFG_Back();
+            Setting_Save();
+            once_done = 1;
+        }
     }
 #endif
 }
