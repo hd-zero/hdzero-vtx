@@ -1515,11 +1515,15 @@ void LED_Task() {
 
 void Set_Blue_LED(uint8_t flag) {
     if (flag) {
-        LED_BLUE_ON;
-        led_status = ON;
+        if (led_status == OFF) {
+            LED_BLUE_ON;
+            led_status = ON;
+        }
     } else {
-        LED_BLUE_OFF;
-        led_status = OFF;
+        if (led_status == ON) {
+            LED_BLUE_OFF;
+            led_status = OFF;
+        }
     }
 }
 
