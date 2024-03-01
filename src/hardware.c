@@ -145,6 +145,8 @@ uint8_t timer_cnt = 0;
 uint8_t led_timer_cnt = 0;
 
 void LED_Init();
+uint8_t check_uart_loopback();
+void reset_config();
 
 void Set_720P50(uint8_t page) {
     WriteReg(page, 0x21, 0x25);
@@ -453,24 +455,7 @@ void GetVtxParameter() {
         BAUDRATE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_BAUDRATE);
 #endif
         CFG_Back();
-#ifdef RESET_CONFIG
-        RF_FREQ = 0;
-        RF_POWER = 0;
-        LP_MODE = 0;
-        PIT_MODE = 0;
-        OFFSET_25MW = 0;
-        TEAM_RACE = 0;
-        BAUDRATE = 0;
-        SHORTCUT = 0;
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_TEAM_RACE, TEAM_RACE);
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SHORTCUT, SHORTCUT);
-#endif
+
 #ifdef _DEBUG_MODE
         debugf("\r\nUSE EEPROM for VTX setting:RF_FREQ=%d, RF_POWER=%d, LPMODE=%d PIT_MODE=%d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
 #endif
@@ -549,6 +534,10 @@ void Init_HW() {
 #ifdef USE_TC3587_LED
     LED_TC3587_Init();
 #endif
+
+    if (check_uart_loopback())
+        reset_config();
+
     GetVtxParameter();
     Get_EEP_LifeTime();
     camera_init();
@@ -1693,5 +1682,50 @@ void RF_Delay_Init() {
             rf_delay_init_done = 1;
         }
         DM6300_AUXADC_Calib();
+    }
+}
+void reset_config() {
+    RF_FREQ = 0;
+    RF_POWER = 0;
+    LP_MODE = 0;
+    PIT_MODE = 0;
+    OFFSET_25MW = 0;
+    TEAM_RACE = 0;
+    BAUDRATE = 0;
+    SHORTCUT = 0;
+    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
+    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
+    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
+    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
+    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
+    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_TEAM_RACE, TEAM_RACE);
+    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
+    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SHORTCUT, SHORTCUT);
+
+    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_CAM_TYPE, 0);
+}
+
+uint8_t check_uart_loopback() {
+    uint8_t rdat[4];
+    uint8_t i = 0;
+
+    while (CMS_ready())
+        rdat[0] = CMS_rx();
+
+    CMS_tx(0x11);
+    CMS_tx(0x22);
+    CMS_tx(0x33);
+    CMS_tx(0x44);
+
+    while (CMS_ready()) {
+        rdat[i] = CMS_rx();
+        _outchar(rdat[i]);
+        i++;
+    }
+
+    if (i == 4 && rdat[0] == 0x11 && rdat[1] == 0x22 && rdat[2] == 0x33 && rdat[3] == 0x44) {
+        return 1;
+    } else {
+        return 0;
     }
 }
