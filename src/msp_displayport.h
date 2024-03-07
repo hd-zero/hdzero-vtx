@@ -187,4 +187,5 @@ extern uint32_t msp_lst_rcv_sec;
 extern uint32_t fc_lst_rcv_sec;
 extern uint8_t g_IS_ARMED;
 extern uint8_t g_IS_PARALYZE;
+extern uint8_t msp_tx_en;
 #endif /* __MSP_DISPLAYPORT_H_ */
