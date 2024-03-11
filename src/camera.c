@@ -81,14 +81,20 @@ void camera_mode_detect(uint8_t init) {
 
     Set_720P60_8bit(0);
 
+#ifdef _DEBUG_MODE
     debugf("\r\nchipID");
+#endif
     id = I2C_Read8(ADDR_TP9950, 0xfe);
+#ifdef _DEBUG_MODE
     debugf("\r\n    fe:%2x", id);
+#endif
+
     id = I2C_Read8(ADDR_TP9950, 0xff);
+#ifdef _DEBUG_MODE
     debugf("\r\n    ff:%2x\r\n", id);
+#endif
     WAIT(200);
 
-    debugf("\r\nCamDetect");
     I2C_Write8(ADDR_TP9950, 0x26, 0x01);
     I2C_Write8(ADDR_TP9950, 0x07, 0xC0);
     I2C_Write8(ADDR_TP9950, 0x0B, 0xC0);
