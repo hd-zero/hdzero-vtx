@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "common.h"
 #include "dm6300.h"
 #include "global.h"
 #include "hardware.h"
@@ -53,12 +54,116 @@ void camera_ratio_detect(void) {
     case CAMERA_TYPE_RUNCAM_NANO_90:
         camRatio = 1;
         break;
+#ifdef HDZERO_ECO
+    case CAMERA_TYPE_OUTDATED:
+        camRatio = 1;
+        break;
+#endif
     default:
         camRatio = 0;
         break;
     }
 }
 
+#ifdef USE_TP9950
+void camera_mode_detect(uint8_t init) {
+
+    uint32_t frame = 0;
+    uint32_t agc_en = 0;
+    uint8_t id = 0;
+
+    init = 0;
+
+    TC3587_RSTB = 0;
+    WAIT(100);
+    TC3587_RSTB = 1;
+    WAIT(100);
+
+    Set_720P60_8bit(0);
+
+#ifdef _DEBUG_MODE
+    debugf("\r\nchipID");
+#endif
+    id = I2C_Read8(ADDR_TP9950, 0xfe);
+#ifdef _DEBUG_MODE
+    debugf("\r\n    fe:%2x", id);
+#endif
+
+    id = I2C_Read8(ADDR_TP9950, 0xff);
+#ifdef _DEBUG_MODE
+    debugf("\r\n    ff:%2x\r\n", id);
+#endif
+    WAIT(200);
+
+    I2C_Write8(ADDR_TP9950, 0x26, 0x01);
+    I2C_Write8(ADDR_TP9950, 0x07, 0xC0);
+    I2C_Write8(ADDR_TP9950, 0x0B, 0xC0);
+    I2C_Write8(ADDR_TP9950, 0x22, 0x35);
+    agc_en = I2C_Read8(ADDR_TP9950, 0x06);
+    agc_en &= 0xFB;
+    I2C_Write8(ADDR_TP9950, 0x06, agc_en);
+
+    I2C_Write8(ADDR_TP9950, 0x02, 0xca);
+    I2C_Write8(ADDR_TP9950, 0x0b, 0xc0);
+    I2C_Write8(ADDR_TP9950, 0x0c, 0x03);
+    I2C_Write8(ADDR_TP9950, 0x0d, 0x50);
+    I2C_Write8(ADDR_TP9950, 0x15, 0x13);
+    I2C_Write8(ADDR_TP9950, 0x16, 0x16);
+    I2C_Write8(ADDR_TP9950, 0x17, 0x00);
+    I2C_Write8(ADDR_TP9950, 0x18, 0x19);
+    I2C_Write8(ADDR_TP9950, 0x19, 0xD0);
+    I2C_Write8(ADDR_TP9950, 0x1a, 0x25);
+    I2C_Write8(ADDR_TP9950, 0x20, 0x30);
+    I2C_Write8(ADDR_TP9950, 0x21, 0x84);
+    I2C_Write8(ADDR_TP9950, 0x22, 0x36);
+    I2C_Write8(ADDR_TP9950, 0x23, 0x3c);
+    I2C_Write8(ADDR_TP9950, 0x26, 0x05);
+    I2C_Write8(ADDR_TP9950, 0x2b, 0x60);
+    I2C_Write8(ADDR_TP9950, 0x2c, 0x0a);
+    I2C_Write8(ADDR_TP9950, 0x2d, 0x30);
+    I2C_Write8(ADDR_TP9950, 0x2e, 0x70);
+    I2C_Write8(ADDR_TP9950, 0x30, 0x48);
+    I2C_Write8(ADDR_TP9950, 0x31, 0xbb);
+    I2C_Write8(ADDR_TP9950, 0x32, 0x2e);
+    I2C_Write8(ADDR_TP9950, 0x33, 0x90);
+    I2C_Write8(ADDR_TP9950, 0x39, 0x1c);
+    I2C_Write8(ADDR_TP9950, 0x3B, 0x26);
+    I2C_Write8(ADDR_TP9950, 0x18, 0x19);
+    I2C_Write8(ADDR_TP9950, 0x40, 0x08);
+    I2C_Write8(ADDR_TP9950, 0x13, 0x04);
+    I2C_Write8(ADDR_TP9950, 0x14, 0x04);
+    I2C_Write8(ADDR_TP9950, 0x40, 0x00);
+    I2C_Write8(ADDR_TP9950, 0x35, 0x05);
+    I2C_Write8(ADDR_TP9950, 0xfa, 0x08);
+    I2C_Write8(ADDR_TP9950, 0x4C, 0x40);
+    I2C_Write8(ADDR_TP9950, 0x4e, 0x05);
+
+    I2C_Write8(ADDR_TP9950, 0x1c, 0x06);
+    I2C_Write8(ADDR_TP9950, 0x1d, 0x72);
+    // **** soft reset **** //
+    I2C_Write8(ADDR_TP9950, 0x06, 0xb2);
+
+    video_format = VDO_FMT_720P60;
+    camera_type = CAMERA_TYPE_OUTDATED;
+    camera_ratio_detect();
+    LED_BLUE_ON;
+    led_status = ON;
+
+    RF_BW = BW_27M;
+    RF_BW_last = RF_BW;
+
+#ifdef _RF_CALIB
+    WAIT(1000);
+    if (I2C_Read8(ADDR_TP9950, 0x01) != 0x7E) { // if camera lost
+        WriteReg(0, 0x50, 0x01);                // set to video pattern
+    }
+    RF_POWER = 0;
+    RF_FREQ = 0;
+    Init_6300RF(RF_FREQ, RF_POWER);
+    DM6300_AUXADC_Calib();
+#endif
+}
+#else
 void camera_mode_detect(uint8_t init) {
     uint8_t cycles = 4;
     uint8_t loss = 0;
@@ -162,6 +267,7 @@ void camera_mode_detect(uint8_t init) {
         debugf("27M");
 #endif
 }
+#endif
 
 void camera_button_init() {
     WriteReg(0, 0x17, 0xC0);

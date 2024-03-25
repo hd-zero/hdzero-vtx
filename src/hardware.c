@@ -186,6 +186,26 @@ void Set_720P60(uint8_t page) {
     WriteReg(page, 0x06, 0x01);
 }
 
+void Set_720P60_8bit(uint8_t page) {
+    WriteReg(page, 0x21, 0x1F);
+
+    WriteReg(page, 0x40, 0x00);
+    WriteReg(page, 0x41, 0x2A);
+    WriteReg(page, 0x42, 0xD0);
+    WriteReg(page, 0x43, 0xE4);
+    WriteReg(page, 0x44, 0x4C);
+    WriteReg(page, 0x45, 0xEE);
+    WriteReg(page, 0x49, 0x04);
+    WriteReg(page, 0x4c, 0x19);
+    WriteReg(page, 0x4f, 0x86);
+    WriteReg(page, 0x52, 0x04);
+    WriteReg(page, 0x53, 0x00);
+    WriteReg(page, 0x54, 0x3C);
+    WriteReg(0, 0x8e, 0x04);
+
+    WriteReg(page, 0x06, 0x01);
+}
+
 void Set_960x720P60(uint8_t page) {
     WriteReg(page, 0x21, 0x1C);
 
@@ -518,7 +538,11 @@ void Init_HW() {
     SPI_Init();
     LED_Init();
 #ifdef VIDEO_PAT
+#ifdef USE_TP9950
+    Set_720P60_8bit(0);
+#else
     Set_720P60(0);
+#endif
     WriteReg(0, 0x50, 0x01);
     RF_FREQ = 0;
     GetVtxParameter();
@@ -574,7 +598,12 @@ void TempDetect() {
             temp_new = I2C_Read8(ADDR_TEMPADC, 0);
             if (temp_new >= 0x7D) // MAX +125
                 temp_new = 0x7D;
-            // temp_new >>= 5; //LM75AD
+                // temp_new >>= 5; //LM75AD
+
+#ifdef HDZERO_ECO
+            if (temp_new > 10)
+                temp_new -= 10;
+#endif
 
             temperature = temperature - (temperature >> 2) + temp_new;
 
@@ -1133,10 +1162,17 @@ void video_detect(void) {
         }
 
         cameraLost = (ReadReg(0, 0x02) >> 4) & 1;
+        if (camera_type == CAMERA_TYPE_OUTDATED) {
+            cameraLost |= (I2C_Read8(ADDR_TP9950, 0x01) != 0x7E);
+            return;
+        }
 
         if (sec == 3) {
             sec = 0;
             if (cameraLost) { // video loss
+#ifdef _DEBUG_CAMERA
+                debugf("r\ncamera lost");
+#endif
                 if (video_format == VDO_FMT_720P50) {
                     Set_720P60(IS_RX);
                     video_format = VDO_FMT_720P60;

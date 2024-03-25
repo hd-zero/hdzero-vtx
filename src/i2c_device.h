@@ -6,7 +6,7 @@
 #define ADDR_MAX7315 0x20 // Rev1 Rev3
 #define ADDR_PCA9554 0x38 // Rev2
 
-#define ADDR_TP2825  0x44
+#define ADDR_TP9950  0x44
 #define ADDR_TC3587  0x0E
 #define ADDR_EEPROM  0x50
 #define ADDR_TEMPADC 0x48

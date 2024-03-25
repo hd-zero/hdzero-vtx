@@ -16,6 +16,7 @@
 // #define FOXEER_VTX
 // #define HDZERO_RACE_V3
 // #define HDZERO_FREESTYLE_V2
+// #define HDZERO_ECO
 
 /* define VTX ID start */
 #if defined HDZERO_WHOOP
@@ -34,6 +35,8 @@
 #define VTX_ID 0x5a
 #elif defined HDZERO_FREESTYLE_V2
 #define VTX_ID 0x5b
+#elif defined HDZERO_ECO
+#define VTX_ID 0x5c
 #else
 #define VTX_ID 0x00
 #endif
@@ -55,6 +58,8 @@
 #define VTX_NAME "HDZ RACE V3"
 #elif defined HDZERO_FREESTYLE_V2
 #define VTX_NAME "HDZ FREESTYLE V2"
+#elif defined HDZERO_ECO
+#define VTX_NAME "HDZ ECO"
 #else
 #define VTX_NAME "  "
 #endif
@@ -114,9 +119,8 @@
 #define WAIT_SA_CONFIG 3
 #endif
 
-#define CFG_TO_SEC  10
-#define CAM_DET_DLY 1000
-#define DISP_TIME   3 // 3/8s
+#define CFG_TO_SEC 10
+#define DISP_TIME  3 // 3/8s
 
 // gpio
 #define SCL     P0_0
