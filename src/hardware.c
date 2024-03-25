@@ -145,7 +145,9 @@ uint8_t timer_cnt = 0;
 uint8_t led_timer_cnt = 0;
 
 void LED_Init();
+#if (0)
 uint8_t check_uart_loopback();
+#endif
 void reset_config();
 
 void Set_720P50(uint8_t page) {
@@ -559,8 +561,9 @@ void Init_HW() {
     LED_TC3587_Init();
 #endif
 
-    if (check_uart_loopback())
-        reset_config();
+#ifdef RESET_CONFIG
+    reset_config();
+#endif
 
     GetVtxParameter();
     Get_EEP_LifeTime();
@@ -1740,7 +1743,7 @@ void reset_config() {
 
     I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_CAM_TYPE, 0);
 }
-
+#if (0)
 uint8_t check_uart_loopback() {
     uint8_t rdat[4];
     uint8_t i = 0;
@@ -1765,3 +1768,4 @@ uint8_t check_uart_loopback() {
         return 0;
     }
 }
+#endif
