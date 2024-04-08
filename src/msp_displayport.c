@@ -101,7 +101,7 @@ void msp_set_inav_osd_canvas(void);
 void parse_get_osd_canvas(void);
 
 void msp_tx(uint8_t c) {
-    if (msp_tx_en)
+    if (msp_tx_en || seconds > 3)
         RS_tx(c);
 }
 
