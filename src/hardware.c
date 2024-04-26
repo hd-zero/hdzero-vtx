@@ -413,6 +413,10 @@ void GetVtxParameter() {
                     tab_min[j] = tab[i][j];
                 if (tab[i][j] == 0xFF)
                     ee_vld = 0;
+                else if (tab[i][j] < 0x40 || tab[i][j] > 0xa0) {
+                    tab[i][j] = table_power[i][j];
+                    I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, tab[i][j]);
+                }
             }
         }
 
