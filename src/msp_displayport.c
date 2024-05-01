@@ -1079,7 +1079,7 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
             else
 #endif
 #endif
-                if (nxt_pwr == POWER_MAX + 1) {
+            if (nxt_pwr == POWER_MAX + 1) {
                 WriteReg(0, 0x8F, 0x10);
                 dm6300_init_done = 0;
                 cur_pwr = POWER_MAX + 2;
