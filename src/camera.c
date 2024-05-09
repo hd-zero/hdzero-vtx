@@ -54,7 +54,7 @@ void camera_ratio_detect(void) {
     case CAMERA_TYPE_RUNCAM_NANO_90:
         camRatio = 1;
         break;
-#ifdef HDZERO_ECO
+#ifdef USE_TP9950
     case CAMERA_TYPE_OUTDATED:
         camRatio = 1;
         break;
