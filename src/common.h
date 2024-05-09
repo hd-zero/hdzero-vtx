@@ -17,6 +17,7 @@
 // #define HDZERO_RACE_V3
 // #define HDZERO_FREESTYLE_V2
 // #define HDZERO_ECO
+// #define HDZERO_AIO
 
 /* define VTX ID start */
 #if defined HDZERO_WHOOP

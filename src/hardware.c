@@ -72,6 +72,41 @@ uint8_t cur_pwr = 0;
 
 uint8_t led_status = 0;
 
+// Blue LED diagnostic encoding, in 1/16s blocks over 4s (64 flags)
+// Short pulse 1/4s (4 flags)
+// Long pulse 1s    (16 flags)
+// OFF   3/8s       (6 flags)
+
+// SS
+// XXXX------XXXX---------------------------------------------------
+const uint8_t diag_led_flags_cameralost[64] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0,
+                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+// SSS
+// XXXX------XXXX------XXXX-----------------------------------------
+const uint8_t diag_led_flags_heatprotect[64] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0,
+                                                0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+                                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+// SSSS
+// XXXX------XXXX------XXXX------XXXX-------------------------------
+const uint8_t diag_led_flags_dm6300lost[64] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0,
+                                               0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1,
+                                               1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+// LS
+// XXXXXXXXXXXXXXXX------XXXX-------------------------------------
+const uint8_t diag_led_flags_0mW[64] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                        0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+// LSS
+// XXXXXXXXXXXXXXXX------XXXX------XXXX---------------------------
+const uint8_t diag_led_flags_pit[64] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                        0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 uint8_t temp_err = 0;
 #ifdef USE_TEMPERATURE_SENSOR
 int16_t temp0 = 0;
@@ -107,8 +142,13 @@ uint8_t dispL_cnt = 0xff;
 uint8_t cameraLost = 0;
 
 uint8_t timer_cnt = 0;
+uint8_t led_timer_cnt = 0;
 
 void LED_Init();
+#if (0)
+uint8_t check_uart_loopback();
+#endif
+void reset_config();
 
 void Set_720P50(uint8_t page) {
     WriteReg(page, 0x21, 0x25);
@@ -437,24 +477,7 @@ void GetVtxParameter() {
         BAUDRATE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_BAUDRATE);
 #endif
         CFG_Back();
-#ifdef RESET_CONFIG
-        RF_FREQ = 0;
-        RF_POWER = 0;
-        LP_MODE = 0;
-        PIT_MODE = 0;
-        OFFSET_25MW = 0;
-        TEAM_RACE = 0;
-        BAUDRATE = 0;
-        SHORTCUT = 0;
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_TEAM_RACE, TEAM_RACE);
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SHORTCUT, SHORTCUT);
-#endif
+
 #ifdef _DEBUG_MODE
         debugf("\r\nUSE EEPROM for VTX setting:RF_FREQ=%d, RF_POWER=%d, LPMODE=%d PIT_MODE=%d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
 #endif
@@ -462,10 +485,9 @@ void GetVtxParameter() {
 // last_SA_lock
 #if defined USE_SMARTAUDIO_SW || defined USE_SMARTAUDIO_HW
         last_SA_lock = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK);
-        WAIT(10);
         if (last_SA_lock == 0xff) {
             last_SA_lock = 0;
-            I2C_Write8(ADDR_EEPROM, EEP_ADDR_SA_LOCK, last_SA_lock);
+            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK, last_SA_lock);
         }
 #ifdef _DEBUG_MODE
         debugf("\r\nlast_SA_lock %x", (uint16_t)last_SA_lock);
@@ -538,6 +560,11 @@ void Init_HW() {
 #ifdef USE_TC3587_LED
     LED_TC3587_Init();
 #endif
+
+#ifdef RESET_CONFIG
+    reset_config();
+#endif
+
     GetVtxParameter();
     Get_EEP_LifeTime();
     camera_init();
@@ -574,7 +601,12 @@ void TempDetect() {
             temp_new = I2C_Read8(ADDR_TEMPADC, 0);
             if (temp_new >= 0x7D) // MAX +125
                 temp_new = 0x7D;
-            // temp_new >>= 5; //LM75AD
+                // temp_new >>= 5; //LM75AD
+
+#ifdef HDZERO_ECO
+            if (temp_new > 10)
+                temp_new -= 10;
+#endif
 
             temperature = temperature - (temperature >> 2) + temp_new;
 
@@ -1133,8 +1165,10 @@ void video_detect(void) {
         }
 
         cameraLost = (ReadReg(0, 0x02) >> 4) & 1;
-        if (camera_type == CAMERA_TYPE_OUTDATED)
+        if (camera_type == CAMERA_TYPE_OUTDATED) {
+            cameraLost |= (I2C_Read8(ADDR_TP9950, 0x01) != 0x7E);
             return;
+        }
 
         if (sec == 3) {
             sec = 0;
@@ -1490,32 +1524,34 @@ void LED_Flip() {
 }
 void LED_Task() {
     if (dm6300_lost) {
-        if (timer_cnt == 0 || timer_cnt == 4) {
+        Set_Blue_LED(diag_led_flags_dm6300lost[led_timer_cnt]);
+
+    } else if (cameraLost) {
+        Set_Blue_LED(diag_led_flags_cameralost[led_timer_cnt]);
+
+    } else if (heat_protect) {
+        Set_Blue_LED(diag_led_flags_heatprotect[led_timer_cnt]);
+
+    } else if (cur_pwr == POWER_MAX + 2) {
+        Set_Blue_LED(diag_led_flags_0mW[led_timer_cnt]);
+
+    } else if (PIT_MODE != PIT_OFF) {
+        Set_Blue_LED(diag_led_flags_pit[led_timer_cnt]);
+    } else
+        Set_Blue_LED(1);
+}
+
+void Set_Blue_LED(uint8_t flag) {
+    if (flag) {
+        if (led_status == OFF) {
             LED_BLUE_ON;
             led_status = ON;
-        } else if (timer_cnt == 2 || timer_cnt == 6) {
-            LED_BLUE_OFF;
-            led_status = OFF;
         }
-    } else if (cameraLost) {
+    } else {
         if (led_status == ON) {
             LED_BLUE_OFF;
             led_status = OFF;
         }
-    } else if (heat_protect) {
-        if (timer_2hz)
-            LED_Flip();
-    } else if (cur_pwr == POWER_MAX + 2) {
-        if (timer_8hz) {
-            LED_Flip();
-        }
-    } else if (PIT_MODE != PIT_OFF) {
-        if (timer_4hz) {
-            LED_Flip();
-        }
-    } else if (led_status == OFF) {
-        LED_BLUE_ON;
-        led_status = ON;
     }
 }
 
@@ -1541,14 +1577,14 @@ void uart_baudrate_detect(void) {
     // tramp protocol need 115200 bps.
     return;
 #else
-    static uint8_t once_done = 0;
-    if (once_done == 0) {
-        if (seconds - msp_lst_rcv_sec >= 10) {
+
+    if (!msp_tx_en) {
+        if (seconds - msp_lst_rcv_sec > 2) {
             msp_lst_rcv_sec = seconds;
             BAUDRATE++;
             CFG_Back();
+            uart_set_baudrate(BAUDRATE);
             Setting_Save();
-            once_done = 1;
         }
     }
 #endif
@@ -1586,6 +1622,11 @@ void timer_task() {
         timer_4hz = ((timer_cnt & 3) == 3);
         timer_8hz = ((timer_cnt & 1) == 1);
         timer_16hz = 1;
+
+        // 4s timeframe for led diagnostic encoding
+        led_timer_cnt++;
+        led_timer_cnt &= 63;
+
     } else {
         timer_2hz = 0;
         timer_4hz = 0;
@@ -1606,7 +1647,7 @@ void RF_Delay_Init() {
 
     if (SA_saved == 0) {
         if (seconds >= WAIT_SA_CONFIG) {
-            I2C_Write8(ADDR_EEPROM, EEP_ADDR_SA_LOCK, SA_lock);
+            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK, SA_lock);
             SA_saved = 1;
 #ifdef _DEBUG_MODE
             debugf("\r\nSave SA_lock(%x) to EEPROM", (uint16_t)SA_lock);
@@ -1682,6 +1723,53 @@ void RF_Delay_Init() {
         DM6300_AUXADC_Calib();
     }
 }
+
+void reset_config() {
+    RF_FREQ = 0;
+    RF_POWER = 0;
+    LP_MODE = 0;
+    PIT_MODE = 0;
+    OFFSET_25MW = 0;
+    TEAM_RACE = 0;
+    BAUDRATE = 0;
+    SHORTCUT = 0;
+    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
+    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
+    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
+    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
+    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
+    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_TEAM_RACE, TEAM_RACE);
+    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
+    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SHORTCUT, SHORTCUT);
+
+    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_CAM_TYPE, 0);
+}
+#if (0)
+uint8_t check_uart_loopback() {
+    uint8_t rdat[4];
+    uint8_t i = 0;
+
+    while (CMS_ready())
+        rdat[0] = CMS_rx();
+
+    CMS_tx(0x11);
+    CMS_tx(0x22);
+    CMS_tx(0x33);
+    CMS_tx(0x44);
+
+    while (CMS_ready()) {
+        rdat[i] = CMS_rx();
+        _outchar(rdat[i]);
+        i++;
+    }
+
+    if (i == 4 && rdat[0] == 0x11 && rdat[1] == 0x22 && rdat[2] == 0x33 && rdat[3] == 0x44) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+#endif
 
 #ifdef USE_USB_DET
 typedef void (*reset_mcu_ptr)(void);

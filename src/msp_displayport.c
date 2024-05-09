@@ -93,10 +93,17 @@ uint32_t fc_lst_rcv_sec = 0;
 
 uint8_t boot_0mw_done = 0;
 
+uint8_t msp_tx_en = 0;
+
 #ifdef USE_MSP
 void msp_set_osd_canvas(void);
 void msp_set_inav_osd_canvas(void);
 void parse_get_osd_canvas(void);
+
+void msp_tx(uint8_t c) {
+    if (msp_tx_en || seconds > 3)
+        RS_tx(c);
+}
 
 uint8_t msp_cmp_fc_variant(const char *variant) {
     uint8_t i;
@@ -300,6 +307,7 @@ uint8_t msp_read_one_frame() {
         case MSP_CRC1:
             if (rx == crc) {
                 msp_lst_rcv_sec = seconds;
+                msp_tx_en = 1;
                 if (cur_cmd == CUR_STATUS)
                     parse_status();
                 else if (cur_cmd == CUR_RC)
@@ -389,6 +397,7 @@ uint8_t msp_read_one_frame() {
                 full_frame = 1;
                 parseMspVtx_V2(cmd_u16);
                 msp_lst_rcv_sec = seconds;
+                msp_tx_en = 1;
             }
             state = MSP_HEADER_START;
             break;
@@ -719,9 +728,9 @@ void msp_send_header(uint8_t dl) {
     if (dl) {
         WAIT(20);
     }
-    CMS_tx(0x24);
-    CMS_tx(0x4d);
-    CMS_tx(0x3c);
+    msp_tx(0x24);
+    msp_tx(0x4d);
+    msp_tx(0x3c);
 }
 
 void msp_cmd_tx() // send 3 commands to FC
@@ -738,17 +747,17 @@ void msp_cmd_tx() // send 3 commands to FC
 
     for (i = 0; i < count; i++) {
         msp_send_header(0);
-        CMS_tx(0x00);       // len
-        CMS_tx(msp_cmd[i]); // function
-        CMS_tx(msp_cmd[i]); // crc
+        msp_tx(0x00);       // len
+        msp_tx(msp_cmd[i]); // function
+        msp_tx(msp_cmd[i]); // crc
     }
 }
 
 void msp_eeprom_write() {
     msp_send_header(1);
-    CMS_tx(0x00);
-    CMS_tx(250);
-    CMS_tx(250);
+    msp_tx(0x00);
+    msp_tx(250);
+    msp_tx(250);
 }
 void msp_set_vtx_config(uint8_t power, uint8_t save) {
     uint8_t crc = 0;
@@ -781,51 +790,51 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     }
 
     msp_send_header(0);
-    CMS_tx(0x0f);
+    msp_tx(0x0f);
     crc ^= 0x0f; // len
-    CMS_tx(MSP_CMD_SET_VTX_CONFIG_BYTE);
+    msp_tx(MSP_CMD_SET_VTX_CONFIG_BYTE);
     crc ^= MSP_CMD_SET_VTX_CONFIG_BYTE; // cmd
-    CMS_tx(0x00);
+    msp_tx(0x00);
     crc ^= 0x00; // freq_l
-    CMS_tx(0x00);
+    msp_tx(0x00);
     crc ^= 0x00; // freq_h
-    CMS_tx(power + 1);
+    msp_tx(power + 1);
     crc ^= (power + 1); // power_level
-    CMS_tx((PIT_MODE & 1));
+    msp_tx((PIT_MODE & 1));
     crc ^= (PIT_MODE & 1); // pitmode
-    CMS_tx(LP_MODE);
+    msp_tx(LP_MODE);
     crc ^= LP_MODE; // lp_mode
-    CMS_tx(0x00);
+    msp_tx(0x00);
     crc ^= 0x00; // pit_freq_l
-    CMS_tx(0x00);
+    msp_tx(0x00);
     crc ^= 0x00; // pit_freq_h
-    CMS_tx(band);
+    msp_tx(band);
     crc ^= band; // band
-    CMS_tx(channel);
+    msp_tx(channel);
     crc ^= channel; // channel
-    CMS_tx((freq & 0xff));
+    msp_tx((freq & 0xff));
     crc ^= (freq & 0xff); // freq_l
-    CMS_tx(((freq >> 8) & 0xff));
+    msp_tx(((freq >> 8) & 0xff));
     crc ^= ((freq >> 8) & 0xff); // freq_h
-    CMS_tx(0x06);
+    msp_tx(0x06);
     crc ^= 0x06; // band count
-    CMS_tx(0x08);
+    msp_tx(0x08);
     crc ^= 0x08; // channel count
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
     if (powerLock) {
-        CMS_tx(3);
+        msp_tx(3);
         crc ^= (3); // power count
     } else {
-        CMS_tx(5);
+        msp_tx(5);
         crc ^= (5); // power count
     }
 #else
-    CMS_tx(POWER_MAX + 2);
+    msp_tx(POWER_MAX + 2);
     crc ^= (POWER_MAX + 2); // power count
 #endif
-    CMS_tx(0x00);
+    msp_tx(0x00);
     crc ^= 0x00; // disable/clear vtx table
-    CMS_tx(crc);
+    msp_tx(crc);
 
 #ifdef _DEBUG_MODE
     debugf("\r\nmsp_set_vtx_config:FRQ%x,PWR%x,PIT:%x, LP:%x, SAVE:%x", (uint16_t)RF_FREQ, (uint16_t)power, (uint16_t)PIT_MODE, (uint16_t)LP_MODE, (uint16_t)save);
@@ -934,15 +943,15 @@ void msp_set_osd_canvas(void) {
     uint8_t crc = 0;
     if (msp_cmp_fc_variant("BTFL")) {
         msp_send_header(0);
-        CMS_tx(0x02);
+        msp_tx(0x02);
         crc ^= 0x02; // len
-        CMS_tx(MSP_CMD_SET_OSD_CANVAS_BYTE);
+        msp_tx(MSP_CMD_SET_OSD_CANVAS_BYTE);
         crc ^= MSP_CMD_SET_OSD_CANVAS_BYTE;
-        CMS_tx(HD_HMAX0);
+        msp_tx(HD_HMAX0);
         crc ^= HD_HMAX0;
-        CMS_tx(HD_VMAX0);
+        msp_tx(HD_VMAX0);
         crc ^= HD_VMAX0;
-        CMS_tx(crc);
+        msp_tx(crc);
         // debugf("\r\nmsp_set_osd_canvas");
     }
 }
@@ -2010,10 +2019,10 @@ void InitVtxTable() {
         msp_send_header(1);
         crc = 0;
         for (j = 0; j < 31; j++) {
-            CMS_tx(bf_vtx_band_table[i][j]);
+            msp_tx(bf_vtx_band_table[i][j]);
             crc ^= bf_vtx_band_table[i][j];
         }
-        CMS_tx(crc);
+        msp_tx(crc);
     }
 
     // set low band
@@ -2021,10 +2030,10 @@ void InitVtxTable() {
     msp_send_header(1);
     crc = 0;
     for (j = 0; j < 31; j++) {
-        CMS_tx(bf_vtx_band_table[i][j]);
+        msp_tx(bf_vtx_band_table[i][j]);
         crc ^= bf_vtx_band_table[i][j];
     }
-    CMS_tx(crc);
+    msp_tx(crc);
 
     // first two entries are always the same
     power_table[0] = bf_vtx_power_table[0];
@@ -2053,10 +2062,10 @@ void InitVtxTable() {
         msp_send_header(1);
         crc = 0;
         for (j = 0; j < 9; j++) {
-            CMS_tx(power_table[i][j]);
+            msp_tx(power_table[i][j]);
             crc ^= power_table[i][j];
         }
-        CMS_tx(crc);
+        msp_tx(crc);
     }
 
     msp_eeprom_write();
