@@ -1684,15 +1684,17 @@ void RF_Delay_Init() {
 }
 
 #ifdef USE_USB_DET
+typedef void (*reset_mcu_ptr)(void);
+reset_mcu_ptr reset_mcu = (reset_mcu_ptr)0x0000;
+
 void usb_det_task() {
     if (USB_DET == 1) {
-        // Turn off 63400
-        // TODO
+        WriteReg(0, 0x8F, 0x10); // reset RF_chip
         while (USB_DET == 1) {
             WAIT(1);
         }
         // reset 5680
-        // TODO
+        reset_mcu();
     }
 }
 #endif
