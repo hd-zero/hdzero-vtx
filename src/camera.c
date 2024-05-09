@@ -73,16 +73,12 @@ void camera_mode_detect(uint8_t init) {
     uint8_t id = 0;
 
     init = 0;
-<<<<<<< HEAD
-#ifdef USE_TC3587_RSTB
-    == == == =
 
->>>>>>> main
-                 TC3587_RSTB = 0;
+#ifdef USE_TC3587_RSTB
+    TC3587_RSTB = 0;
     WAIT(100);
     TC3587_RSTB = 1;
     WAIT(100);
-<<<<<<< HEAD
 #endif
 
     Set_720P60_8bit(0);
@@ -95,9 +91,8 @@ void camera_mode_detect(uint8_t init) {
     WAIT(200);
 
     debugf("\r\nCamDetect");
-    == == == =
 
-                 Set_720P60_8bit(0);
+    Set_720P60_8bit(0);
 
 #ifdef _DEBUG_MODE
     debugf("\r\nchipID");
@@ -113,7 +108,6 @@ void camera_mode_detect(uint8_t init) {
 #endif
     WAIT(200);
 
->>>>>>> main
     I2C_Write8(ADDR_TP9950, 0x26, 0x01);
     I2C_Write8(ADDR_TP9950, 0x07, 0xC0);
     I2C_Write8(ADDR_TP9950, 0x0B, 0xC0);
