@@ -1682,3 +1682,17 @@ void RF_Delay_Init() {
         DM6300_AUXADC_Calib();
     }
 }
+
+#ifdef USE_USB_DET
+void usb_det_task() {
+    if (USB_DET == 1) {
+        // Turn off 63400
+        // TODO
+        while (USB_DET == 1) {
+            WAIT(1);
+        }
+        // reset 5680
+        // TODO
+    }
+}
+#endif
