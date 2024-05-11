@@ -606,6 +606,9 @@ void TempDetect() {
 #ifdef HDZERO_ECO
             if (temp_new > 10)
                 temp_new -= 10;
+#elif defined HDZERO_AIO
+            if (temp_new > 15)
+                temp_new -= 15;
 #endif
 
             temperature = temperature - (temperature >> 2) + temp_new;
