@@ -2,6 +2,7 @@
 
 #include "camera.h"
 #include "common.h"
+#include "fault/fault.h"
 #include "global.h"
 #include "print.h"
 
@@ -321,6 +322,13 @@ uint8_t RUNCAM_Write(uint8_t cam_id, uint32_t addr, uint32_t val) {
 
     value = I2C_write_byte(cam_id); // slave
     if (value) {
+        static uint8_t logged = 0;
+        if (!logged) {
+            logged = 1;
+            add_fault(FLT_ET_I2C, FLT_DT_TABLE, FLT_TBL_I2C_RUNCAM_WRITE_ERROR);
+            add_fault(FLT_ET_I2C, FLT_DT_VALUE, cam_id);
+            add_fault(FLT_ET_I2C, FLT_DT_VALUE, value);
+        }
         I2C_stop();
 #ifdef _DEBUG_RUNCAM
         debugf("\r\nRUNCAM_Write error id: %x value: %d", (uint16_t)cam_id, (uint16_t)value);

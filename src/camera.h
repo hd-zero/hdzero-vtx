@@ -29,7 +29,7 @@ typedef enum {
 } camera_manufacture_e;
 
 typedef enum {
-    CAMERA_TYPE_UNKNOW,
+    CAMERA_TYPE_UNKNOWN,
     CAMERA_TYPE_RESERVED,        // include foxeer digisight v3
     CAMERA_TYPE_OUTDATED,        // include runcam(orange)
     CAMERA_TYPE_RUNCAM_MICRO_V1, // include hdz nano v1

@@ -1,6 +1,7 @@
 #include "dm6300.h"
 
 #include "common.h"
+#include "fault/fault.h"
 #include "global.h"
 #include "hardware.h"
 #include "i2c.h"

@@ -1,6 +1,7 @@
 #include "camera.h"
 #include "common.h"
 #include "dm6300.h"
+#include "fault/fault.h"
 #include "global.h"
 #include "hardware.h"
 #include "i2c.h"
@@ -26,7 +27,7 @@ uint8_t camMenuStatus = CAM_STATUS_IDLE;
 uint8_t reset_isp_need = 0;
 
 void camera_type_detect(void) {
-    camera_type = CAMERA_TYPE_UNKNOW;
+    camera_type = CAMERA_TYPE_UNKNOWN;
 
     runcam_type_detect();
     if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 ||
@@ -320,6 +321,7 @@ void camera_setting_profile_check(uint8_t profile) {
     if (need_reset) {
         camera_setting_profile_reset(profile);
         camera_setting_profile_write(profile);
+        add_fault(FLT_ET_CAMERA, FLT_DT_TABLE, FLT_TBL_CAMERA_CFG_RESET);
 #ifdef _DEBUG_CAMERA
         debugf("\r\ncamera setting need to be reset");
 #endif
@@ -345,7 +347,7 @@ void camera_setting_read(void) {
     uint8_t camera_type_last;
     uint8_t i;
 
-    if (camera_type == CAMERA_TYPE_UNKNOW ||
+    if (camera_type == CAMERA_TYPE_UNKNOWN ||
         camera_type == CAMERA_TYPE_OUTDATED ||
         camera_type == CAMERA_TYPE_RESERVED)
         return;
@@ -415,7 +417,6 @@ void camera_init(void) {
     }
 
     camera_mode_detect(1);
-
     camera_button_init();
 }
 
@@ -574,7 +575,7 @@ void camera_menu_init(void) {
 
     memset(osd_buf, 0x20, sizeof(osd_buf));
     disp_mode = DISPLAY_CMS;
-    if (camera_type == CAMERA_TYPE_UNKNOW ||
+    if (camera_type == CAMERA_TYPE_UNKNOWN ||
         camera_type == CAMERA_TYPE_OUTDATED)
         camera_button_enter;
     else {
@@ -754,7 +755,7 @@ uint8_t camera_status_update(uint8_t op) {
     if (op >= BTN_INVALID)
         return ret;
 
-    if (camera_type == CAMERA_TYPE_UNKNOW ||
+    if (camera_type == CAMERA_TYPE_UNKNOWN ||
         camera_type == CAMERA_TYPE_OUTDATED) {
         camera_button_op(op);
         return ret;

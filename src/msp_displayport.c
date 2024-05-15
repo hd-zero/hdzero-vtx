@@ -2,6 +2,7 @@
 #include "camera.h"
 #include "common.h"
 #include "dm6300.h"
+#include "fault/fault.h"
 #include "global.h"
 #include "hardware.h"
 #include "isr.h"
@@ -406,7 +407,7 @@ uint8_t msp_read_one_frame() {
             state = MSP_HEADER_START;
             break;
         } // switch(state)
-    }     // i
+    } // i
     return ret;
 }
 
@@ -525,9 +526,7 @@ uint8_t get_tx_data_5680() // prepare data to VRX
 
     tx_buf[11] = fontType; // fontType
 
-    tx_buf[12] = 0x00; // deprecated
-
-    tx_buf[13] = VTX_ID;
+    enc_fault_msg(get_next_fault(), &tx_buf[12]); // tx_buf[13] is populated
 
     tx_buf[14] = fc_lock & 0x03;
 
@@ -537,7 +536,7 @@ uint8_t get_tx_data_5680() // prepare data to VRX
     tx_buf[17] = VTX_VERSION_MINOR;
     tx_buf[18] = VTX_VERSION_PATCH_LEVEL;
 
-    return 20;
+    return 20; // Reserve 2 for CRC
 }
 
 uint8_t get_tx_data_osd(uint8_t index) // prepare osd+data to VTX
@@ -1615,7 +1614,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     fc_init();
                     break;
                 } // switch
-            }     // if(last_mid)
+            } // if(last_mid)
             // last_mid = mid;
         } else {
             cms_state = CMS_OSD;

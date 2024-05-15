@@ -1,5 +1,6 @@
 #include "uart.h"
 #include "common.h"
+#include "fault/fault.h"
 #include "global.h"
 #include "hardware.h"
 #include "print.h"

@@ -2,6 +2,7 @@
 #include "camera.h"
 #include "common.h"
 #include "dm6300.h"
+#include "fault/fault.h"
 #include "global.h"
 #include "i2c.h"
 #include "i2c_device.h"
@@ -448,6 +449,7 @@ void GetVtxParameter() {
                 }
             }
         } else {
+            add_fault(FLT_ET_EEPROM, FLT_DT_TABLE, FLT_TBL_EEPROM_NOT_INITIALIZED);
 #ifdef _DEBUG_MODE
             debugf("\r\nEEPROM is NOT initialized. Use default rf_pwr_tab.");
 #endif
@@ -1524,14 +1526,26 @@ void LED_Flip() {
 }
 void LED_Task() {
     if (dm6300_lost) {
+        static uint8_t logged = 0;
+        if (!logged) {
+            logged = 1;
+            add_fault(FLT_ET_DM6300, FLT_DT_TABLE, FLT_TBL_DM6300_NOT_DETECTED);
+        }
         Set_Blue_LED(diag_led_flags_dm6300lost[led_timer_cnt]);
-
     } else if (cameraLost) {
+        static uint8_t logged = 0;
+        if (!logged) {
+            logged = 1;
+            add_fault(FLT_ET_CAMERA, FLT_DT_TABLE, FLT_TBL_CAMERA_NOT_DETECTED);
+        }
         Set_Blue_LED(diag_led_flags_cameralost[led_timer_cnt]);
-
     } else if (heat_protect) {
+        static uint8_t logged = 0;
+        if (!logged) {
+            logged = 1;
+            add_fault(FLT_ET_VTX, FLT_DT_TABLE, FLT_TBL_VTX_HEAT_PROTECTION_ACTIVE);
+        }
         Set_Blue_LED(diag_led_flags_heatprotect[led_timer_cnt]);
-
     } else if (cur_pwr == POWER_MAX + 2) {
         Set_Blue_LED(diag_led_flags_0mW[led_timer_cnt]);
 
