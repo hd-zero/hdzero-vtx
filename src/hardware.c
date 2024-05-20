@@ -1525,24 +1525,23 @@ void LED_Flip() {
     }
 }
 void LED_Task() {
+    static uint8_t logged[3] = {0};
+
     if (dm6300_lost) {
-        static uint8_t logged = 0;
-        if (!logged) {
-            logged = 1;
+        if (!logged[0]) {
+            logged[0] = 1;
             add_fault(FLT_ET_DM6300, FLT_DT_TABLE, FLT_TBL_DM6300_NOT_DETECTED);
         }
         Set_Blue_LED(diag_led_flags_dm6300lost[led_timer_cnt]);
     } else if (cameraLost) {
-        static uint8_t logged = 0;
-        if (!logged) {
-            logged = 1;
+        if (!logged[1]) {
+            logged[1] = 1;
             add_fault(FLT_ET_CAMERA, FLT_DT_TABLE, FLT_TBL_CAMERA_NOT_DETECTED);
         }
         Set_Blue_LED(diag_led_flags_cameralost[led_timer_cnt]);
     } else if (heat_protect) {
-        static uint8_t logged = 0;
-        if (!logged) {
-            logged = 1;
+        if (!logged[2]) {
+            logged[2] = 1;
             add_fault(FLT_ET_VTX, FLT_DT_TABLE, FLT_TBL_VTX_HEAT_PROTECTION_ACTIVE);
         }
         Set_Blue_LED(diag_led_flags_heatprotect[led_timer_cnt]);

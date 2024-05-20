@@ -3,7 +3,7 @@
 /**
  *  Global storage of faults entries.
  */
-static fault_msg_t g_fault_msgs[MAX_FAULTS];
+static fault_msg_t g_fault_msgs[MAX_FAULTS] = {{0, 0}};
 
 /**
  *  Keep track of used fault msgs.

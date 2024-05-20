@@ -316,13 +316,13 @@ uint16_t I2C_Read16_a8(uint8_t slave_addr, uint8_t reg_addr) {
 /////////////////////////////////////////////////////////////////
 // runcam I2C
 uint8_t RUNCAM_Write(uint8_t cam_id, uint32_t addr, uint32_t val) {
-    uint8_t value;
+    uint8_t value = 0;
+    static uint8_t logged = 0;
 
     I2C_start(); // start
 
     value = I2C_write_byte(cam_id); // slave
     if (value) {
-        static uint8_t logged = 0;
         if (!logged) {
             logged = 1;
             add_fault(FLT_ET_I2C, FLT_DT_TABLE, FLT_TBL_I2C_RUNCAM_WRITE_ERROR);
