@@ -23,7 +23,7 @@ const uint8_t runcam_micro_v1_attribute[CAMERA_SETTING_NUM][4] = {
     // wb blue
     {1, 0x00, 0xff, 0xca},
     // hv flip
-    {0, 0x00, 0x01, 0x00},
+    {0, 0x00, 0x03, 0x00},
     // night mode
     {0, 0x00, 0x01, 0x01},
     // led mode
@@ -55,7 +55,7 @@ const uint8_t runcam_micro_v2_attribute[CAMERA_SETTING_NUM][4] = {
     // wb blue
     {1, 0x00, 0xff, 0xca},
     // hv flip
-    {1, 0x00, 0x01, 0x00},
+    {1, 0x00, 0x03, 0x00},
     // night mode
     {1, 0x00, 0x01, 0x01},
     // led mode
@@ -87,7 +87,7 @@ const uint8_t runcam_nano_90_attribute[CAMERA_SETTING_NUM][4] = {
     // wb blue
     {1, 0x00, 0xff, 0xca},
     // hv flip
-    {1, 0x00, 0x01, 0x00},
+    {1, 0x00, 0x03, 0x00},
     // night mode
     {1, 0x00, 0x01, 0x01},
     // led mode
@@ -119,7 +119,7 @@ const uint8_t runcam_micro_v3_attribute[CAMERA_SETTING_NUM][4] = {
     // wb blue
     {1, 0x00, 0xff, 0xca},
     // hv flip
-    {1, 0x00, 0x01, 0x00},
+    {1, 0x00, 0x03, 0x00},
     // night mode
     {1, 0x00, 0x01, 0x01},
     // led mode
@@ -353,10 +353,14 @@ void runcam_hv_flip(uint8_t val) {
 
     camera_setting_reg_set[8] = val;
 
-    if (val == 0)
+    if (val == 0) // no flip
         RUNCAM_Read_Write(camera_device, 0x000040, 0x0022ffa9);
-    else if (val == 1)
+    else if (val == 1) // hv flip
         RUNCAM_Read_Write(camera_device, 0x000040, 0x002effa9);
+    else if (val == 2) // v flip
+        RUNCAM_Read_Write(camera_device, 0x000040, 0x002affa9);
+    else if (val == 3) // h flip
+        RUNCAM_Read_Write(camera_device, 0x000040, 0x0026ffa9);
 #ifdef _DEBUG_RUNCAM
     debugf("\r\nRUNCAM hvFlip:%02x", (uint16_t)val);
 #endif

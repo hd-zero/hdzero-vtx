@@ -455,6 +455,7 @@ void camera_menu_draw_bracket(void) {
 void camera_menu_draw_value(void) {
     const char *wb_mode_str[] = {"   AUTO", " MANUAL"};
     const char *switch_str[] = {"    OFF", "     ON"};
+    const char *hv_flip_str[] = {"    OFF", "     ON", " V ONLY", " H ONLY"};
     const char *resolution_runcam_micro_v2[] = {"      4:3 ", " 16:9CROP ", " 16:9FULL ", "  1080@30 "};
     const char *resolution_runcam_nano_90[] = {"   540P@90", "540@90CROP", "   540P@60", "960X720@60"};
     const char *resolution_runcam_micro_v3[] = {"      4:3 ", " 16:9CROP ", " 16:9FULL ", "  1080@30 "};
@@ -524,6 +525,8 @@ void camera_menu_draw_value(void) {
                 strcpy(&osd_buf[i][osd_menu_offset + 25], str);
                 break;
             case CAM_STATUS_HVFLIP:     // hv flip
+                strcpy(&osd_buf[i][osd_menu_offset + 21], hv_flip_str[camera_setting_reg_menu[i - 1]]);
+                break;
             case CAM_STATUS_NIGHT_MODE: // night mode
             case CAM_STATUS_LED_MODE:   // led mode
                 strcpy(&osd_buf[i][osd_menu_offset + 21], switch_str[camera_setting_reg_menu[i - 1]]);
