@@ -26,6 +26,7 @@ uint8_t fc_lock = 0;
 uint8_t disp_mode; // DISPLAY_OSD | DISPLAY_CMS;
 uint8_t osd_ready;
 
+uint8_t vtx_variant[4] = {'H', 'D', 'Z', '0'};
 uint8_t fc_variant[4] = {0xff, 0xff, 0xff, 0xff};
 uint8_t fontType = 0x00;
 uint8_t resolution = SD_3016;
@@ -149,6 +150,7 @@ uint8_t hdzero_dynamic_osd_refresh_adapter(uint8_t t1) {
 
 void msp_task() {
     uint8_t len;
+    static uint16_t last_sec = 0;
     static uint8_t t1 = 0;
     static uint8_t vmax = SD_VMAX;
 
@@ -207,6 +209,12 @@ void msp_task() {
             if (TEAM_RACE == 0x01)
                 vtx_paralized();
         }
+    }
+
+    // send vtx info at 1HZ
+    if (last_sec != seconds) {
+        last_sec = seconds;
+        msp_set_vtx_info();
     }
 
     // set_vtx
@@ -759,6 +767,47 @@ void msp_eeprom_write() {
     msp_tx(250);
     msp_tx(250);
 }
+
+void msp_set_vtx_info() {
+    uint8_t crc = 0;
+    uint8_t len = 13;
+    uint8_t temp = temperature >> 2;
+    uint8_t faults = cameraLost & 1 | (dm6300_lost << 1) | (heat_protect << 2);
+
+    msp_send_header(0);
+    msp_tx(len);
+    crc ^= len;
+    msp_tx(MSP_CMD_VTX_INFO);
+    crc ^= MSP_CMD_VTX_INFO;
+    msp_tx(vtx_variant[0]);
+    crc ^= vtx_variant[0];
+    msp_tx(vtx_variant[1]);
+    crc ^= vtx_variant[1];
+    msp_tx(vtx_variant[2]);
+    crc ^= vtx_variant[2];
+    msp_tx(vtx_variant[3]);
+    crc ^= vtx_variant[3];
+    msp_tx(VTX_VERSION_MAJOR);
+    crc ^= VTX_VERSION_MAJOR;
+    msp_tx(VTX_VERSION_MINOR);
+    crc ^= VTX_VERSION_MINOR;
+    msp_tx(VTX_VERSION_PATCH_LEVEL);
+    crc ^= VTX_VERSION_PATCH_LEVEL;
+    msp_tx(fc_variant[0]);
+    crc ^= fc_variant[0];
+    msp_tx(fc_variant[1]);
+    crc ^= fc_variant[1];
+    msp_tx(fc_variant[2]);
+    crc ^= fc_variant[2];
+    msp_tx(fc_variant[3]);
+    crc ^= fc_variant[3];
+    msp_tx(temp);
+    crc ^= temp;
+    msp_tx(faults);
+    crc ^= faults;
+    msp_tx(crc);
+}
+
 void msp_set_vtx_config(uint8_t power, uint8_t save) {
     uint8_t crc = 0;
     uint8_t channel = RF_FREQ;

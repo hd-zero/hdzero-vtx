@@ -29,6 +29,7 @@
 #define MSP_CMD_DISPLAYPORT_BYTE    0xB6 // 182 // in message
 #define MSP_CMD_SET_OSD_CANVAS_BYTE 0xBC // 188 // in message
 #define MSP_CMD_GET_OSD_CANVAS_BYTE 0xBD // 188 //out message
+#define MSP_CMD_VTX_INFO            0xF8 // 248 //out message
 
 #define DP_HEADER0 0x56
 #define DP_HEADER1 0x80
@@ -159,6 +160,7 @@ uint8_t get_tx_data_osd(uint8_t index);
 void insert_tx_buf(uint8_t len);
 void DP_tx_task();
 void msp_cmd_tx();
+void msp_set_vtx_info();
 void parse_status();
 void parse_rc();
 void parse_variant();

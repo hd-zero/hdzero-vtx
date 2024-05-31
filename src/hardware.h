@@ -119,6 +119,7 @@ extern uint8_t RF_BW_last;
 extern uint8_t BAUDRATE;
 extern uint8_t SHORTCUT;
 
+extern uint8_t cameraLost;
 extern uint8_t pwr_offset;
 extern uint8_t heat_protect;
 
