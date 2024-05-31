@@ -26,7 +26,6 @@ uint8_t fc_lock = 0;
 uint8_t disp_mode; // DISPLAY_OSD | DISPLAY_CMS;
 uint8_t osd_ready;
 
-uint8_t vtx_variant[4] = {'H', 'D', 'Z', '0'};
 uint8_t fc_variant[4] = {0xff, 0xff, 0xff, 0xff};
 uint8_t fontType = 0x00;
 uint8_t resolution = SD_3016;
@@ -414,7 +413,7 @@ uint8_t msp_read_one_frame() {
             state = MSP_HEADER_START;
             break;
         } // switch(state)
-    }     // i
+    } // i
     return ret;
 }
 
@@ -769,24 +768,24 @@ void msp_eeprom_write() {
 }
 
 void msp_set_vtx_info() {
+    uint32_t i = 0;
     uint8_t crc = 0;
-    uint8_t len = 13;
     uint8_t temp = temperature >> 2;
     uint8_t faults = cameraLost & 1 | (dm6300_lost << 1) | (heat_protect << 2);
+    uint8_t vtx_name_len = strlen(VTX_NAME);
+    uint8_t payload_size = 10 + vtx_name_len;
 
     msp_send_header(0);
-    msp_tx(len);
-    crc ^= len;
+    msp_tx(payload_size);
+    crc ^= payload_size;
     msp_tx(MSP_CMD_VTX_INFO);
     crc ^= MSP_CMD_VTX_INFO;
-    msp_tx(vtx_variant[0]);
-    crc ^= vtx_variant[0];
-    msp_tx(vtx_variant[1]);
-    crc ^= vtx_variant[1];
-    msp_tx(vtx_variant[2]);
-    crc ^= vtx_variant[2];
-    msp_tx(vtx_variant[3]);
-    crc ^= vtx_variant[3];
+    msp_tx(vtx_name_len);
+    crc ^= vtx_name_len;
+    for (i = 0; i < vtx_name_len; ++i) {
+        msp_tx(VTX_NAME[i]);
+        crc ^= VTX_NAME[i];
+    }
     msp_tx(VTX_VERSION_MAJOR);
     crc ^= VTX_VERSION_MAJOR;
     msp_tx(VTX_VERSION_MINOR);
