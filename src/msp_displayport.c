@@ -380,8 +380,12 @@ uint8_t msp_read_one_frame() {
         case MSP_LEN_H:
             crc = crc8tab[crc ^ rx];
             len_u16 += ((uint16_t)rx << 8);
-            ptr = 0;
-            state = MSP_RX2;
+            if (len_u16 == 0) {
+                state = MSP_CRC2;
+            } else {
+                ptr = 0;
+                state = MSP_RX2;
+            }
             break;
 
         case MSP_RX2:
@@ -389,8 +393,9 @@ uint8_t msp_read_one_frame() {
             msp_rx_buf[ptr++] = rx;
             ptr &= 63;
             len_u16--;
-            if (len_u16 == 0)
+            if (len_u16 == 0) {
                 state = MSP_CRC2;
+            }
             break;
 
         case MSP_CRC2:
@@ -767,17 +772,17 @@ uint8_t msp_send_header_v2(uint16_t len, uint16_t msg) {
     msp_tx(0);
     uint8_t crc = crc8tab[0];
 
-    // Length
-    msp_tx(len >> 8);
-    crc = crc8tab[crc ^ (len >> 8)];
-    msp_tx(len & 0xFF);
-    crc = crc8tab[crc ^ (len & 0xFF)];
-
     // Message Type
-    msp_tx(msg >> 8);
-    crc = crc8tab[crc ^ (msg >> 8)];
-    msp_tx(msg & 0xFF);
-    crc = crc8tab[crc ^ (msg & 0xFF)];
+    msp_tx(msg & 0x00FF);
+    crc = crc8tab[crc ^ (msg & 0x00FF)];
+    msp_tx((msg & 0xFF00) >> 8);
+    crc = crc8tab[crc ^ ((msg & 0xFF00) >> 8)];
+
+    // Length
+    msp_tx(len & 0x00FF);
+    crc = crc8tab[crc ^ (len & 0x00FF)];
+    msp_tx((len & 0xFF00) >> 8);
+    crc = crc8tab[crc ^ ((len & 0xFF00) >> 8)];
 
     return crc;
 }
