@@ -820,11 +820,9 @@ void msp_send_vtx_model_name() {
     uint8_t len = strlen(VTX_NAME);
 
     msp_send_response(0, MSP_HEADER_V2);
-    crc = msp_send_header_v2(len + 1, MSP_VTX_GET_MODEL_NAME);
+    crc = msp_send_header_v2(len, MSP_VTX_GET_MODEL_NAME);
 
     // Payload
-    msp_tx(len);
-    crc = crc8tab[crc ^ len];
     for (i = 0; i < len; ++i) {
         msp_tx(VTX_NAME[i]);
         crc = crc8tab[crc ^ VTX_NAME[i]];
