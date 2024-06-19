@@ -913,7 +913,7 @@ uint8_t DM6300_detect(void) {
         debugf("\r\ndm6300 alive");
     }
 #endif
-    return rdat != 0x18;
+    return (rdat != 0x18) ? 1 : 0;
 }
 
 void DM6300_Init(uint8_t ch, BWType_e bw) {

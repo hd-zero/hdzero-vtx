@@ -2,43 +2,13 @@
 #define __MSP_DISPLAYPORT_H_
 
 #include "common.h"
+#include "msp_protocol.h"
 
 #define IS_HI(x)  ((x) > 1750)
 #define IS_LO(x)  ((x) < 1250)
 #define IS_MID(x) ((!IS_HI(x)) && (!IS_LO(x)))
 
-#define SD_HMAX  30
-#define SD_VMAX  16
-#define HD_HMAX0 50
-#define HD_VMAX0 18
-#define HD_HMAX1 53
-#define HD_VMAX1 20
-
 #define TXBUF_SIZE 74
-
-#define MSP_HEADER_START_BYTE   0x24 // $
-#define MSP_HEADER_M_BYTE       0x4D // M
-#define MSP_HEADER_M2_BYTE      0x58 // X
-#define MSP_PACKAGE_REPLAY_BYTE 0x3E // >
-
-#define MSP_CMD_FC_VARIANT_BYTE     0x02 // 2   //out message
-#define MSP_CMD_VTX_CONFIG_BYTE     0x58 // 88  //out message
-#define MSP_CMD_SET_VTX_CONFIG_BYTE 0x59 // 89  // in message
-#define MSP_CMD_STATUS_BYTE         0x65 // 101 //out message
-#define MSP_CMD_RC_BYTE             0x69 // 105 //out message
-#define MSP_CMD_DISPLAYPORT_BYTE    0xB6 // 182 // in message
-#define MSP_CMD_SET_OSD_CANVAS_BYTE 0xBC // 188 // in message
-#define MSP_CMD_GET_OSD_CANVAS_BYTE 0xBD // 188 //out message
-
-#define DP_HEADER0 0x56
-#define DP_HEADER1 0x80
-
-#define FC_OSD_LOCK            0x01
-#define FC_VARIANT_LOCK        0x02
-#define FC_RC_LOCK             0x04
-#define FC_VTX_CONFIG_LOCK     0x08
-#define FC_STATUS_LOCK         0x10
-#define FC_INIT_VTX_TABLE_LOCK 0x80
 
 typedef enum {
     BTN_UP,
@@ -159,6 +129,11 @@ uint8_t get_tx_data_osd(uint8_t index);
 void insert_tx_buf(uint8_t len);
 void DP_tx_task();
 void msp_cmd_tx();
+void msp_send_vtx_model_name();
+void msp_send_vtx_fc_variant();
+void msp_send_vtx_fw_version();
+void msp_send_vtx_temperature();
+void msp_send_vtx_hw_faults();
 void parse_status();
 void parse_rc();
 void parse_variant();
@@ -176,7 +151,7 @@ uint8_t bfChannel_to_channel(uint8_t const channel);
 #ifdef INIT_VTX_TABLE
 void InitVtxTable();
 #endif
-extern uint8_t osd_buf[HD_VMAX1][HD_HMAX1];
+extern uint8_t osd_buf[OSD_CANVAS_HD_VMAX1][OSD_CANVAS_HD_HMAX1];
 extern uint8_t osd_menu_offset;
 extern uint8_t disp_mode;
 extern uint8_t msp_tx_cnt;

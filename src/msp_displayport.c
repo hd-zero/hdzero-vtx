@@ -13,9 +13,9 @@
 #include "uart.h"
 #include "version.h"
 
-uint8_t osd_buf[HD_VMAX1][HD_HMAX1];
-uint8_t loc_buf[HD_VMAX1][7];
-uint8_t page_extend_buf[HD_VMAX1][7];
+uint8_t osd_buf[OSD_CANVAS_HD_VMAX1][OSD_CANVAS_HD_HMAX1];
+uint8_t loc_buf[OSD_CANVAS_HD_VMAX1][7];
+uint8_t page_extend_buf[OSD_CANVAS_HD_VMAX1][7];
 uint8_t tx_buf[TXBUF_SIZE]; // buffer for sending data to VRX
 uint8_t dptxbuf[256];
 uint8_t dptx_rptr, dptx_wptr;
@@ -116,8 +116,8 @@ uint8_t msp_cmp_fc_variant(const char *variant) {
 }
 
 uint8_t hdzero_dynamic_osd_refresh_adapter(uint8_t t1) {
-    static uint16_t osd_line_crc_lst[HD_VMAX1] = {0};
-    static uint8_t refresh_cnt[HD_VMAX1] = {0};
+    static uint16_t osd_line_crc_lst[OSD_CANVAS_HD_VMAX1] = {0};
+    static uint8_t refresh_cnt[OSD_CANVAS_HD_VMAX1] = {0};
     uint8_t crc_u8[2] = {0, 0};
     uint16_t crc_u16 = 0;
     uint8_t i;
@@ -149,8 +149,9 @@ uint8_t hdzero_dynamic_osd_refresh_adapter(uint8_t t1) {
 
 void msp_task() {
     uint8_t len;
+    static uint16_t last_sec = 0;
     static uint8_t t1 = 0;
-    static uint8_t vmax = SD_VMAX;
+    static uint8_t vmax = OSD_CANVAS_SD_VMAX;
 
 #ifdef _DEBUG_DISPLAYPORT
     if (RS0_ERR) {
@@ -163,11 +164,11 @@ void msp_task() {
     // decide by osd_frame size/rate and dptx rate
     if (msp_read_one_frame()) {
         if (resolution == HD_5018) {
-            vmax = HD_VMAX0;
+            vmax = OSD_CANVAS_HD_VMAX0;
         } else if (resolution == HD_5320) {
-            vmax = HD_VMAX1;
+            vmax = OSD_CANVAS_HD_VMAX1;
         } else {
-            vmax = SD_VMAX;
+            vmax = OSD_CANVAS_SD_VMAX;
         }
     }
 
@@ -236,7 +237,7 @@ uint8_t msp_read_one_frame() {
 
         switch (state) {
         case MSP_HEADER_START:
-            if (rx == MSP_HEADER_START_BYTE) {
+            if (rx == MSP_HEADER_FRAMER) {
                 ptr = 0;
                 state = MSP_HEADER_M;
             }
@@ -247,9 +248,9 @@ uint8_t msp_read_one_frame() {
             break;
 
         case MSP_HEADER_M:
-            if (rx == MSP_HEADER_M_BYTE) {
+            if (rx == MSP_HEADER_V1) {
                 state = MSP_PACKAGE_REPLAY1;
-            } else if (rx == MSP_HEADER_M2_BYTE) {
+            } else if (rx == MSP_HEADER_V2) {
                 state = MSP_PACKAGE_REPLAY2;
             } else {
                 state = MSP_HEADER_START;
@@ -257,7 +258,7 @@ uint8_t msp_read_one_frame() {
             break;
 
         case MSP_PACKAGE_REPLAY1: // 0x3E
-            if (rx == MSP_PACKAGE_REPLAY_BYTE) {
+            if (rx == MSP_HEADER_RESPONSE) {
                 state = MSP_LENGTH;
             } else {
                 state = MSP_HEADER_START;
@@ -273,17 +274,17 @@ uint8_t msp_read_one_frame() {
 
         case MSP_CMD:
             crc ^= rx;
-            if (rx == MSP_CMD_DISPLAYPORT_BYTE) {
+            if (rx == MSP_DISPLAYPORT) {
                 cur_cmd = CUR_DISPLAYPORT;
-            } else if (rx == MSP_CMD_RC_BYTE) {
+            } else if (rx == MSP_RC) {
                 cur_cmd = CUR_RC;
-            } else if (rx == MSP_CMD_STATUS_BYTE) {
+            } else if (rx == MSP_STATUS) {
                 cur_cmd = CUR_STATUS;
-            } else if (rx == MSP_CMD_FC_VARIANT_BYTE) {
+            } else if (rx == MSP_FC_VARIANT) {
                 cur_cmd = CUR_FC_VARIANT;
-            } else if (rx == MSP_CMD_VTX_CONFIG_BYTE) {
+            } else if (rx == MSP_GET_VTX_CONFIG) {
                 cur_cmd = CUR_VTX_CONFIG;
-            } else if (rx == MSP_CMD_GET_OSD_CANVAS_BYTE) {
+            } else if (rx == MSP_GET_OSD_CANVAS) {
                 cur_cmd = CUR_GET_OSD_CANVAS;
             } else
                 cur_cmd = CUR_OTHERS;
@@ -342,7 +343,7 @@ uint8_t msp_read_one_frame() {
             break;
 
         case MSP_PACKAGE_REPLAY2: // 0x3E
-            if (rx == MSP_PACKAGE_REPLAY_BYTE) {
+            if (rx == MSP_HEADER_RESPONSE) {
                 state = MSP_ZERO;
             } else {
                 state = MSP_HEADER_START;
@@ -379,8 +380,12 @@ uint8_t msp_read_one_frame() {
         case MSP_LEN_H:
             crc = crc8tab[crc ^ rx];
             len_u16 += ((uint16_t)rx << 8);
-            ptr = 0;
-            state = MSP_RX2;
+            if (len_u16 == 0) {
+                state = MSP_CRC2;
+            } else {
+                ptr = 0;
+                state = MSP_RX2;
+            }
             break;
 
         case MSP_RX2:
@@ -388,14 +393,34 @@ uint8_t msp_read_one_frame() {
             msp_rx_buf[ptr++] = rx;
             ptr &= 63;
             len_u16--;
-            if (len_u16 == 0)
+            if (len_u16 == 0) {
                 state = MSP_CRC2;
+            }
             break;
 
         case MSP_CRC2:
             if (crc == rx) {
                 full_frame = 1;
-                parseMspVtx_V2(cmd_u16);
+                switch (cmd_u16) {
+                case MSP_VTX_GET_MODEL_NAME:
+                    msp_send_vtx_model_name();
+                    break;
+                case MSP_VTX_GET_FC_VARIANT:
+                    msp_send_vtx_fc_variant();
+                    break;
+                case MSP_VTX_GET_FW_VERSION:
+                    msp_send_vtx_fw_version();
+                    break;
+                case MSP_VTX_GET_TEMPERATURE:
+                    msp_send_vtx_temperature();
+                    break;
+                case MSP_VTX_GET_HW_FAULTS:
+                    msp_send_vtx_hw_faults();
+                    break;
+                default:
+                    parseMspVtx_V2(cmd_u16);
+                    break;
+                }
                 msp_lst_rcv_sec = seconds;
                 msp_tx_en = 1;
             }
@@ -406,7 +431,7 @@ uint8_t msp_read_one_frame() {
             state = MSP_HEADER_START;
             break;
         } // switch(state)
-    }     // i
+    } // i
     return ret;
 }
 
@@ -418,7 +443,7 @@ void clear_screen() {
 
 void write_string(uint8_t rx, uint8_t row, uint8_t col, uint8_t page_extend) {
     if (disp_mode == DISPLAY_OSD) {
-        if (row < HD_VMAX1 && col < HD_HMAX1) {
+        if (row < OSD_CANVAS_HD_VMAX1 && col < OSD_CANVAS_HD_HMAX1) {
             osd_buf[row][col] = rx;
             if (page_extend)
                 page_extend_buf[row][col >> 3] |= (1 << (col & 0x07));
@@ -568,17 +593,17 @@ uint8_t get_tx_data_osd(uint8_t index) // prepare osd+data to VTX
     uint8_t num = 0;
 
     if (resolution == HD_5018) {
-        hmax = HD_HMAX0;
+        hmax = OSD_CANVAS_HD_HMAX0;
         len_mask = 7;
         ptr = 11;
     } else if (resolution == HD_5320) {
-        hmax = HD_HMAX1;
+        hmax = OSD_CANVAS_HD_HMAX1;
         len_mask = 7;
         ptr = 11;
     } else {
         ptr = 12;
         len_mask = 4;
-        hmax = SD_HMAX;
+        hmax = OSD_CANVAS_SD_HMAX;
     }
 
     // string
@@ -724,13 +749,42 @@ void insert_tx_buf(uint8_t len) {
     insert_tx_byte(crc1);
 }
 
-void msp_send_header(uint8_t dl) {
+void msp_send_command(uint8_t dl, uint8_t version) {
     if (dl) {
         WAIT(20);
     }
-    msp_tx(0x24);
-    msp_tx(0x4d);
-    msp_tx(0x3c);
+    msp_tx(MSP_HEADER_FRAMER);
+    msp_tx(version);
+    msp_tx(MSP_HEADER_COMMAND);
+}
+
+void msp_send_response(uint8_t dl, uint8_t version) {
+    if (dl) {
+        WAIT(20);
+    }
+    msp_tx(MSP_HEADER_FRAMER);
+    msp_tx(version);
+    msp_tx(MSP_HEADER_RESPONSE);
+}
+
+uint8_t msp_send_header_v2(uint16_t len, uint16_t msg) {
+    // Flags
+    msp_tx(0);
+    uint8_t crc = crc8tab[0];
+
+    // Message Type
+    msp_tx(msg & 0x00FF);
+    crc = crc8tab[crc ^ (msg & 0x00FF)];
+    msp_tx((msg & 0xFF00) >> 8);
+    crc = crc8tab[crc ^ ((msg & 0xFF00) >> 8)];
+
+    // Length
+    msp_tx(len & 0x00FF);
+    crc = crc8tab[crc ^ (len & 0x00FF)];
+    msp_tx((len & 0xFF00) >> 8);
+    crc = crc8tab[crc ^ ((len & 0xFF00) >> 8)];
+
+    return crc;
 }
 
 void msp_cmd_tx() // send 3 commands to FC
@@ -738,15 +792,15 @@ void msp_cmd_tx() // send 3 commands to FC
     uint8_t i;
     uint8_t const count = (fc_lock & FC_VTX_CONFIG_LOCK) ? 4 : 5;
     uint8_t const msp_cmd[5] = {
-        MSP_CMD_FC_VARIANT_BYTE,
-        MSP_CMD_STATUS_BYTE,
-        MSP_CMD_RC_BYTE,
-        MSP_CMD_GET_OSD_CANVAS_BYTE,
-        MSP_CMD_VTX_CONFIG_BYTE,
+        MSP_FC_VARIANT,
+        MSP_STATUS,
+        MSP_RC,
+        MSP_GET_OSD_CANVAS,
+        MSP_GET_VTX_CONFIG,
     };
 
     for (i = 0; i < count; i++) {
-        msp_send_header(0);
+        msp_send_command(0, MSP_HEADER_V1);
         msp_tx(0x00);       // len
         msp_tx(msp_cmd[i]); // function
         msp_tx(msp_cmd[i]); // crc
@@ -754,11 +808,88 @@ void msp_cmd_tx() // send 3 commands to FC
 }
 
 void msp_eeprom_write() {
-    msp_send_header(1);
+    msp_send_command(1, MSP_HEADER_V1);
     msp_tx(0x00);
     msp_tx(250);
     msp_tx(250);
 }
+
+void msp_send_vtx_model_name() {
+    uint32_t i = 0;
+    uint8_t crc = 0;
+    uint8_t len = strlen(VTX_NAME);
+
+    msp_send_response(0, MSP_HEADER_V2);
+    crc = msp_send_header_v2(len, MSP_VTX_GET_MODEL_NAME);
+
+    // Payload
+    for (i = 0; i < len; ++i) {
+        msp_tx(VTX_NAME[i]);
+        crc = crc8tab[crc ^ VTX_NAME[i]];
+    }
+    msp_tx(crc);
+}
+
+void msp_send_vtx_fc_variant() {
+    uint8_t crc = 0;
+
+    msp_send_response(0, MSP_HEADER_V2);
+    crc = msp_send_header_v2(4, MSP_VTX_GET_FC_VARIANT);
+
+    // Payload
+    msp_tx(fc_variant[0]);
+    crc = crc8tab[crc ^ fc_variant[0]];
+    msp_tx(fc_variant[1]);
+    crc = crc8tab[crc ^ fc_variant[1]];
+    msp_tx(fc_variant[2]);
+    crc = crc8tab[crc ^ fc_variant[2]];
+    msp_tx(fc_variant[3]);
+    crc = crc8tab[crc ^ fc_variant[3]];
+    msp_tx(crc);
+}
+
+void msp_send_vtx_fw_version() {
+    uint8_t crc = 0;
+
+    msp_send_response(0, MSP_HEADER_V2);
+    crc = msp_send_header_v2(3, MSP_VTX_GET_FW_VERSION);
+
+    // Payload
+    msp_tx(VTX_VERSION_MAJOR);
+    crc = crc8tab[crc ^ VTX_VERSION_MAJOR];
+    msp_tx(VTX_VERSION_MINOR);
+    crc = crc8tab[crc ^ VTX_VERSION_MINOR];
+    msp_tx(VTX_VERSION_PATCH_LEVEL);
+    crc = crc8tab[crc ^ VTX_VERSION_PATCH_LEVEL];
+    msp_tx(crc);
+}
+
+void msp_send_vtx_temperature() {
+    uint8_t crc = 0;
+    uint8_t temp = temperature >> 2;
+
+    msp_send_response(0, MSP_HEADER_V2);
+    crc = msp_send_header_v2(1, MSP_VTX_GET_TEMPERATURE);
+
+    // Payload
+    msp_tx(temp);
+    crc = crc8tab[crc ^ temp];
+    msp_tx(crc);
+}
+
+void msp_send_vtx_hw_faults() {
+    uint8_t crc = 0;
+    uint8_t faults = cameraLost & 1 | (dm6300_lost << 1) | (heat_protect << 2);
+
+    msp_send_response(0, MSP_HEADER_V2);
+    crc = msp_send_header_v2(1, MSP_VTX_GET_HW_FAULTS);
+
+    // Payload
+    msp_tx(faults);
+    crc = crc8tab[crc ^ faults];
+    msp_tx(crc);
+}
+
 void msp_set_vtx_config(uint8_t power, uint8_t save) {
     uint8_t crc = 0;
     uint8_t channel = RF_FREQ;
@@ -789,11 +920,11 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
         channel = channel - 11;
     }
 
-    msp_send_header(0);
+    msp_send_command(0, MSP_HEADER_V1);
     msp_tx(0x0f);
     crc ^= 0x0f; // len
-    msp_tx(MSP_CMD_SET_VTX_CONFIG_BYTE);
-    crc ^= MSP_CMD_SET_VTX_CONFIG_BYTE; // cmd
+    msp_tx(MSP_SET_VTX_CONFIG);
+    crc ^= MSP_SET_VTX_CONFIG; // cmd
     msp_tx(0x00);
     crc ^= 0x00; // freq_l
     msp_tx(0x00);
@@ -942,15 +1073,15 @@ void parse_vtx_config() {
 void msp_set_osd_canvas(void) {
     uint8_t crc = 0;
     if (msp_cmp_fc_variant("BTFL")) {
-        msp_send_header(0);
+        msp_send_command(0, MSP_HEADER_V1);
         msp_tx(0x02);
         crc ^= 0x02; // len
-        msp_tx(MSP_CMD_SET_OSD_CANVAS_BYTE);
-        crc ^= MSP_CMD_SET_OSD_CANVAS_BYTE;
-        msp_tx(HD_HMAX0);
-        crc ^= HD_HMAX0;
-        msp_tx(HD_VMAX0);
-        crc ^= HD_VMAX0;
+        msp_tx(MSP_SET_OSD_CANVAS);
+        crc ^= MSP_SET_OSD_CANVAS;
+        msp_tx(OSD_CANVAS_HD_HMAX0);
+        crc ^= OSD_CANVAS_HD_HMAX0;
+        msp_tx(OSD_CANVAS_HD_VMAX0);
+        crc ^= OSD_CANVAS_HD_VMAX0;
         msp_tx(crc);
         // debugf("\r\nmsp_set_osd_canvas");
     }
@@ -964,10 +1095,10 @@ void msp_set_inav_osd_canvas(void) {
 }
 
 void parse_get_osd_canvas(void) {
-    if (msp_rx_buf[0] == HD_HMAX0 && msp_rx_buf[1] == HD_VMAX0) {
+    if (msp_rx_buf[0] == OSD_CANVAS_HD_HMAX0 && msp_rx_buf[1] == OSD_CANVAS_HD_VMAX0) {
         resolution = HD_5018;
         osd_menu_offset = 8;
-    } else if (msp_rx_buf[0] == SD_HMAX && msp_rx_buf[1] == SD_VMAX) {
+    } else if (msp_rx_buf[0] == OSD_CANVAS_SD_HMAX && msp_rx_buf[1] == OSD_CANVAS_SD_VMAX) {
         resolution = SD_3016;
         osd_menu_offset = 0;
     }
@@ -984,7 +1115,7 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
     if (tramp_lock)
         return;
 
-    if (cmd_u16 != MSP_CMD_VTX_CONFIG_BYTE)
+    if (cmd_u16 != MSP_GET_VTX_CONFIG)
         return;
 
     if (!(fc_lock & FC_VTX_CONFIG_LOCK))
@@ -1079,7 +1210,7 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
             else
 #endif
 #endif
-            if (nxt_pwr == POWER_MAX + 1) {
+                if (nxt_pwr == POWER_MAX + 1) {
                 WriteReg(0, 0x8F, 0x10);
                 dm6300_init_done = 0;
                 cur_pwr = POWER_MAX + 2;
@@ -1615,7 +1746,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     fc_init();
                     break;
                 } // switch
-            }     // if(last_mid)
+            } // if(last_mid)
             // last_mid = mid;
         } else {
             cms_state = CMS_OSD;
@@ -2016,7 +2147,7 @@ void InitVtxTable() {
 
     // set band/channel
     for (i = 0; i < 5; i++) {
-        msp_send_header(1);
+        msp_send_command(1, MSP_HEADER_V1);
         crc = 0;
         for (j = 0; j < 31; j++) {
             msp_tx(bf_vtx_band_table[i][j]);
@@ -2027,7 +2158,7 @@ void InitVtxTable() {
 
     // set low band
     i = lowband_lock ? 6 : 5;
-    msp_send_header(1);
+    msp_send_command(1, MSP_HEADER_V1);
     crc = 0;
     for (j = 0; j < 31; j++) {
         msp_tx(bf_vtx_band_table[i][j]);
@@ -2059,7 +2190,7 @@ void InitVtxTable() {
 
     // send all of them
     for (i = 0; i < 5; i++) {
-        msp_send_header(1);
+        msp_send_command(1, MSP_HEADER_V1);
         crc = 0;
         for (j = 0; j < 9; j++) {
             msp_tx(power_table[i][j]);
