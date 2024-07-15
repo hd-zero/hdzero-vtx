@@ -116,27 +116,29 @@ void version_info(void) {
 }
 
 void main(void) {
+#if (1)
     uint16_t i;
 
+    WAIT(100);
     // init
     CPU_init();
     WriteReg(0, 0xB0, 0x3E);
     WriteReg(0, 0xB2, 0x03);
     WriteReg(0, 0x80, 0xC8);
-    WAIT(100);
-
+#endif
 #if (0)
     for (i = 0; i < 256; i++) {
-        I2C_Write8_Wait(10, ADDR_EEPROM, (uint8_t)i, 0xc8);
+        I2C_Write8_Wait(10, ADDR_EEPROM, (uint8_t)i, 0x11);
     }
 #endif
 #if (0)
-    I2C_Write8_Wait(10, ADDR_EEPROM, 0x80, 0xc8);
+    I2C_Write8_Wait(10, ADDR_EEPROM, 0x80, 0x11);
 #endif
-    // #else
+#if (0)
     for (i = 0; i < 256; i++) {
         _outchar(I2C_Read8_Wait(10, ADDR_EEPROM, i));
     }
+#endif
     // main loop
     while (1) {
     }
