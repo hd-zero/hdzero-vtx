@@ -4,6 +4,7 @@
 #include "common.h"
 #include "global.h"
 #include "print.h"
+#include "uart.h"
 
 #define SCL_SET(n) SCL = n
 #define SDA_SET(n) SDA = n
@@ -115,7 +116,7 @@ uint8_t I2C_Write8(uint8_t slave_addr, uint8_t reg_addr, uint8_t val) {
 
     I2C_stop();
 
-    value = I2C_Read8(slave_addr, reg_addr);
+    // value = I2C_Read8(slave_addr, reg_addr);
     // debugf("\r\n0x%4x, 0x%4x", reg_addr, (uint16_t)val);
     return 0;
 }
@@ -232,7 +233,11 @@ uint8_t I2C_Read8(uint8_t slave_addr, uint8_t reg_addr) {
 
     I2C_start();
 
-    I2C_write_byte(slave);
+    if (I2C_write_byte(slave)) {
+        _outchar('X');
+        while (1) {
+        }
+    }
 
     I2C_write_byte(reg_addr);
 
