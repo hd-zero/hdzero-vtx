@@ -131,15 +131,15 @@ void main(void) {
         I2C_Write8_Wait(10, ADDR_EEPROM, (uint8_t)i, 0x11);
     }
 #endif
-#if (1)
+#if (0)
     I2C_Write8_Wait(10, ADDR_EEPROM, 0x80, 0x11);
+#endif
+#if (1)
+    for (i = 0; i < 256; i++) {
+        _outchar(I2C_Read8_Wait(10, ADDR_EEPROM, i));
+    }
 #endif
     // main loop
     while (1) {
-#if (1)
-        for (i = 0; i < 256; i++) {
-            _outchar(I2C_Read8_Wait(10, ADDR_EEPROM, i));
-        }
-#endif
     }
 }
