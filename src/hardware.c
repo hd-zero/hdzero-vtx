@@ -570,7 +570,7 @@ void Init_HW() {
     Get_EEP_LifeTime();
     camera_init();
 
-    uart_set_baudrate(BAUDRATE);
+    uart_set_baudrate(0);
 //--------- dm6300 --------------------
 // move to RF_Delay_Init()
 #endif

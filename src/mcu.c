@@ -130,6 +130,7 @@ void main(void) {
     WriteReg(0, 0xB0, 0x3E);
     WriteReg(0, 0xB2, 0x03);
     WriteReg(0, 0x80, 0xC8);
+    Init_HW();
 #endif
 #if (0)
     for (i = 0; i < 256; i++) {
@@ -139,7 +140,7 @@ void main(void) {
 #if (0)
     I2C_Write8_Wait(10, ADDR_EEPROM, 0x80, 0x11);
 #endif
-#if (1)
+#if (0)
     for (i = 0; i < 256; i++) {
         _outchar(I2C_Read8_Wait(10, ADDR_EEPROM, i));
     }
