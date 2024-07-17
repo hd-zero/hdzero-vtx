@@ -115,11 +115,16 @@ void version_info(void) {
 #endif
 }
 
+uint8_t I2C_EN = 0;
+
 void main(void) {
+    I2C_EN = 0;
 #if (1)
     uint16_t i;
 
-    WAIT(100);
+    WAIT(600);
+    I2C_EN = 1;
+
     // init
     CPU_init();
     WriteReg(0, 0xB0, 0x3E);

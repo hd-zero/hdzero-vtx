@@ -5,6 +5,8 @@
 #include "global.h"
 #include "print.h"
 
+extern uint8_t I2C_EN;
+
 #define SCL_SET(n) SCL = n
 #define SDA_SET(n) SDA = n
 
@@ -29,6 +31,9 @@ void delay_10us() {
 #endif
 
 void I2C_start() {
+    if (!I2C_EN)
+        return;
+
     SDA_SET(1);
     DELAY_Q;
 
@@ -44,6 +49,9 @@ void I2C_start() {
 }
 
 void I2C_stop() {
+    if (!I2C_EN)
+        return;
+
     SDA_SET(0);
     DELAY_Q;
 
@@ -57,6 +65,9 @@ void I2C_stop() {
 
 uint8_t I2C_ack() {
     uint8_t ret;
+
+    if (!I2C_EN)
+        return 1;
 
     SDA_SET(1);
     DELAY_Q;
@@ -74,6 +85,10 @@ uint8_t I2C_ack() {
 
 uint8_t I2C_write_byte(uint8_t val) {
     uint8_t i;
+
+    if (!I2C_EN)
+        return 1;
+
     for (i = 0; i < 8; i++) {
         if (val >> 7)
             SDA_SET(1);
@@ -195,6 +210,9 @@ uint8_t I2C_Write16_a8(uint8_t slave_addr, uint8_t reg_addr, uint16_t val) {
 uint8_t I2C_read_byte(uint8_t no_ack) {
     uint8_t i;
     uint8_t val = 0;
+
+    if (!I2C_EN)
+        return 0;
 
     for (i = 0; i < 8; i++) {
         DELAY_Q;
