@@ -570,7 +570,7 @@ void Init_HW() {
     Get_EEP_LifeTime();
     camera_init();
 
-    uart_set_baudrate(0);
+    uart_set_baudrate(BAUDRATE);
 //--------- dm6300 --------------------
 // move to RF_Delay_Init()
 #endif
@@ -1804,7 +1804,6 @@ void check_eeprom() {
         for (j = 0; j < FREQ_NUM_INTERNAL; j++) {
             for (k = 0; k < POWER_MAX + 1; k++) {
                 tab_list[i][j][k] = I2C_Read8(ADDR_EEPROM, tab_base_address[i] + j * (POWER_MAX + 1) + k);
-                _outchar(tab_list[i][j][k]);
                 ff_cnt[i] += (tab_list[i][j][k] == 0xff);
             }
         }
