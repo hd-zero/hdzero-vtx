@@ -1797,12 +1797,6 @@ void check_eeprom() {
     uint8_t dcoc_list[3][5];
     uint8_t ff_cnt[3];
     uint8_t i, j, k;
-    for (i = 0; i < 16; i++) {
-        I2C_Write8_Wait(10, ADDR_EEPROM, i, 0x11);
-    }
-    for (i = 0xc0; i < 0xc5; i++) {
-        I2C_Write8_Wait(10, ADDR_EEPROM, i, 0x11);
-    }
 
     // read all 3 table_power partitions
     for (i = 0; i < 3; i++) {
