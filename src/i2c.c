@@ -31,7 +31,7 @@ void delay_10us() {
 #endif
 
 void I2C_start() {
-    if (!I2C_EN)
+    if (I2C_EN != 1)
         return;
 
     SDA_SET(1);
@@ -49,7 +49,7 @@ void I2C_start() {
 }
 
 void I2C_stop() {
-    if (!I2C_EN)
+    if (I2C_EN != 1)
         return;
 
     SDA_SET(0);
@@ -66,7 +66,7 @@ void I2C_stop() {
 uint8_t I2C_ack() {
     uint8_t ret;
 
-    if (!I2C_EN)
+    if (I2C_EN != 1)
         return 1;
 
     SDA_SET(1);
@@ -86,7 +86,7 @@ uint8_t I2C_ack() {
 uint8_t I2C_write_byte(uint8_t val) {
     uint8_t i;
 
-    if (!I2C_EN)
+    if (I2C_EN != 1)
         return 1;
 
     for (i = 0; i < 8; i++) {
@@ -211,7 +211,7 @@ uint8_t I2C_read_byte(uint8_t no_ack) {
     uint8_t i;
     uint8_t val = 0;
 
-    if (!I2C_EN)
+    if (I2C_EN != 1)
         return 0;
 
     for (i = 0; i < 8; i++) {
