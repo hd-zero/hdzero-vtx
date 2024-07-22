@@ -1809,15 +1809,17 @@ void check_eeprom() {
         }
     }
 
-    // If eeprom is new, init partition 0 with default table_power
-    /*if (ff_cnt[0] == (FREQ_NUM_INTERNAL * (POWER_MAX + 1))) {
+// If eeprom is new, init partition 0 with default table_power
+#if (0)
+    if (ff_cnt[0] == (FREQ_NUM_INTERNAL * (POWER_MAX + 1))) {
         for (j = 0; j < FREQ_NUM_INTERNAL; j++) {
             for (k = 0; k < POWER_MAX + 1; k++) {
                 I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[0] + j * (POWER_MAX + 1) + k, table_power[j][k]);
             }
         }
         _outstring("\r\nInit tab partition 0");
-    }*/
+    }
+#endif
 
     // Init partition 1/2 by copy paratition 0 if is needed (one time)
     if ((ff_cnt[1] + ff_cnt[2]) > (FREQ_NUM_INTERNAL * (POWER_MAX + 1))) {
@@ -1860,7 +1862,7 @@ void check_eeprom() {
                 I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[0] + i * (POWER_MAX + 1) + j, table_power[i][j]);
                 I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[1] + i * (POWER_MAX + 1) + j, table_power[i][j]);
                 I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[2] + i * (POWER_MAX + 1) + j, table_power[i][j]);
-                _outstring("\r\ntab all:");
+                _outstring("\r\n        tab all:");
                 _outchar('0' + i);
                 _outchar('0' + j);
             }
@@ -1876,6 +1878,8 @@ void check_eeprom() {
         }
     }
 
+    if (ff_cnt[0] == 3)
+        return;
     // Init partition 1/2 by copy paratition 0 if is needed (one time)
     if ((ff_cnt[1] + ff_cnt[2]) > 5) {
         for (i = 1; i < 3; i++) {
@@ -1888,8 +1892,6 @@ void check_eeprom() {
     }
 
     // Check the validity of each value
-    if (ff_cnt[0] == 5)
-        return;
     if (dcoc_list[0][0] == dcoc_list[1][0] && dcoc_list[1][0] == dcoc_list[2][0] && dcoc_list[0][0] == 0x00) {
         ;
     } else {

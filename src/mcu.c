@@ -122,14 +122,20 @@ void main(void) {
 #if (1)
     uint16_t i;
 
-    WAIT(600);
-    I2C_EN = 1;
-
-    // init
     CPU_init();
     WriteReg(0, 0xB0, 0x3E);
     WriteReg(0, 0xB2, 0x03);
     WriteReg(0, 0x80, 0xC8);
+
+    if (I2C_EN == 0)
+        I2C_EN = 2;
+
+    WAIT(100);
+
+    if (I2C_EN == 2)
+        I2C_EN = 1;
+
+    // init
     check_eeprom();
 #endif
 #if (0)
@@ -140,7 +146,7 @@ void main(void) {
 #if (0)
     I2C_Write8_Wait(10, ADDR_EEPROM, 0x80, 0x11);
 #endif
-#if (1)
+#if (0)
     for (i = 0; i < 256; i++) {
         //_outchar(I2C_Read8_Wait(10, ADDR_EEPROM, i));
         I2C_Read8_Wait(10, ADDR_EEPROM, i);
