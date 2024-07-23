@@ -102,7 +102,7 @@ void parse_get_osd_canvas(void);
 
 void msp_tx(uint8_t c) {
     if (msp_tx_en || seconds > 3)
-        RS_tx(c);
+        CMS_tx(c);
 }
 
 uint8_t msp_cmp_fc_variant(const char *variant) {

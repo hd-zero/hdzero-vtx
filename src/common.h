@@ -73,7 +73,7 @@
 
 // mode
 // #define _RF_CALIB
-#define REV_UART
+// #define REV_UART
 // #define VIDEO_PAT
 // #define FIX_EEP
 // #define RESET_CONFIG

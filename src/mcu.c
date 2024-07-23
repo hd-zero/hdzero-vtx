@@ -119,6 +119,7 @@ uint8_t I2C_EN = 0;
 
 void main(void) {
     I2C_EN = 0;
+    WAIT(1000);
 #if (1)
     uint16_t i;
 
@@ -129,8 +130,6 @@ void main(void) {
 
     if (I2C_EN == 0)
         I2C_EN = 2;
-
-    WAIT(100);
 
     if (I2C_EN == 2)
         I2C_EN = 1;
@@ -152,7 +151,56 @@ void main(void) {
         I2C_Read8_Wait(10, ADDR_EEPROM, i);
     }
 #endif
+#if (1)
+    version_info();
+    Init_HW(); // init
+    fc_init(); // init displayport
+
+#ifdef USE_SMARTAUDIO_SW
+    SA_Init();
+#elif defined USE_TRAMP
+    tramp_init();
+#endif
+
+#ifdef _DEBUG_MODE
+    Prompt();
+#endif
+
     // main loop
     while (1) {
+        timer_task();
+#if defined USE_SMARTAUDIO_SW
+        while (SA_task())
+            ;
+#elif defined USE_SMARTAUDIO_HW
+        while (SA_task()) {
+            if (SA_timeout())
+                break;
+        }
+#elif defined USE_TRAMP
+        tramp_receive();
+#endif
+
+#ifdef _RF_CALIB
+        CalibProc();
+#elif defined _DEBUG_MODE
+        Monitor();
+#endif
+        video_detect();
+        OnButton1();
+
+        if (last_SA_lock && seconds < WAIT_SA_CONFIG)
+            ;
+        else {
+            LED_Task();
+            TempDetect(); // temperature dectect
+            PwrLMT();     // RF power ctrl
+            msp_task();
+            Update_EEP_LifeTime();
+            uart_baudrate_detect();
+            runcam_shutter_fix(seconds);
+        }
+        RF_Delay_Init();
     }
+#endif
 }
