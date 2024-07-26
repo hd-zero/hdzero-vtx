@@ -112,7 +112,6 @@ uint8_t I2C_write_byte(uint8_t val) {
 }
 
 uint8_t I2C_Write8(uint8_t slave_addr, uint8_t reg_addr, uint8_t val) {
-#if (1)
     uint8_t slave = slave_addr << 1;
     uint8_t value;
     I2C_start();
@@ -129,7 +128,6 @@ uint8_t I2C_Write8(uint8_t slave_addr, uint8_t reg_addr, uint8_t val) {
     I2C_write_byte(val);
 
     I2C_stop();
-#endif
     // value = I2C_Read8(slave_addr, reg_addr);
     // debugf("\r\n0x%4x, 0x%4x", reg_addr, (uint16_t)val);
     return 0;

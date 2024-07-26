@@ -1807,8 +1807,8 @@ void check_eeprom() {
         }
     }
 
-// If eeprom is new, init partition 0 with default table_power
 #if (0)
+    // If eeprom is new, init partition 0 with default table_power
     if (ff_cnt[0] == (FREQ_NUM_INTERNAL * (POWER_MAX + 1))) {
         for (j = 0; j < FREQ_NUM_INTERNAL; j++) {
             for (k = 0; k < POWER_MAX + 1; k++) {
