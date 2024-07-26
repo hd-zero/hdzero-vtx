@@ -119,9 +119,7 @@ uint8_t I2C_EN = 0;
 
 void main(void) {
     I2C_EN = 0;
-    WAIT(1000);
-#if (1)
-    uint16_t i;
+    WAIT(500);
 
     CPU_init();
     WriteReg(0, 0xB0, 0x3E);
@@ -129,29 +127,10 @@ void main(void) {
     WriteReg(0, 0x80, 0xC8);
 
     if (I2C_EN == 0)
-        I2C_EN = 2;
-
-    if (I2C_EN == 2)
         I2C_EN = 1;
 
     // init
     check_eeprom();
-#endif
-#if (0)
-    for (i = 0; i < 256; i++) {
-        I2C_Write8_Wait(10, ADDR_EEPROM, (uint8_t)i, 0x11);
-    }
-#endif
-#if (0)
-    I2C_Write8_Wait(10, ADDR_EEPROM, 0x80, 0x11);
-#endif
-#if (0)
-    for (i = 0; i < 256; i++) {
-        //_outchar(I2C_Read8_Wait(10, ADDR_EEPROM, i));
-        I2C_Read8_Wait(10, ADDR_EEPROM, i);
-    }
-#endif
-#if (1)
     version_info();
     Init_HW(); // init
     fc_init(); // init displayport
@@ -202,5 +181,4 @@ void main(void) {
         }
         RF_Delay_Init();
     }
-#endif
 }
