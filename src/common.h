@@ -17,6 +17,7 @@
 // #define HDZERO_RACE_V3
 // #define HDZERO_FREESTYLE_V2
 // #define HDZERO_ECO
+// #define HDZERO_AIO
 
 /* define VTX ID start */
 #if defined HDZERO_WHOOP
@@ -37,6 +38,8 @@
 #define VTX_ID 0x5b
 #elif defined HDZERO_ECO
 #define VTX_ID 0x5c
+#elif defined HDZERO_AIO
+#define VTX_ID 0x5d
 #else
 #define VTX_ID 0x00
 #endif
@@ -60,6 +63,8 @@
 #define VTX_NAME "HDZ FREESTYLE V2"
 #elif defined HDZERO_ECO
 #define VTX_NAME "HDZ ECO"
+#elif defined HDZERO_AIO
+#define VTX_NAME "HDZ AIO"
 #else
 #define VTX_NAME "  "
 #endif
@@ -137,6 +142,8 @@
 #define SUART_PORT P0_3
 #elif defined USE_TC3587_RSTB
 #define TC3587_RSTB P0_3
+#elif defined USE_USB_DET
+#define USB_DET P0_3
 #endif
 #define CAM_PWM P0_4
 #define BTN_1   P0_5

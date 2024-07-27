@@ -606,6 +606,9 @@ void TempDetect() {
 #ifdef HDZERO_ECO
             if (temp_new > 10)
                 temp_new -= 10;
+#elif defined HDZERO_AIO
+            if (temp_new > 15)
+                temp_new -= 15;
 #endif
 
             temperature = temperature - (temperature >> 2) + temp_new;
@@ -1723,6 +1726,7 @@ void RF_Delay_Init() {
         DM6300_AUXADC_Calib();
     }
 }
+
 void reset_config() {
     RF_FREQ = 0;
     RF_POWER = 0;
@@ -1766,6 +1770,23 @@ uint8_t check_uart_loopback() {
         return 1;
     } else {
         return 0;
+    }
+}
+#endif
+
+#ifdef USE_USB_DET
+typedef void (*reset_mcu_ptr)(void);
+reset_mcu_ptr reset_mcu = (reset_mcu_ptr)0x0000;
+
+void usb_det_task() {
+    if (USB_DET == 1) {
+        LED_BLUE_OFF;
+        WriteReg(0, 0x8F, 0x10); // reset RF_chip
+        while (USB_DET == 1) {
+            WAIT(1);
+        }
+        // reset 5680
+        reset_mcu();
     }
 }
 #endif
