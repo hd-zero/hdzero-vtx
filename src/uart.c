@@ -29,7 +29,6 @@ volatile BIT_TYPE RS_Xbusy1 = 0;
 #endif
 
 void uart_set_baudrate(uint8_t baudIndex) {
-    baudIndex = 0;
 #if defined _DEBUG_MODE || defined _RF_CALIB
     baudIndex = 0;
 #endif
