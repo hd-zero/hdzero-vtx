@@ -180,5 +180,9 @@ void main(void) {
             runcam_shutter_fix(seconds);
         }
         RF_Delay_Init();
+
+#ifdef USE_USB_DET
+        usb_det_task();
+#endif
     }
 }

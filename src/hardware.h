@@ -105,7 +105,9 @@ void vtx_paralized(void);
 
 void timer_task();
 void RF_Delay_Init();
-
+#ifdef USE_USB_DET
+void usb_det_task();
+#endif
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
 extern uint8_t powerLock;
 #endif

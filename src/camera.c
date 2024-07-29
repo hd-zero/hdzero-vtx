@@ -54,7 +54,7 @@ void camera_ratio_detect(void) {
     case CAMERA_TYPE_RUNCAM_NANO_90:
         camRatio = 1;
         break;
-#ifdef HDZERO_ECO
+#ifdef USE_TP9950
     case CAMERA_TYPE_OUTDATED:
         camRatio = 1;
         break;
@@ -74,10 +74,23 @@ void camera_mode_detect(uint8_t init) {
 
     init = 0;
 
+#ifdef USE_TC3587_RSTB
     TC3587_RSTB = 0;
     WAIT(100);
     TC3587_RSTB = 1;
     WAIT(100);
+#endif
+
+    Set_720P60_8bit(0);
+
+    debugf("\r\nchipID");
+    id = I2C_Read8(ADDR_TP9950, 0xfe);
+    debugf("\r\n    fe:%2x", id);
+    id = I2C_Read8(ADDR_TP9950, 0xff);
+    debugf("\r\n    ff:%2x\r\n", id);
+    WAIT(200);
+
+    debugf("\r\nCamDetect");
 
     Set_720P60_8bit(0);
 
