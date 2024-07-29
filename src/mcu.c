@@ -115,13 +115,22 @@ void version_info(void) {
 #endif
 }
 
+uint8_t I2C_EN = 0;
+
 void main(void) {
-    // init
+    I2C_EN = 0;
+    WAIT(500);
+
     CPU_init();
     WriteReg(0, 0xB0, 0x3E);
     WriteReg(0, 0xB2, 0x03);
     WriteReg(0, 0x80, 0xC8);
-    // WAIT(100);
+
+    if (I2C_EN == 0)
+        I2C_EN = 1;
+
+    // init
+    check_eeprom();
     version_info();
     Init_HW(); // init
     fc_init(); // init displayport

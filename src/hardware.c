@@ -536,7 +536,6 @@ void Init_6300RF(uint8_t freq, uint8_t pwr) {
 }
 
 void Init_HW() {
-    WAIT(100);
     SPI_Init();
     LED_Init();
 #ifdef VIDEO_PAT
@@ -1770,23 +1769,6 @@ uint8_t check_uart_loopback() {
         return 1;
     } else {
         return 0;
-    }
-}
-#endif
-
-#ifdef USE_USB_DET
-typedef void (*reset_mcu_ptr)(void);
-reset_mcu_ptr reset_mcu = (reset_mcu_ptr)0x0000;
-
-void usb_det_task() {
-    if (USB_DET == 1) {
-        LED_BLUE_OFF;
-        WriteReg(0, 0x8F, 0x10); // reset RF_chip
-        while (USB_DET == 1) {
-            WAIT(1);
-        }
-        // reset 5680
-        reset_mcu();
     }
 }
 #endif
