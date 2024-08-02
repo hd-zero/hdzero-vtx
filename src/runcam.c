@@ -358,9 +358,9 @@ void runcam_hv_flip(uint8_t val) {
     else if (val == 1) // hv flip
         RUNCAM_Read_Write(camera_device, 0x000040, 0x002effa9);
     else if (val == 2) // v flip
-        RUNCAM_Read_Write(camera_device, 0x000040, 0x002affa9);
-    else if (val == 3) // h flip
         RUNCAM_Read_Write(camera_device, 0x000040, 0x0026ffa9);
+    else if (val == 3) // h flip
+        RUNCAM_Read_Write(camera_device, 0x000040, 0x002affa9);
 #ifdef _DEBUG_RUNCAM
     debugf("\r\nRUNCAM hvFlip:%02x", (uint16_t)val);
 #endif
