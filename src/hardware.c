@@ -605,7 +605,7 @@ void TempDetect() {
 #ifdef HDZERO_ECO
             if (temp_new > 10)
                 temp_new -= 10;
-#elif defined HDZERO_AIO
+#elif defined HDZERO_AIO5
             if (temp_new > 15)
                 temp_new -= 15;
 #endif
