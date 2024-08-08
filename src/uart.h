@@ -34,6 +34,7 @@ uint8_t RS_rx1_len(void);
 */
 
 void uart_set_baudrate(uint8_t baudIndex);
+void uart_init();
 
 void RS_tx1(uint8_t c);
 uint8_t RS_rx1(void);

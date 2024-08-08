@@ -130,6 +130,7 @@ void main(void) {
         I2C_EN = 1;
 
     // init
+    uart_init();
     check_eeprom();
     version_info();
     Init_HW(); // init
