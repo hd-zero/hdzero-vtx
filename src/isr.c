@@ -40,7 +40,7 @@ void CPU_init(void) {
     TH0 = 139;
     TL0 = 0;
 
-    TH1 = 0xEC; // [7:0] in timer mode 0x10:   ----------------->> 148.5MHz: 0x87; 100MHz: 0xAF; 54MHz: 0xD4; 27MHz: 0xEA
+    TH1 = 0x0E; // [7:0] in timer mode 0x10:   ----------------->> 148.5MHz: 0x87; 100MHz: 0xAF; 54MHz: 0xD4; 27MHz: 0xEA
                 //	               f(clk)
                 //  BaudRate = --------------  (M=16 or 32, decided by PCON double rate flag)
                 //             N*(256-TH1)*M   (N=4 or 12, decided by CKCON [4])
