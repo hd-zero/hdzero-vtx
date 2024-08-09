@@ -40,7 +40,7 @@ void CPU_init(void) {
     TH0 = 139;
     TL0 = 0;
 
-    TH1 = 0x0E; // [7:0] in timer mode 0x10:   ----------------->> 148.5MHz: 0x87; 100MHz: 0xAF; 54MHz: 0xD4; 27MHz: 0xEA
+    TH1 = 0xEC; // [7:0] in timer mode 0x10:   ----------------->> 148.5MHz: 0x87; 100MHz: 0xAF; 54MHz: 0xD4; 27MHz: 0xEA
                 //	               f(clk)
                 //  BaudRate = --------------  (M=16 or 32, decided by PCON double rate flag)
                 //             N*(256-TH1)*M   (N=4 or 12, decided by CKCON [4])
@@ -53,6 +53,7 @@ void CPU_init(void) {
     TCON = 0x50; // [6]   enable timer1
                  // [4]   enable timer0
 
+#if (0)        // IE should be set after uart_init()
     IE = 0xD2; // [7]   enable global interupts  1
                // [6]   enable uart1  interupt   1
                // [5]   enable timer2 interupt   0
@@ -61,5 +62,6 @@ void CPU_init(void) {
                // [2]   enable INT1   interupt   0
                // [1]   enable timer0 interupt   0
                // [0]   enable INT0   interupt   0
+#endif
     IP = 0x10; // UART0=higher priority, Timer 0 = low
 }
