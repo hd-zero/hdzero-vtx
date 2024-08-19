@@ -1392,6 +1392,8 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
     static uint8_t last_mid = 1;
     static uint8_t cms_cnt;
 
+    static uint8_t camera_selected = 0;
+
     uint8_t VirtualBtn = BTN_INVALID;
 
     uint8_t IS_HI_yaw = IS_HI(yaw);
@@ -1765,11 +1767,43 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
             cms_cnt = 0;
             disp_mode = DISPLAY_CMS;
             clear_screen();
-            camera_menu_init();
-            cms_state = CMS_CAM;
+            if (camera_type == CAMERA_TYPE_UNKNOW ||
+                camera_type == CAMERA_TYPE_OUTDATED) {
+                camera_select_menu_init();
+                camera_selected = 0;
+                cms_state = CMS_SELECT_CAM;
+            } else {
+                camera_menu_init();
+                cms_state = CMS_CAM;
+            }
         }
         break;
     }
+
+    case CMS_SELECT_CAM: {
+        if (VirtualBtn == BTN_UP) {
+            camera_selected--;
+            if (camera_selected > CAM_SELECT_EXIT)
+                camera_selected = CAM_SELECT_EXIT;
+            camera_select_menu_cursor_update(camera_selected);
+        } else if (VirtualBtn == BTN_DOWN) {
+            camera_selected++;
+            if (camera_selected > CAM_SELECT_EXIT)
+                camera_selected = CAM_SELECT_RUNCAM_ECO;
+            camera_select_menu_cursor_update(camera_selected);
+        } else if (VirtualBtn == BTN_RIGHT) {
+            camera_is_3v3 = (camera_selected == CAM_SELECT_RUNCAM_ECO);
+            clear_screen();
+            if (camera_selected == CAM_SELECT_EXIT) {
+                disp_mode = DISPLAY_OSD;
+                cms_state = CMS_OSD;
+                msp_tx_cnt = 0;
+            } else {
+                camera_button_enter;
+                cms_state = CMS_CAM;
+            }
+        }
+    } break;
 
     case CMS_CAM: {
         // detect to exit

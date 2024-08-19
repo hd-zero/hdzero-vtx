@@ -96,7 +96,8 @@ typedef enum {
     CMS_CONFIG_NORMAL_POWER,
     CMS_ENTER_CAM,
     CMS_VTX_MENU,
-    CMS_CAM
+    CMS_CAM,
+    CMS_SELECT_CAM,
 } cms_state_e;
 
 typedef enum {

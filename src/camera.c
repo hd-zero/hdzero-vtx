@@ -25,6 +25,8 @@ uint8_t camRatio = 0;
 uint8_t camMenuStatus = CAM_STATUS_IDLE;
 uint8_t reset_isp_need = 0;
 
+uint8_t camera_is_3v3 = 0;
+
 void camera_type_detect(void) {
     camera_type = CAMERA_TYPE_UNKNOW;
 
@@ -537,7 +539,7 @@ void camera_menu_draw_value(void) {
                 uint8ToString(camera_setting_reg_menu[i - 1], str);
                 strcpy(&osd_buf[i][osd_menu_offset + 25], str);
                 break;
-            case CAM_STATUS_HVFLIP:     // hv flip
+            case CAM_STATUS_HVFLIP: // hv flip
                 strcpy(&osd_buf[i][osd_menu_offset + 21], hv_flip_str[camera_setting_reg_menu[i - 1]]);
                 break;
             case CAM_STATUS_NIGHT_MODE: // night mode
@@ -590,19 +592,15 @@ void camera_menu_init(void) {
 
     memset(osd_buf, 0x20, sizeof(osd_buf));
     disp_mode = DISPLAY_CMS;
-    if (camera_type == CAMERA_TYPE_UNKNOW ||
-        camera_type == CAMERA_TYPE_OUTDATED)
-        camera_button_enter;
-    else {
-        for (i = 0; i <= 15; i++) {
-            osd_buf_p = osd_buf[i] + osd_menu_offset + 3;
-            strcpy(osd_buf_p, cam_menu_string[i]);
-        }
-        camera_profile_menu = camera_profile_eep;
-        camera_setting_reg_menu_update();
-        camera_menu_draw_bracket();
-        camera_menu_draw_value();
+
+    for (i = 0; i <= 15; i++) {
+        osd_buf_p = osd_buf[i] + osd_menu_offset + 3;
+        strcpy(osd_buf_p, cam_menu_string[i]);
     }
+    camera_profile_menu = camera_profile_eep;
+    camera_setting_reg_menu_update();
+    camera_menu_draw_bracket();
+    camera_menu_draw_value();
 }
 void camera_menu_show_repower(void) {
     memset(osd_buf, 0x20, sizeof(osd_buf));
@@ -927,3 +925,28 @@ uint8_t camera_status_update(uint8_t op) {
     return ret;
 }
 #endif
+
+void camera_select_menu_init(void) {
+    const char *cam_select_menu_string[] = {
+        " > ENTER ECO CAMERA MENU",
+        "   ENTER LUX CAMERA MENU",
+        "   EXIT",
+    };
+    char *osd_buf_p;
+    uint8_t i;
+
+    for (i = 0; i <= CAM_SELECT_EXIT; i++) {
+        osd_buf_p = osd_buf[i] + osd_menu_offset + 3;
+        strcpy(osd_buf_p, cam_select_menu_string[i]);
+    }
+}
+
+void camera_select_menu_cursor_update(uint8_t index) {
+    uint8_t i;
+    for (i = 0; i <= CAM_SELECT_EXIT; i++) {
+        if (i == index)
+            osd_buf[i][osd_menu_offset + 4] = '>';
+        else
+            osd_buf[i][osd_menu_offset + 4] = ' ';
+    }
+}
