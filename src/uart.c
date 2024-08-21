@@ -46,6 +46,19 @@ void uart_set_baudrate(uint8_t baudIndex) {
 #endif
 }
 
+void uart_init() {
+#ifdef USE_TRAMP
+    // tramp protocol need 115200 bps.
+    BAUDRATE = 0;
+#else
+    BAUDRATE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_BAUDRATE);
+#endif
+    if (BAUDRATE > 1)
+        BAUDRATE = 0;
+
+    uart_set_baudrate(BAUDRATE);
+}
+
 uint8_t RS_ready(void) {
     if (RS_in == RS_out)
         return 0;

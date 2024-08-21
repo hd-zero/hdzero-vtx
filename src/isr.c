@@ -53,6 +53,7 @@ void CPU_init(void) {
     TCON = 0x50; // [6]   enable timer1
                  // [4]   enable timer0
 
+#if (0)        // IE should be set after uart_init()
     IE = 0xD2; // [7]   enable global interupts  1
                // [6]   enable uart1  interupt   1
                // [5]   enable timer2 interupt   0
@@ -61,5 +62,6 @@ void CPU_init(void) {
                // [2]   enable INT1   interupt   0
                // [1]   enable timer0 interupt   0
                // [0]   enable INT0   interupt   0
+#endif
     IP = 0x10; // UART0=higher priority, Timer 0 = low
 }

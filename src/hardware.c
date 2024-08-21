@@ -347,7 +347,6 @@ void Setting_Save() {
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
-        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_TEAM_RACE, TEAM_RACE);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SHORTCUT, SHORTCUT);
 #ifdef _DEBUG_MODE
@@ -363,7 +362,6 @@ void Setting_Save() {
     debugf("    LP_MODE=%d\r\n", (uint16_t)LP_MODE);
     debugf("    PIT_MODE=%d\r\n", (uint16_t)PIT_MODE);
     debugf("    OFFSET_25MW=%d\r\n", (uint16_t)OFFSET_25MW);
-    debugf("    BAUDRATE=%d\r\n", (uint16_t)BAUDRATE);
     debugf("    TEAM_RACE=%d\r\n", (uint16_t)TEAM_RACE);
     debugf("    SHORTCUT=%d\r\n", (uint16_t)SHORTCUT);
 #endif
@@ -375,7 +373,6 @@ void CFG_Back() {
     LP_MODE = (LP_MODE > 2) ? 0 : LP_MODE;
     PIT_MODE = (PIT_MODE > PIT_0MW) ? PIT_OFF : PIT_MODE;
     OFFSET_25MW = (OFFSET_25MW > 20) ? 0 : OFFSET_25MW;
-    BAUDRATE = (BAUDRATE > 1) ? 0 : BAUDRATE;
     TEAM_RACE = (TEAM_RACE > 2) ? 0 : TEAM_RACE;
     SHORTCUT = (SHORTCUT > 1) ? 0 : SHORTCUT;
 }
@@ -468,12 +465,6 @@ void GetVtxParameter() {
         OFFSET_25MW = I2C_Read8(ADDR_EEPROM, EEP_ADDR_25MW);
         TEAM_RACE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_TEAM_RACE);
         SHORTCUT = I2C_Read8(ADDR_EEPROM, EEP_ADDR_SHORTCUT);
-#ifdef USE_TRAMP
-        // tramp protocol need 115200 bps.
-        BAUDRATE = 0;
-#else
-        BAUDRATE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_BAUDRATE);
-#endif
         CFG_Back();
 
 #ifdef _DEBUG_MODE
@@ -553,8 +544,6 @@ void Init_HW() {
     GetVtxParameter();
     Get_EEP_LifeTime();
     camera_init();
-
-    uart_set_baudrate(BAUDRATE);
 //--------- dm6300 --------------------
 // move to RF_Delay_Init()
 #endif
@@ -1512,10 +1501,14 @@ void uart_baudrate_detect(void) {
     if (!msp_tx_en) {
         if (seconds - msp_lst_rcv_sec > 2) {
             msp_lst_rcv_sec = seconds;
+
             BAUDRATE++;
-            CFG_Back();
+            if (BAUDRATE > 1)
+                BAUDRATE = 0;
+
             uart_set_baudrate(BAUDRATE);
-            Setting_Save();
+
+            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
         }
     }
 #endif
