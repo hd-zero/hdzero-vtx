@@ -7,7 +7,6 @@
 #include "isr.h"
 #include "lifetime.h"
 #include "print.h"
-#include "smartaudio_protocol.h"
 #include "spi.h"
 #include "tramp_protocol.h"
 #include "uart.h"
@@ -1143,9 +1142,9 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
     debugf("\r\n    fc_powerLevels %x", (uint16_t)msp_rx_buf[14]);
 #endif
 
-    if (SA_lock || (init_table_done == 0 && !init_table_unsupported)) {
+    if ((init_table_done == 0 && !init_table_unsupported)) {
 #ifdef _DEBUG_MODE
-        debugf("\r\nparseMspVtx_V2 skipped. (SA_lock: %i, init_table_done: %i, init_table_unsupported: %i)\r\n", SA_lock, init_table_done, init_table_unsupported);
+        debugf("\r\nparseMspVtx_V2 skipped. (init_table_done: %i, init_table_unsupported: %i)\r\n", init_table_done, init_table_unsupported);
 #endif
         return;
     }
@@ -1485,15 +1484,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
             PIT_MODE = PIT_0MW;
             vtx_pit = PIT_0MW;
             vtx_shortcut = SHORTCUT;
-            if (!SA_lock) {
-                save_vtx_param();
-            } else {
-                msp_set_vtx_config(POWER_MAX + 1, 0); // enter 0mW for SA
-                WriteReg(0, 0x8F, 0x10);
-                dm6300_init_done = 0;
-                cur_pwr = POWER_MAX + 2;
-                temp_err = 1;
-            }
+            save_vtx_param();
         }
         break;
 
@@ -1508,28 +1499,16 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
             vtx_offset = OFFSET_25MW;
             vtx_team_race = TEAM_RACE;
             vtx_shortcut = SHORTCUT;
-            if (SA_lock) {
-                // PIT_MODE = 2;
-                vtx_pit = PIT_P1MW;
-                Init_6300RF(RF_FREQ, POWER_MAX + 1);
-                cur_pwr = POWER_MAX + 1;
-                DM6300_AUXADC_Calib();
+            save_vtx_param();
+            pit_mode_cfg_done = 1; // avoid to config DM6300 again
+            // SPI_Write(0x6, 0xFF0, 0x00000018);
+            // SPI_Write(0x3, 0xd00, 0x00000003);
+            Init_6300RF(RF_FREQ, RF_POWER);
+            DM6300_AUXADC_Calib();
 #ifdef _DEBUG_MODE
-                debugf("\r\nExit 0mW\r\n");
+            debugf("\r\nExit 0mW\r\n");
 #endif
-                // debugf("\r\n exit0");
-            } else {
-                save_vtx_param();
-                pit_mode_cfg_done = 1; // avoid to config DM6300 again
-                // SPI_Write(0x6, 0xFF0, 0x00000018);
-                // SPI_Write(0x3, 0xd00, 0x00000003);
-                Init_6300RF(RF_FREQ, RF_POWER);
-                DM6300_AUXADC_Calib();
-#ifdef _DEBUG_MODE
-                debugf("\r\nExit 0mW\r\n");
-#endif
-                // debugf("\r\n exit0");
-            }
+            // debugf("\r\n exit0");
         }
 
         if (!(IS_HI_yaw && IS_LO_throttle && IS_LO_roll && IS_LO_pitch))
@@ -1552,13 +1531,13 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_menu_state = VTX_MENU_SAVE_EXIT;
                     else if (VirtualBtn == BTN_RIGHT) {
-                        if ((SA_lock || tramp_lock) == 0) {
+                        if (tramp_lock == 0) {
                             vtx_channel++;
                             if (vtx_channel == FREQ_NUM)
                                 vtx_channel = 0;
                         }
                     } else if (VirtualBtn == BTN_LEFT) {
-                        if ((SA_lock || tramp_lock) == 0) {
+                        if (tramp_lock == 0) {
                             vtx_channel--;
                             if (vtx_channel >= FREQ_NUM)
                                 vtx_channel = FREQ_NUM - 1;
@@ -1573,7 +1552,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_menu_state = VTX_MENU_CHANNEL;
                     else if (VirtualBtn == BTN_RIGHT) {
-                        if ((SA_lock || tramp_lock) == 0) {
+                        if (tramp_lock == 0) {
                             vtx_power++;
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
                             if (powerLock)
@@ -1583,7 +1562,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                                 vtx_power = 0;
                         }
                     } else if (VirtualBtn == BTN_LEFT) {
-                        if ((SA_lock || tramp_lock) == 0) {
+                        if (tramp_lock == 0) {
                             vtx_power--;
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
                             if (powerLock)
@@ -1602,13 +1581,13 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_menu_state = VTX_MENU_POWER;
                     else if (VirtualBtn == BTN_LEFT) {
-                        if ((SA_lock || tramp_lock) == 0) {
+                        if (tramp_lock == 0) {
                             vtx_lp--;
                             if (vtx_lp > 2)
                                 vtx_lp = 2;
                         }
                     } else if (VirtualBtn == BTN_RIGHT) {
-                        if ((SA_lock || tramp_lock) == 0) {
+                        if (tramp_lock == 0) {
                             vtx_lp++;
                             if (vtx_lp > 2)
                                 vtx_lp = 0;
@@ -1623,14 +1602,14 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_menu_state = VTX_MENU_LP_MODE;
                     else if (VirtualBtn == BTN_RIGHT) {
-                        if ((SA_lock || tramp_lock) == 0) {
+                        if (tramp_lock == 0) {
                             if (vtx_pit == PIT_0MW)
                                 vtx_pit = PIT_OFF;
                             else
                                 vtx_pit++;
                         }
                     } else if (VirtualBtn == BTN_LEFT) {
-                        if ((SA_lock || tramp_lock) == 0) {
+                        if (tramp_lock == 0) {
                             if (vtx_pit == PIT_OFF)
                                 vtx_pit = PIT_0MW;
                             else
@@ -1673,13 +1652,13 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_menu_state = VTX_MENU_OFFSET_25MW;
                     else if (VirtualBtn == BTN_LEFT) {
-                        if ((SA_lock || tramp_lock) == 0) {
+                        if (tramp_lock == 0) {
                             vtx_team_race--;
                             if (vtx_team_race > 2)
                                 vtx_team_race = 2;
                         }
                     } else if (VirtualBtn == BTN_RIGHT) {
-                        if ((SA_lock || tramp_lock) == 0) {
+                        if (tramp_lock == 0) {
                             vtx_team_race++;
                             if (vtx_team_race > 2)
                                 vtx_team_race = 0;
@@ -1724,7 +1703,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     } else if (VirtualBtn == BTN_RIGHT) {
                         vtx_menu_state = VTX_MENU_CHANNEL;
                         cms_state = CMS_OSD;
-                        if (SA_lock || tramp_lock) {
+                        if (tramp_lock) {
                             RF_FREQ = vtx_channel;
                             RF_POWER = vtx_power;
                             LP_MODE = vtx_lp;
@@ -1942,9 +1921,7 @@ void save_vtx_param() {
     if (TEAM_RACE)
         boot_0mw_done = 1;
 
-    if (SA_lock)
-        ;
-    else if (tramp_lock)
+    if (tramp_lock)
         ;
     else {
         if (vtx_pit == PIT_0MW)
@@ -1963,8 +1940,6 @@ void set_vtx_param() {
             g_IS_ARMED = 1;
     }
     */
-    if (SA_lock)
-        return;
     if (tramp_lock)
         return;
     if (!rf_delay_init_done)

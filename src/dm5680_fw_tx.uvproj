@@ -434,11 +434,6 @@
               <FilePath>.\msp_displayport.c</FilePath>
             </File>
             <File>
-              <FileName>smartaudio_protocol.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\smartaudio_protocol.c</FilePath>
-            </File>
-            <File>
               <FileName>camera.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\camera.c</FilePath>
