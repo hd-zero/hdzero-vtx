@@ -131,13 +131,11 @@ extern uint8_t heat_protect;
 extern uint8_t fc_lock;
 extern uint8_t vtx_pit;
 extern uint8_t vtx_pit_save;
-extern uint8_t SA_lock;
 extern uint8_t pwr_lmt_sec;
 extern uint8_t pwr_lmt_done;
 
 extern uint8_t cur_pwr;
 
-extern uint8_t last_SA_lock;
 extern uint8_t pwr_init;
 extern uint8_t ch_init;
 

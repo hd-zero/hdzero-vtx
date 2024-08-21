@@ -11,7 +11,6 @@
 #include "msp_displayport.h"
 #include "print.h"
 #include "sfr_ext.h"
-#include "smartaudio_protocol.h"
 #include "spi.h"
 #include "tramp_protocol.h"
 #include "uart.h"
@@ -59,7 +58,6 @@ int16_t temperature = 0;
 uint8_t pwr_offset = 0;
 uint8_t heat_protect = 0;
 
-uint8_t last_SA_lock = 0;
 /*
 cur_pwr:
     0: 25mW
@@ -480,18 +478,6 @@ void GetVtxParameter() {
 
 #ifdef _DEBUG_MODE
         debugf("\r\nUSE EEPROM for VTX setting:RF_FREQ=%d, RF_POWER=%d, LPMODE=%d PIT_MODE=%d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
-#endif
-
-// last_SA_lock
-#if defined USE_SMARTAUDIO_SW || defined USE_SMARTAUDIO_HW
-        last_SA_lock = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK);
-        if (last_SA_lock == 0xff) {
-            last_SA_lock = 0;
-            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK, last_SA_lock);
-        }
-#ifdef _DEBUG_MODE
-        debugf("\r\nlast_SA_lock %x", (uint16_t)last_SA_lock);
-#endif
 #endif
 
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
@@ -932,60 +918,6 @@ void PwrLMT() {
         return;
 
 #ifndef _RF_CALIB
-    if (SA_lock) { // Smart Audio
-        HeatProtect();
-        if (!heat_protect) {
-            if (pwr_lmt_done == 0) {
-                if (pwr_tflg) {
-                    pwr_tflg = 0;
-                    pwr_lmt_sec++;
-
-#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
-                    // test: power plus every sec
-                    if (pwr_lmt_sec >= 3) {
-                        if (RF_POWER == 3) {
-                            if (p_init) {
-                                p = table_power[RF_FREQ][3] - 0x1C;
-                                p_init = 0;
-                            }
-
-                            SPI_Write(0x6, 0xFF0, 0x00000018);
-
-                            if (p >= table_power[RF_FREQ][3]) {
-                                p = table_power[RF_FREQ][3];
-                            } else {
-                                p += 0x4;
-                                debugf("\r\npwr_plus 2dbm,p=%x", (uint16_t)p);
-                            }
-
-                            SPI_Write(0x3, 0xD1C, (uint32_t)p);
-                            SPI_Write(0x3, 0x330, 0x31F); // 1W
-                        }
-                    }
-#endif
-
-#ifdef _DEBUG_MODE
-                    debugf("\r\npwr_lmt_sec %x", (uint16_t)pwr_lmt_sec);
-#endif
-                    if (pwr_lmt_sec >= PWR_LMT_SEC) {
-                        DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
-                        cur_pwr = RF_POWER;
-                        pwr_lmt_done = 1;
-                        pwr_lmt_sec = 0;
-                        // test: power init reset
-                        p_init = 1;
-
-#ifdef _DEBUG_MODE
-                        debugf("\r\nPower limit done.");
-#endif
-                        Prompt();
-                    }
-                }
-            } else {
-                PowerAutoSwitch();
-            }
-        }
-    }
     /*
     else if(!fc_lock){     //No FC connected
         HeatProtect();
@@ -993,7 +925,7 @@ void PwrLMT() {
             PowerAutoSwitch();
     }
     */
-    else if (g_IS_ARMED) { // Armed
+    if (g_IS_ARMED) { // Armed
         PowerAutoSwitch();
         HeatProtect();
     } else { // Disarmed
@@ -1440,9 +1372,6 @@ void OnButton1() {
     static uint16_t cur_sec = 0;
     static uint8_t last_keyon = 0;
 
-    if (SA_lock)
-        return;
-
     if (cur_sec != seconds) {
         cur_sec = seconds;
 
@@ -1638,8 +1567,6 @@ void timer_task() {
 }
 
 void RF_Delay_Init() {
-    static uint8_t SA_saved = 0;
-
 #ifdef _RF_CALIB
     return;
 #endif
@@ -1647,21 +1574,9 @@ void RF_Delay_Init() {
     if (tramp_lock)
         return;
 
-    if (SA_saved == 0) {
-        if (seconds >= WAIT_SA_CONFIG) {
-            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK, SA_lock);
-            SA_saved = 1;
-#ifdef _DEBUG_MODE
-            debugf("\r\nSave SA_lock(%x) to EEPROM", (uint16_t)SA_lock);
-#endif
-        }
-    }
-
     // init_rf
     if (seconds < WAIT_SA_CONFIG) { // wait for SA config vtx
         if (seconds < WAIT_SA_LOCK)
-            return;
-        else if (SA_lock)
             return;
         else
             seconds = WAIT_SA_CONFIG;
@@ -1672,29 +1587,7 @@ void RF_Delay_Init() {
     else
         rf_delay_init_done = 1;
 
-    if (last_SA_lock) {
-#ifdef _DEBUG_MODE
-        debugf("\r\nRF_Delay_Init: SA");
-#endif
-        pwr_lmt_sec = PWR_LMT_SEC;
-        if (SA_lock) {
-            if (pwr_init == POWER_MAX + 2) { // 0mW
-                RF_POWER = POWER_MAX + 2;
-                cur_pwr = POWER_MAX + 2;
-            } else if (PIT_MODE) {
-                Init_6300RF(ch_init, POWER_MAX + 1);
-#ifdef _DEBUG_MODE
-                debugf("\r\n ch%x, pwr%x", (uint16_t)ch_init, (uint16_t)cur_pwr);
-#endif
-            } else {
-                Init_6300RF(ch_init, pwr_init);
-#ifdef _DEBUG_MODE
-                debugf("\r\n ch%x, pwr%x", (uint16_t)ch_init, (uint16_t)cur_pwr);
-#endif
-            }
-            DM6300_AUXADC_Calib();
-        }
-    } else if (!mspVtxLock) {
+    if (!mspVtxLock) {
 #ifdef _DEBUG_MODE
         debugf("\r\nRF_Delay_Init: None");
 #endif

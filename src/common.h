@@ -89,7 +89,6 @@
 // #define _DEBUG_TC3587
 // #define _DEBUG_CAMERA
 // #define _DEBUG_LIFETIME
-// #define _DEBUG_SMARTAUDIO
 // #define _DEBUG_DISPLAYPORT
 // #define _DEBUG_RUNCAM
 // #define _DEBUG_SPI
@@ -117,7 +116,7 @@
 #define PRESS_LL     8
 #define PWR_LMT_SEC  10
 
-#if defined USE_SMARTAUDIO_SW || defined USE_SMARTAUDIO_HW || defined USE_TRAMP
+#if defined USE_TRAMP
 #define WAIT_SA_LOCK   4
 #define WAIT_SA_CONFIG 9
 #else
@@ -138,9 +137,7 @@
 #elif !defined USE_TC3587_LED
 #define LED_1 P0_2
 #endif
-#if defined USE_SMARTAUDIO_SW
-#define SUART_PORT P0_3
-#elif defined USE_TC3587_RSTB
+#if defined USE_TC3587_RSTB
 #define TC3587_RSTB P0_3
 #elif defined USE_USB_DET
 #define USB_DET P0_3
