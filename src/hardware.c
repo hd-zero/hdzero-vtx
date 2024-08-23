@@ -12,7 +12,6 @@
 #include "print.h"
 #include "sfr_ext.h"
 #include "spi.h"
-#include "tramp_protocol.h"
 #include "uart.h"
 
 uint8_t KEYBOARD_ON = 0; // avoid conflict between keyboard and cam_control
@@ -1493,11 +1492,6 @@ uint8_t RF_BW_to_be_changed(void) {
 }
 
 void uart_baudrate_detect(void) {
-#ifdef USE_TRAMP
-    // tramp protocol need 115200 bps.
-    return;
-#else
-
     if (!msp_tx_en) {
         if (seconds - msp_lst_rcv_sec > 2) {
             msp_lst_rcv_sec = seconds;
@@ -1511,7 +1505,6 @@ void uart_baudrate_detect(void) {
             I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
         }
     }
-#endif
 }
 
 void vtx_paralized(void) {
@@ -1563,16 +1556,9 @@ void RF_Delay_Init() {
 #ifdef _RF_CALIB
     return;
 #endif
-
-    if (tramp_lock)
-        return;
-
     // init_rf
-    if (seconds < WAIT_SA_CONFIG) { // wait for SA config vtx
-        if (seconds < WAIT_SA_LOCK)
-            return;
-        else
-            seconds = WAIT_SA_CONFIG;
+    if (seconds < WAIT_FC_CONFIG) { // wait fc config vtx via mspVtx
+        return;
     } else if (rf_delay_init_done)
         return;
     else if (dm6300_init_done)

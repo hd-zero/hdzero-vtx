@@ -13,7 +13,6 @@
 #include "rom.h"
 #include "runcam.h"
 #include "sfr_ext.h"
-#include "tramp_protocol.h"
 #include "uart.h"
 #include "version.h"
 
@@ -40,7 +39,7 @@ void Ext1_isr(void) INTERRUPT(2) {
 }
 
 void UART0_isr() INTERRUPT(4) {
-    if (RI && (tr_tx_busy == 0)) { // RX int
+    if (RI) { // RX int
         RI = 0;
         RS_buf[RS_in++] = SBUF0;
         if (RS_in >= BUF_MAX)
@@ -56,7 +55,7 @@ void UART0_isr() INTERRUPT(4) {
 }
 void UART1_isr() INTERRUPT(6) {
 
-    if (RI1 && (tr_tx_busy == 0)) { // RX int
+    if (RI1) { // RX int
         RI1 = 0;
         RS_buf1[RS_in1++] = SBUF1;
         if (RS_in1 >= BUF1_MAX)
@@ -109,10 +108,6 @@ void main(void) {
     Init_HW(); // init
     fc_init(); // init displayport
 
-#if defined USE_TRAMP
-    tramp_init();
-#endif
-
 #ifdef _DEBUG_MODE
     Prompt();
 #endif
@@ -120,9 +115,6 @@ void main(void) {
     // main loop
     while (1) {
         timer_task();
-#if defined USE_TRAMP
-        tramp_receive();
-#endif
 
 #ifdef _RF_CALIB
         CalibProc();
@@ -131,18 +123,13 @@ void main(void) {
 #endif
         video_detect();
         OnButton1();
-
-        if (seconds < WAIT_SA_CONFIG)
-            ;
-        else {
-            LED_Task();
-            TempDetect(); // temperature dectect
-            PwrLMT();     // RF power ctrl
-            msp_task();
-            Update_EEP_LifeTime();
-            uart_baudrate_detect();
-            runcam_shutter_fix(seconds);
-        }
+        LED_Task();
+        TempDetect(); // temperature dectect
+        PwrLMT();     // RF power ctrl
+        msp_task();
+        Update_EEP_LifeTime();
+        uart_baudrate_detect();
+        runcam_shutter_fix(seconds);
         RF_Delay_Init();
 
 #ifdef USE_USB_DET

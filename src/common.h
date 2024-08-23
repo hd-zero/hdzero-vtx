@@ -92,7 +92,6 @@
 // #define _DEBUG_DISPLAYPORT
 // #define _DEBUG_RUNCAM
 // #define _DEBUG_SPI
-// #define _DEBUG_TRAMP
 #endif
 
 #define Raceband
@@ -115,17 +114,9 @@
 #define PRESS_L      3
 #define PRESS_LL     8
 #define PWR_LMT_SEC  10
-
-#if defined USE_TRAMP
-#define WAIT_SA_LOCK   4
-#define WAIT_SA_CONFIG 9
-#else
-#define WAIT_SA_LOCK   3
-#define WAIT_SA_CONFIG 3
-#endif
-
-#define CFG_TO_SEC 10
-#define DISP_TIME  3 // 3/8s
+#define WAIT_FC_CFG  5
+#define CFG_TO_SEC   10
+#define DISP_TIME    3 // 3/8s
 
 // gpio
 #define SCL     P0_0

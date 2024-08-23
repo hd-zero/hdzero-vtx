@@ -8,7 +8,6 @@
 #include "lifetime.h"
 #include "print.h"
 #include "spi.h"
-#include "tramp_protocol.h"
 #include "uart.h"
 #include "version.h"
 
@@ -1111,9 +1110,6 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
     static uint8_t last_lp = 255;
     static uint8_t last_pit = 255;
 
-    if (tramp_lock)
-        return;
-
     if (cmd_u16 != MSP_GET_VTX_CONFIG)
         return;
 
@@ -1475,8 +1471,6 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
         else {
             cms_state = CMS_OSD;
         }
-        if (tramp_lock)
-            break;
         if (cms_cnt == 3) {
             vtx_channel = RF_FREQ;
             vtx_power = RF_POWER;
@@ -1489,8 +1483,6 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
         break;
 
     case CMS_EXIT_0MW:
-        if (tramp_lock)
-            break;
         if (vtx_pit == PIT_0MW) {
             vtx_channel = RF_FREQ;
             vtx_power = RF_POWER;
@@ -1531,17 +1523,13 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_menu_state = VTX_MENU_SAVE_EXIT;
                     else if (VirtualBtn == BTN_RIGHT) {
-                        if (tramp_lock == 0) {
-                            vtx_channel++;
-                            if (vtx_channel == FREQ_NUM)
-                                vtx_channel = 0;
-                        }
+                        vtx_channel++;
+                        if (vtx_channel == FREQ_NUM)
+                            vtx_channel = 0;
                     } else if (VirtualBtn == BTN_LEFT) {
-                        if (tramp_lock == 0) {
-                            vtx_channel--;
-                            if (vtx_channel >= FREQ_NUM)
-                                vtx_channel = FREQ_NUM - 1;
-                        }
+                        vtx_channel--;
+                        if (vtx_channel >= FREQ_NUM)
+                            vtx_channel = FREQ_NUM - 1;
                     }
                     update_vtx_menu_param(vtx_menu_state);
                     break;
@@ -1552,25 +1540,21 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_menu_state = VTX_MENU_CHANNEL;
                     else if (VirtualBtn == BTN_RIGHT) {
-                        if (tramp_lock == 0) {
-                            vtx_power++;
+                        vtx_power++;
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
-                            if (powerLock)
-                                vtx_power &= 0x01;
+                        if (powerLock)
+                            vtx_power &= 0x01;
 #endif
-                            if (vtx_power > POWER_MAX)
-                                vtx_power = 0;
-                        }
+                        if (vtx_power > POWER_MAX)
+                            vtx_power = 0;
                     } else if (VirtualBtn == BTN_LEFT) {
-                        if (tramp_lock == 0) {
-                            vtx_power--;
+                        vtx_power--;
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
-                            if (powerLock)
-                                vtx_power &= 0x01;
+                        if (powerLock)
+                            vtx_power &= 0x01;
 #endif
-                            if (vtx_power > POWER_MAX)
-                                vtx_power = POWER_MAX;
-                        }
+                        if (vtx_power > POWER_MAX)
+                            vtx_power = POWER_MAX;
                     }
                     update_vtx_menu_param(vtx_menu_state);
                     break;
@@ -1581,17 +1565,13 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_menu_state = VTX_MENU_POWER;
                     else if (VirtualBtn == BTN_LEFT) {
-                        if (tramp_lock == 0) {
-                            vtx_lp--;
-                            if (vtx_lp > 2)
-                                vtx_lp = 2;
-                        }
+                        vtx_lp--;
+                        if (vtx_lp > 2)
+                            vtx_lp = 2;
                     } else if (VirtualBtn == BTN_RIGHT) {
-                        if (tramp_lock == 0) {
-                            vtx_lp++;
-                            if (vtx_lp > 2)
-                                vtx_lp = 0;
-                        }
+                        vtx_lp++;
+                        if (vtx_lp > 2)
+                            vtx_lp = 0;
                     }
                     update_vtx_menu_param(vtx_menu_state);
                     break;
@@ -1602,19 +1582,15 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_menu_state = VTX_MENU_LP_MODE;
                     else if (VirtualBtn == BTN_RIGHT) {
-                        if (tramp_lock == 0) {
-                            if (vtx_pit == PIT_0MW)
-                                vtx_pit = PIT_OFF;
-                            else
-                                vtx_pit++;
-                        }
+                        if (vtx_pit == PIT_0MW)
+                            vtx_pit = PIT_OFF;
+                        else
+                            vtx_pit++;
                     } else if (VirtualBtn == BTN_LEFT) {
-                        if (tramp_lock == 0) {
-                            if (vtx_pit == PIT_OFF)
-                                vtx_pit = PIT_0MW;
-                            else
-                                vtx_pit--;
-                        }
+                        if (vtx_pit == PIT_OFF)
+                            vtx_pit = PIT_0MW;
+                        else
+                            vtx_pit--;
                     }
                     update_vtx_menu_param(vtx_menu_state);
                     break;
@@ -1652,17 +1628,13 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     else if (VirtualBtn == BTN_UP)
                         vtx_menu_state = VTX_MENU_OFFSET_25MW;
                     else if (VirtualBtn == BTN_LEFT) {
-                        if (tramp_lock == 0) {
-                            vtx_team_race--;
-                            if (vtx_team_race > 2)
-                                vtx_team_race = 2;
-                        }
+                        vtx_team_race--;
+                        if (vtx_team_race > 2)
+                            vtx_team_race = 2;
                     } else if (VirtualBtn == BTN_RIGHT) {
-                        if (tramp_lock == 0) {
-                            vtx_team_race++;
-                            if (vtx_team_race > 2)
-                                vtx_team_race = 0;
-                        }
+                        vtx_team_race++;
+                        if (vtx_team_race > 2)
+                            vtx_team_race = 0;
                     }
                     update_vtx_menu_param(vtx_menu_state);
                     break;
@@ -1703,19 +1675,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     } else if (VirtualBtn == BTN_RIGHT) {
                         vtx_menu_state = VTX_MENU_CHANNEL;
                         cms_state = CMS_OSD;
-                        if (tramp_lock) {
-                            RF_FREQ = vtx_channel;
-                            RF_POWER = vtx_power;
-                            LP_MODE = vtx_lp;
-                            PIT_MODE = vtx_pit;
-                            vtx_pit_save = vtx_pit;
-                            OFFSET_25MW = vtx_offset;
-                            SHORTCUT = vtx_shortcut;
-                            CFG_Back();
-                            Setting_Save();
-                        } else {
-                            save_vtx_param();
-                        }
+                        save_vtx_param();
                         fc_init();
                         msp_tx_cnt = 0;
                     }
@@ -1921,14 +1881,10 @@ void save_vtx_param() {
     if (TEAM_RACE)
         boot_0mw_done = 1;
 
-    if (tramp_lock)
-        ;
-    else {
-        if (vtx_pit == PIT_0MW)
-            msp_set_vtx_config(POWER_MAX + 1, 0);
-        else
-            msp_set_vtx_config(RF_POWER, 1);
-    }
+    if (vtx_pit == PIT_0MW)
+        msp_set_vtx_config(POWER_MAX + 1, 0);
+    else
+        msp_set_vtx_config(RF_POWER, 1);
 }
 
 void set_vtx_param() {
@@ -1940,8 +1896,6 @@ void set_vtx_param() {
             g_IS_ARMED = 1;
     }
     */
-    if (tramp_lock)
-        return;
     if (!rf_delay_init_done)
         return;
 
