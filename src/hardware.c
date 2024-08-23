@@ -1557,7 +1557,7 @@ void RF_Delay_Init() {
     return;
 #endif
     // init_rf
-    if (seconds < WAIT_FC_CONFIG) { // wait fc config vtx via mspVtx
+    if (seconds < WAIT_FC_CFG) { // wait fc config vtx via mspVtx
         return;
     } else if (rf_delay_init_done)
         return;
