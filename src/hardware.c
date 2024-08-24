@@ -349,7 +349,6 @@ void Setting_Save() {
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
-        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_TEAM_RACE, TEAM_RACE);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SHORTCUT, SHORTCUT);
 #ifdef _DEBUG_MODE
@@ -365,7 +364,6 @@ void Setting_Save() {
     debugf("    LP_MODE=%d\r\n", (uint16_t)LP_MODE);
     debugf("    PIT_MODE=%d\r\n", (uint16_t)PIT_MODE);
     debugf("    OFFSET_25MW=%d\r\n", (uint16_t)OFFSET_25MW);
-    debugf("    BAUDRATE=%d\r\n", (uint16_t)BAUDRATE);
     debugf("    TEAM_RACE=%d\r\n", (uint16_t)TEAM_RACE);
     debugf("    SHORTCUT=%d\r\n", (uint16_t)SHORTCUT);
 #endif
@@ -377,7 +375,6 @@ void CFG_Back() {
     LP_MODE = (LP_MODE > 2) ? 0 : LP_MODE;
     PIT_MODE = (PIT_MODE > PIT_0MW) ? PIT_OFF : PIT_MODE;
     OFFSET_25MW = (OFFSET_25MW > 20) ? 0 : OFFSET_25MW;
-    BAUDRATE = (BAUDRATE > 1) ? 0 : BAUDRATE;
     TEAM_RACE = (TEAM_RACE > 2) ? 0 : TEAM_RACE;
     SHORTCUT = (SHORTCUT > 1) ? 0 : SHORTCUT;
 }
@@ -401,7 +398,7 @@ void GetVtxParameter() {
 #ifdef FIX_EEP
         for (i = 0; i < FREQ_NUM_INTERNAL; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
-                I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, table_power[0][i][j]);
+                I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, table_power[i][j]);
             }
         }
 #endif
@@ -470,12 +467,6 @@ void GetVtxParameter() {
         OFFSET_25MW = I2C_Read8(ADDR_EEPROM, EEP_ADDR_25MW);
         TEAM_RACE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_TEAM_RACE);
         SHORTCUT = I2C_Read8(ADDR_EEPROM, EEP_ADDR_SHORTCUT);
-#ifdef USE_TRAMP
-        // tramp protocol need 115200 bps.
-        BAUDRATE = 0;
-#else
-        BAUDRATE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_BAUDRATE);
-#endif
         CFG_Back();
 
 #ifdef _DEBUG_MODE
@@ -567,8 +558,6 @@ void Init_HW() {
     GetVtxParameter();
     Get_EEP_LifeTime();
     camera_init();
-
-    uart_set_baudrate(BAUDRATE);
 //--------- dm6300 --------------------
 // move to RF_Delay_Init()
 #endif
@@ -1583,10 +1572,14 @@ void uart_baudrate_detect(void) {
     if (!msp_tx_en) {
         if (seconds - msp_lst_rcv_sec > 2) {
             msp_lst_rcv_sec = seconds;
+
             BAUDRATE++;
-            CFG_Back();
+            if (BAUDRATE > 1)
+                BAUDRATE = 0;
+
             uart_set_baudrate(BAUDRATE);
-            Setting_Save();
+
+            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
         }
     }
 #endif
@@ -1815,8 +1808,7 @@ void check_eeprom() {
     const uint8_t tab_range[2] = {20, 160};
     const uint8_t dcoc_range[2] = {80, 180};
 
-    uint8_t tab_list[3][FREQ_NUM_INTERNAL][POWER_MAX + 1];
-    uint8_t dcoc_list[3][5];
+    uint8_t reg[3];
     uint8_t ff_cnt[3];
     uint8_t i, j, k;
 
@@ -1825,8 +1817,7 @@ void check_eeprom() {
         ff_cnt[i] = 0;
         for (j = 0; j < FREQ_NUM_INTERNAL; j++) {
             for (k = 0; k < POWER_MAX + 1; k++) {
-                tab_list[i][j][k] = I2C_Read8(ADDR_EEPROM, tab_base_address[i] + j * (POWER_MAX + 1) + k);
-                ff_cnt[i] += (tab_list[i][j][k] == 0xff);
+                ff_cnt[i] += (I2C_Read8(ADDR_EEPROM, tab_base_address[i] + j * (POWER_MAX + 1) + k) == 0xff);
             }
         }
     }
@@ -1845,11 +1836,11 @@ void check_eeprom() {
 
     // Init partition 1/2 by copy paratition 0 if is needed (one time)
     if ((ff_cnt[1] + ff_cnt[2]) > (FREQ_NUM_INTERNAL * (POWER_MAX + 1))) {
-        for (i = 1; i < 3; i++) {
-            for (j = 0; j < FREQ_NUM_INTERNAL; j++) {
-                for (k = 0; k < POWER_MAX + 1; k++) {
-                    I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[i] + j * (POWER_MAX + 1) + k, tab_list[0][j][k]);
-                    tab_list[i][j][k] = tab_list[0][j][k];
+        for (j = 0; j < FREQ_NUM_INTERNAL; j++) {
+            for (k = 0; k < POWER_MAX + 1; k++) {
+                reg[0] = I2C_Read8(ADDR_EEPROM, tab_base_address[0] + j * (POWER_MAX + 1) + k);
+                for (i = 1; i < 3; i++) {
+                    I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[i] + j * (POWER_MAX + 1) + k, reg[0]);
                 }
             }
         }
@@ -1859,34 +1850,27 @@ void check_eeprom() {
     // Check the validity of each value
     for (i = 0; i < FREQ_NUM_INTERNAL; i++) {
         for (j = 0; j < POWER_MAX + 1; j++) {
-            if (tab_list[0][i][j] == tab_list[1][i][j] && tab_list[1][i][j] == tab_list[2][i][j] && tab_list[0][i][j] > tab_range[0] && tab_list[0][i][j] < tab_range[1])
+
+            reg[0] = I2C_Read8(ADDR_EEPROM, tab_base_address[0] + i * (POWER_MAX + 1) + j);
+            reg[1] = I2C_Read8(ADDR_EEPROM, tab_base_address[1] + i * (POWER_MAX + 1) + j);
+            reg[2] = I2C_Read8(ADDR_EEPROM, tab_base_address[2] + i * (POWER_MAX + 1) + j);
+
+            if (reg[0] == reg[1] && reg[1] == reg[2] && reg[0] > tab_range[0] && reg[0] < tab_range[1])
                 // all partition are right
                 ;
-            else if (tab_list[0][i][j] == tab_list[1][i][j] && tab_list[1][i][j] != tab_list[2][i][j] && tab_list[0][i][j] > tab_range[0] && tab_list[0][i][j] < tab_range[1]) {
+            else if (reg[0] == reg[1] && reg[1] != reg[2] && reg[0] > tab_range[0] && reg[0] < tab_range[1]) {
                 // partition 2 value is error
-                I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[2] + i * (POWER_MAX + 1) + j, tab_list[0][i][j]);
-                //_outstring("\r\ntab2:");
-                // _outchar('0' + i);
-                //_outchar('0' + j);
-            } else if (tab_list[0][i][j] == tab_list[2][i][j] && tab_list[1][i][j] != tab_list[2][i][j] && tab_list[0][i][j] > tab_range[0] && tab_list[0][i][j] < tab_range[1]) {
+                I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[2] + i * (POWER_MAX + 1) + j, reg[0]);
+            } else if (reg[0] == reg[2] && reg[1] != reg[2] && reg[0] > tab_range[0] && reg[0] < tab_range[1]) {
                 // partition 1 value is error
-                I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[1] + i * (POWER_MAX + 1) + j, tab_list[0][i][j]);
-                //_outstring("\r\ntab1:");
-                //_outchar('0' + i);
-                //_outchar('0' + j);
-            } else if (tab_list[0][i][j] != tab_list[2][i][j] && tab_list[1][i][j] == tab_list[2][i][j] && tab_list[1][i][j] > tab_range[0] && tab_list[1][i][j] < tab_range[1]) {
+                I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[1] + i * (POWER_MAX + 1) + j, reg[0]);
+            } else if (reg[0] != reg[2] && reg[1] == reg[2] && reg[1] > tab_range[0] && reg[1] < tab_range[1]) {
                 // partition 0 value is error
-                I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[0] + i * (POWER_MAX + 1) + j, tab_list[1][i][j]);
-                //_outstring("\r\ntab0:");
-                //_outchar('0' + i);
-                //_outchar('0' + j);
+                I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[0] + i * (POWER_MAX + 1) + j, reg[1]);
             } else {
                 I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[0] + i * (POWER_MAX + 1) + j, table_power[i][j]);
                 I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[1] + i * (POWER_MAX + 1) + j, table_power[i][j]);
                 I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[2] + i * (POWER_MAX + 1) + j, table_power[i][j]);
-                //_outstring("\r\n        tab all:");
-                //_outchar('0' + i);
-                //_outchar('0' + j);
             }
         }
     }
@@ -1895,8 +1879,7 @@ void check_eeprom() {
     for (i = 0; i < 3; i++) {
         ff_cnt[i] = 0;
         for (j = 0; j < 5; j++) {
-            dcoc_list[i][j] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[i] + j);
-            ff_cnt[i] += (dcoc_list[i][j] == 0xff);
+            ff_cnt[i] += (I2C_Read8(ADDR_EEPROM, dcoc_base_address[i] + j) == 0xff);
         }
     }
 
@@ -1904,17 +1887,20 @@ void check_eeprom() {
         return;
     // Init partition 1/2 by copy paratition 0 if is needed (one time)
     if ((ff_cnt[1] + ff_cnt[2]) > 5) {
-        for (i = 1; i < 3; i++) {
-            for (j = 0; j < 5; j++) {
-                I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[i] + j, dcoc_list[0][j]);
-                dcoc_list[i][j] = dcoc_list[0][j];
+        for (j = 0; j < 5; j++) {
+            reg[0] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[0] + j);
+            for (i = 1; i < 3; i++) {
+                I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[i] + j, reg[0]);
             }
         }
         //_outstring("\r\nInit dcoc partition 1, 2");
     }
 
     // Check the validity of each value
-    if (dcoc_list[0][0] == dcoc_list[1][0] && dcoc_list[1][0] == dcoc_list[2][0] && dcoc_list[0][0] == 0x00) {
+    reg[0] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[0] + 0);
+    reg[1] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[1] + 0);
+    reg[2] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[2] + 0);
+    if (reg[0] == reg[1] && reg[1] == reg[2] && reg[0] == 0x00) {
         ;
     } else {
         I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[0], 0);
@@ -1924,22 +1910,25 @@ void check_eeprom() {
     }
 
     for (i = 1; i < 5; i++) {
-        if (dcoc_list[0][i] == dcoc_list[1][i] && dcoc_list[1][i] == dcoc_list[2][i] && dcoc_list[0][i] > dcoc_range[0] && dcoc_list[0][i] < dcoc_range[1])
+        reg[0] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[0] + i);
+        reg[1] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[1] + i);
+        reg[2] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[2] + i);
+        if (reg[0] == reg[1] && reg[1] == reg[2] && reg[0] > dcoc_range[0] && reg[0] < dcoc_range[1])
             // all partition are right
             ;
-        else if (dcoc_list[0][i] == dcoc_list[1][i] && dcoc_list[1][i] != dcoc_list[2][i] && dcoc_list[0][i] > dcoc_range[0] && dcoc_list[0][i] < dcoc_range[1]) {
+        else if (reg[0] == reg[1] && reg[1] != reg[2] && reg[0] > dcoc_range[0] && reg[0] < dcoc_range[1]) {
             // partition 2 value is error
-            I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[2] + i, dcoc_list[0][i]);
+            I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[2] + i, reg[0]);
             //_outstring("\r\ndcoc2:");
             //_outchar('0' + i);
-        } else if (dcoc_list[0][i] != dcoc_list[1][i] && dcoc_list[1][i] == dcoc_list[2][i] && dcoc_list[1][i] > dcoc_range[0] && dcoc_list[1][i] < dcoc_range[1]) {
+        } else if (reg[0] != reg[1] && reg[1] == reg[2] && reg[1] > dcoc_range[0] && reg[1] < dcoc_range[1]) {
             // partition 0 value is error
-            I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[0] + i, dcoc_list[1][i]);
+            I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[0] + i, reg[1]);
             //_outstring("\r\ndcoc0:");
             //_outchar('0' + i);
-        } else if (dcoc_list[0][i] != dcoc_list[1][i] && dcoc_list[0][i] == dcoc_list[2][i] && dcoc_list[0][i] > dcoc_range[0] && dcoc_list[0][i] < dcoc_range[1]) {
+        } else if (reg[0] != reg[1] && reg[0] == reg[2] && reg[0] > dcoc_range[0] && reg[0] < dcoc_range[1]) {
             // partition 1 value is error
-            I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[1] + i, dcoc_list[0][i]);
+            I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[1] + i, reg[0]);
             //_outstring("\r\ndcoc1:");
             //_outchar('0' + i);
         } else {

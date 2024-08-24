@@ -129,7 +129,18 @@ void main(void) {
     if (I2C_EN == 0)
         I2C_EN = 1;
 
-    // init
+    uart_init();
+
+    // IE should be set after uart_init()
+    IE = 0xD2; // [7]   enable global interupts  1
+               // [6]   enable uart1  interupt   1
+               // [5]   enable timer2 interupt   0
+               // [4]   enable uart0  interupt   1
+               // [3]   enable timer1 interupt   0
+               // [2]   enable INT1   interupt   0
+               // [1]   enable timer0 interupt   0
+               // [0]   enable INT0   interupt   0
+
     check_eeprom();
     version_info();
     Init_HW(); // init
