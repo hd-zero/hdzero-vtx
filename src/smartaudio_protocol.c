@@ -168,30 +168,12 @@ void SA_Response(uint8_t cmd) {
 }
 
 void SA_Update(uint8_t cmd) {
-#ifdef _DEBUG_SMARTAUDIO
-    if (SUART_ready()) {
-        _outchar('^');
-        return;
-    }
-#endif
     switch (cmd) {
-#ifdef _DEBUG_SMARTAUDIO
-    case SA_GET_SETTINGS:
-        _outchar('G');
-        debugf(" ch:%x", (uint16_t)ch_init);
-        debugf(" pwr:%x", (uint16_t)pwr_init);
-        debugf(" mode:%x", (uint16_t)mode_o);
-        break;
-#endif
 
     case SA_SET_PWR:
         if (!(sa_rbuf[0] >> 7))
             return;
         SA_dbm = sa_rbuf[0] & 0x7f;
-
-#ifdef _DEBUG_SMARTAUDIO
-        debugf("dbm:%x", (uint16_t)SA_dbm);
-#endif
 
         if (SA_dbm_last != SA_dbm) { // need to update power
             if (SA_dbm == 0) {       // Enter 0mW
@@ -202,9 +184,6 @@ void SA_Update(uint8_t cmd) {
                 if (last_SA_lock && seconds < WAIT_SA_CONFIG) {
                     pwr_init = cur_pwr;
                 } else {
-#ifdef _DEBUG_SMARTAUDIO
-                    debugf("\n\rEnter 0mW");
-#endif
                     WriteReg(0, 0x8F, 0x10); // reset RF_chip
                     dm6300_init_done = 0;
                     temp_err = 1;
@@ -217,10 +196,6 @@ void SA_Update(uint8_t cmd) {
                 if (last_SA_lock && seconds < WAIT_SA_CONFIG)
                     pwr_init = cur_pwr;
                 else {
-#ifdef _DEBUG_MDOE
-                    debugf("\n\rExit 0mW");
-#endif
-
                     Init_6300RF(RF_FREQ, RF_POWER);
                     PIT_MODE = 0;
 
@@ -256,12 +231,6 @@ void SA_Update(uint8_t cmd) {
         uint8_t const channel = bfChannel_to_channel(sa_rbuf[0]);
         if (channel < INVALID_CHANNEL) {
             ch_bf = sa_rbuf[0];
-
-#ifdef _DEBUG_SMARTAUDIO
-            _outchar('C');
-            debugf("%x", (uint16_t)channel);
-#endif
-
             if (channel != RF_FREQ) {
                 RF_FREQ = channel;
                 if (last_SA_lock && (seconds < WAIT_SA_CONFIG))
@@ -279,12 +248,6 @@ void SA_Update(uint8_t cmd) {
         uint8_t const channel = DM6300_GetChannelByFreq(freq);
         if (channel < INVALID_CHANNEL) {
             ch_bf = channel_to_bfChannel(channel);
-
-#ifdef _DEBUG_SMARTAUDIO
-            _outchar('F');
-            debugf("%x", (uint16_t)channel);
-#endif
-
             if (channel != RF_FREQ) {
                 RF_FREQ = channel;
                 if (last_SA_lock && (seconds < WAIT_SA_CONFIG))
@@ -318,9 +281,6 @@ void SA_Update(uint8_t cmd) {
                     cur_pwr = POWER_MAX + 2;
                     PIT_MODE = 0;
                     vtx_pit = PIT_0MW;
-#ifdef _DEBUG_SMARTAUDIO
-                    debugf("\n\rSA:Enter 0mW");
-#endif
                     WriteReg(0, 0x8F, 0x10); // reset RF_chip
                     dm6300_init_done = 0;
                     temp_err = 1;
@@ -335,9 +295,6 @@ void SA_Update(uint8_t cmd) {
                     cur_pwr = POWER_MAX + 2;
                     PIT_MODE = 0;
                     vtx_pit = PIT_0MW;
-#ifdef _DEBUG_SMARTAUDIO
-                    debugf("\n\rSA:Enter 0mW");
-#endif
                     WriteReg(0, 0x8F, 0x10); // reset RF_chip
                     dm6300_init_done = 0;
                     temp_err = 1;
@@ -347,9 +304,6 @@ void SA_Update(uint8_t cmd) {
                     if ((RF_POWER == 3) && (!g_IS_ARMED)) {
                         pwr_lmt_done = 0;
                         cur_pwr = 3;
-#ifdef _DEBUG_SMARTAUDIO
-                        debugf("\r\npwr_lmt_done reset");
-#endif
                     } else
 #endif
 #endif
@@ -362,16 +316,9 @@ void SA_Update(uint8_t cmd) {
 
             Setting_Save();
         }
-#ifdef _DEBUG_SMARTAUDIO
-        debugf("M_P:%x  ", (uint16_t)mode_p);
-        debugf("M_O:%x", (uint16_t)mode_o);
-#endif
         break;
 
     default:
-#ifdef _DEBUG_SMARTAUDIO
-        _outchar('#');
-#endif
         break;
     }
 }
@@ -386,11 +333,6 @@ uint8_t SA_task(void) {
             SA_is_0 = 1;
             IE = 0xC2; // UART1 & Timer0 enabled, UART0 disabled
             st = 1;
-#ifdef _DEBUG_SMARTAUDIO
-            _outchar('\n');
-            _outchar('\r');
-            _outchar('<');
-#endif
         }
     } else {
         if (SA_Process()) {
@@ -398,9 +340,6 @@ uint8_t SA_task(void) {
             IE = 0xD2; // UART1 & Timer0 enabled, UART0 0 enable
             st = 0;
             SA = 0xFF;
-#ifdef _DEBUG_SMARTAUDIO
-            _outchar('>');
-#endif
         }
     }
     return st;
@@ -430,12 +369,6 @@ uint8_t SA_Process() {
 
     if (SUART_ready()) {
         rx = SUART_rx();
-#if (1)
-        CMS_tx(rx);
-#endif
-#ifdef _DEBUG_SMARTAUDIO
-// debugf("%x ", (uint16_t)rx);
-#endif
         switch (status) {
         case SA_HEADER0:
             if (rx == SA_HEADER0_BYTE) {
@@ -497,10 +430,6 @@ uint8_t SA_Process() {
                 SA_lock = 1;
                 SA_Update(cmd);
                 SA_Response(cmd);
-            } else {
-#ifdef _DEBUG_SMARTAUDIO
-                _outchar('$');
-#endif
             }
             ret = 1;
             status = SA_HEADER0;
@@ -511,11 +440,8 @@ uint8_t SA_Process() {
             status = SA_HEADER0;
             break;
         }
-    } else {
-#ifdef _DEBUG_SMARTAUDIO
-        _outchar('.');
-#endif
     }
+
     return ret;
 }
 

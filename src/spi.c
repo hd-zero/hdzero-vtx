@@ -137,10 +137,4 @@ void SPI_Read(uint8_t trans, uint16_t addr, uint32_t *dat_l) {
     SET_CS(1); // end
     SET_CK(0);
     SET_DO(0);
-
-#ifdef _DEBUG_SPI
-    rlh = ((*dat_l) >> 16) & 0xFFFF;
-    rll = (*dat_l) & 0xFFFF;
-    debugf("\r\nSPI READ: addr=%x  data=%x%x.\r\n", addr, rlh, rll);
-#endif
 }

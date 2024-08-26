@@ -60,10 +60,6 @@ static void set_freq(uint16_t freq) {
                 DM6300_SetChannel(RF_FREQ);
             }
         }
-#ifdef _DEBUG_TRAMP
-        _outchar('0' + ch / 10);
-        _outchar('0' + ch % 10);
-#endif
     }
 }
 
@@ -145,12 +141,6 @@ static uint8_t tramp_reply(void) {
     const uint8_t locked = 0;
     uint8_t pitmode = 0;
 
-#ifdef _DEBUG_TRAMP
-    _outchar('\r');
-    _outchar('\n');
-    _outchar('<');
-    _outchar(respCode);
-#endif
     memset(tbuf, 0x00, 16);
     switch (respCode) {
     case 'r': {
@@ -164,9 +154,6 @@ static uint8_t tramp_reply(void) {
         tbuf[7] = 200 >> 8;
 
         trampResponse();
-#ifdef _DEBUG_TRAMP
-        _outchar('>');
-#endif
         return respCode;
     }
 
@@ -183,28 +170,18 @@ static uint8_t tramp_reply(void) {
         tbuf[9] = power >> 8;
 
         trampResponse();
-#ifdef _DEBUG_TRAMP
-        _outchar('>');
-#endif
         return respCode;
     }
 
     case 'F': {
         freq = ((uint16_t)rbuf[2] & 0xff) | ((uint16_t)rbuf[3] << 8);
         set_freq(freq);
-#ifdef _DEBUG_TRAMP
-        _outchar('>');
-#endif
         return respCode;
     }
 
     case 'P': {
         power = ((uint16_t)rbuf[2] & 0xff) | ((uint16_t)rbuf[3] << 8);
         set_power(power);
-#ifdef _DEBUG_TRAMP
-        _outchar('0' + RF_POWER);
-        _outchar('>');
-#endif
         return respCode;
     }
 
@@ -215,9 +192,6 @@ static uint8_t tramp_reply(void) {
         tbuf[7] = 0x00;
 
         trampResponse();
-#ifdef _DEBUG_TRAMP
-        _outchar('>');
-#endif
         return respCode;
     }
 
@@ -257,12 +231,6 @@ void tramp_receive(void) {
                     tramp_lock = 1;
                     tramp_reply();
                 }
-#ifdef _DEBUG_TRAMP
-                else {
-                    _outchar('?');
-                    _outchar(rbuf[1]);
-                }
-#endif
 
                 // Reset state machine ready for next response
                 tramp_reset_receive();

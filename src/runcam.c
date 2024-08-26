@@ -230,9 +230,6 @@ void runcam_brightness(uint8_t val, uint8_t led_mode) {
     d -= ((uint32_t)camera_attribute[0][CAM_SETTING_ITEM_DEFAULT] << 16);
 
     RUNCAM_Read_Write(camera_device, 0x50, d);
-#ifdef _DEBUG_RUNCAM
-    debugf("\r\nRUNCAM brightness:0x%02x, led_mode:%02x", (uint16_t)val, (uint16_t)led_mode);
-#endif
 }
 
 void runcam_sharpness(uint8_t val) {
@@ -257,9 +254,6 @@ void runcam_sharpness(uint8_t val) {
         RUNCAM_Read_Write(camera_device, 0x0003CC, 0x28303840);
         RUNCAM_Read_Write(camera_device, 0x0003D8, 0x28303840);
     }
-#ifdef _DEBUG_RUNCAM
-    debugf("\r\nRUNCAM sharpness:0x%02x", (uint16_t)val);
-#endif
 }
 
 void runcam_contrast(uint8_t val) {
@@ -280,9 +274,6 @@ void runcam_contrast(uint8_t val) {
         d += 0x04040404;
 
     RUNCAM_Read_Write(camera_device, 0x00038C, d);
-#ifdef _DEBUG_RUNCAM
-    debugf("\r\nRUNCAM contrast:%02x", (uint16_t)val);
-#endif
 }
 
 void runcam_saturation(uint8_t val) {
@@ -313,10 +304,6 @@ void runcam_saturation(uint8_t val) {
         d += 0x04041418;
 
     RUNCAM_Read_Write(camera_device, 0x0003A4, d);
-
-#ifdef _DEBUG_RUNCAM
-    debugf("\r\nRUNCAM saturation:%02x", (uint16_t)val);
-#endif
 }
 
 void runcam_wb(uint8_t wbMode, uint8_t wbRed, uint8_t wbBlue) {
@@ -341,10 +328,6 @@ void runcam_wb(uint8_t wbMode, uint8_t wbRed, uint8_t wbBlue) {
     } else { // AWB
         RUNCAM_Read_Write(camera_device, 0x0001b8, 0x020b0079);
     }
-#ifdef _DEBUG_RUNCAM
-    debugf("\r\nRUNCAM wb:red(%02x),blue(%02x),mode(%02x)",
-           (uint16_t)wbRed, (uint16_t)wbBlue, (uint16_t)wbMode);
-#endif
 }
 
 void runcam_hv_flip(uint8_t val) {
@@ -361,9 +344,6 @@ void runcam_hv_flip(uint8_t val) {
         RUNCAM_Read_Write(camera_device, 0x000040, 0x0026ffa9);
     else if (val == 3) // h flip
         RUNCAM_Read_Write(camera_device, 0x000040, 0x002affa9);
-#ifdef _DEBUG_RUNCAM
-    debugf("\r\nRUNCAM hvFlip:%02x", (uint16_t)val);
-#endif
 }
 
 void runcam_night_mode(uint8_t val) {
@@ -393,9 +373,6 @@ void runcam_night_mode(uint8_t val) {
         RUNCAM_Read_Write(camera_device, 0x00071c, 0x29002800);
         RUNCAM_Read_Write(camera_device, 0x000720, 0x29002900);
     }
-#ifdef _DEBUG_RUNCAM
-    debugf("\r\nRUNCAM nightMode:%02x", (uint16_t)val);
-#endif
 }
 
 uint8_t runcam_video_format(uint8_t val) {
@@ -457,19 +434,11 @@ uint8_t runcam_video_format(uint8_t val) {
             ret |= RUNCAM_Read_Write(camera_device, 0x000008, 0x8208811f);
     }
 
-#ifdef _DEBUG_RUNCAM
-    debugf("\r\nRUNCAM video format:%02x", (uint16_t)val);
-#endif
-
     return ret;
 }
 
 void runcam_shutter(uint8_t val) {
     uint32_t dat = 0;
-
-#ifdef _DEBUG_RUNCAM
-    debugf("\r\nRUNCAM shutter:%02x", (uint16_t)val);
-#endif
 
     camera_setting_reg_set[4] = val;
     if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1) {
@@ -490,7 +459,7 @@ void runcam_shutter(uint8_t val) {
             RUNCAM_Write(camera_device, 0x000044, 0x80009629);
             WAIT(50);
         } else { // manual
-            dat = (uint32_t)(val)*25;
+            dat = (uint32_t)(val) * 25;
         }
 
         RUNCAM_Write(camera_device, 0x00006c, dat);
@@ -512,7 +481,7 @@ void runcam_shutter_fix(uint16_t sec) {
             if (val == 0) {
                 dat = 0x447;
             } else {
-                dat = (uint32_t)(val)*25;
+                dat = (uint32_t)(val) * 25;
             }
 
             RUNCAM_Write(camera_device, 0x00006c, dat);
@@ -536,16 +505,10 @@ uint8_t runcam_setting_update_need(uint8_t *setting_p, uint8_t start, uint8_t st
 void runcam_save(void) {
     RUNCAM_Write(camera_device, 0x000694, 0x00000310);
     RUNCAM_Write(camera_device, 0x000694, 0x00000311);
-#ifdef _DEBUG_RUNCAM
-    debugf("\r\nRUNCAM Save");
-#endif
 }
 
 void runcam_reset_isp(void) {
     RUNCAM_Write(camera_device, 0x000694, 0x00000130);
-#ifdef _DEBUG_RUNCAM
-    debugf("\r\nRUNCAM reset isp");
-#endif
 }
 
 uint8_t runcam_set(uint8_t *setting_profile) {

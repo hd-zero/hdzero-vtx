@@ -128,8 +128,7 @@ uint8_t I2C_Write8(uint8_t slave_addr, uint8_t reg_addr, uint8_t val) {
     I2C_write_byte(val);
 
     I2C_stop();
-    // value = I2C_Read8(slave_addr, reg_addr);
-    // debugf("\r\n0x%4x, 0x%4x", reg_addr, (uint16_t)val);
+
     return 0;
 }
 
@@ -142,7 +141,6 @@ uint8_t I2C_Write8_Wait(uint16_t ms, uint8_t slave_addr, uint8_t reg_addr, uint8
 
 uint8_t I2C_Write16(uint8_t slave_addr, uint16_t reg_addr, uint16_t val) {
     uint8_t slave, reg_addr_1, value;
-    uint16_t rdat;
 
     slave = slave_addr << 1;
 
@@ -170,14 +168,11 @@ uint8_t I2C_Write16(uint8_t slave_addr, uint16_t reg_addr, uint16_t val) {
 
     I2C_stop();
 
-    rdat = I2C_Read16(slave_addr, reg_addr);
-    // debugf("\r\n0x%4x, 0x%4x", reg_addr, (uint16_t)val);
     return 0;
 }
 
 uint8_t I2C_Write16_a8(uint8_t slave_addr, uint8_t reg_addr, uint16_t val) {
     uint8_t slave, value;
-    uint16_t rdat;
 
     slave = slave_addr << 1;
 
@@ -201,8 +196,6 @@ uint8_t I2C_Write16_a8(uint8_t slave_addr, uint8_t reg_addr, uint16_t val) {
 
     I2C_stop();
 
-    rdat = I2C_Read16(slave_addr, reg_addr);
-    // debugf("\r\n0x%4x, 0x%4x", reg_addr, (uint16_t)val);
     return 0;
 }
 uint8_t I2C_read_byte(uint8_t no_ack) {
@@ -341,9 +334,6 @@ uint8_t RUNCAM_Write(uint8_t cam_id, uint32_t addr, uint32_t val) {
     value = I2C_write_byte(cam_id); // slave
     if (value) {
         I2C_stop();
-#ifdef _DEBUG_RUNCAM
-        debugf("\r\nRUNCAM_Write error id: %x value: %d", (uint16_t)cam_id, (uint16_t)value);
-#endif
         return 1;
     }
 
@@ -371,11 +361,8 @@ uint8_t RUNCAM_Write(uint8_t cam_id, uint32_t addr, uint32_t val) {
     I2C_write_byte(value);
 
     I2C_stop(); // stop
-#ifdef _DEBUG_RUNCAM
-    debugf("\r\nRUNCAM_Write: %d, %d, %d", (uint16_t)cam_id, (uint16_t)addr, (uint16_t)val);
-#else
+
     WAIT(10);
-#endif
 
     return 0;
 }
@@ -416,11 +403,8 @@ uint32_t RUNCAM_Read(uint8_t cam_id, uint32_t addr) {
     ret = (ret << 8) | value;
 
     I2C_stop(); // stop
-#ifdef _DEBUG_RUNCAM
-    debugf("\r\nRUNCAM_Read: %d, %d: %d", (uint16_t)cam_id, (uint16_t)addr, (uint16_t)ret);
-#else
+
     WAIT(10);
-#endif
 
     return ret;
 }
