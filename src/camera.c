@@ -930,16 +930,16 @@ uint8_t camera_status_update(uint8_t op) {
 
 void camera_select_menu_init(void) {
     const char *cam_select_menu_string[] = {
-        " > ENTER ECO CAMERA MENU",
-        "   ENTER LUX CAMERA MENU",
-        "   CAMERA RATIO    <      >",
-        "   EXIT",
+        "> ECO CAMERA MENU",
+        "  LUX CAMERA MENU",
+        "  VTX RATIO FOR LUX CAMERA <      >",
+        "  EXIT",
     };
     char *osd_buf_p;
     uint8_t i;
 
     for (i = 0; i <= CAM_SELECT_EXIT; i++) {
-        osd_buf_p = osd_buf[i] + osd_menu_offset + 3;
+        osd_buf_p = osd_buf[i] + osd_menu_offset;
         strcpy(osd_buf_p, cam_select_menu_string[i]);
     }
     camera_select_menu_ratio_upate();
@@ -949,15 +949,20 @@ void camera_select_menu_cursor_update(uint8_t index) {
     uint8_t i;
     for (i = 0; i <= CAM_SELECT_EXIT; i++) {
         if (i == index)
-            osd_buf[i][osd_menu_offset + 4] = '>';
+            osd_buf[i][osd_menu_offset] = '>';
         else
-            osd_buf[i][osd_menu_offset + 4] = ' ';
+            osd_buf[i][osd_menu_offset] = ' ';
     }
 }
 
 void camera_select_menu_ratio_upate() {
     if (camRatio == 1)
-        strcpy(osd_buf[2] + osd_menu_offset + 24, " 4:3");
+        strcpy(osd_buf[2] + osd_menu_offset + 29, " 4:3");
     else
-        strcpy(osd_buf[2] + osd_menu_offset + 24, "16:9");
+        strcpy(osd_buf[2] + osd_menu_offset + 29, "16:9");
+}
+
+void camera_menu_mode_exit_note() {
+    const char note_string[] = "LEFT MOVE THROTTLE TO EXIT CAMERA MENU";
+    strcpy(osd_buf[15] + 2, note_string);
 }

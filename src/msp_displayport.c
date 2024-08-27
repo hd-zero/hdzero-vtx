@@ -1812,12 +1812,14 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                         msp_tx_cnt = 0;
                     } else {
                         camera_button_enter;
+                        camera_menu_mode_exit_note();
                         cms_state = CMS_CAM;
                     }
                 }
             }
         }
-    } break;
+        break;
+    }
 
     case CMS_CAM: {
         // detect to exit
