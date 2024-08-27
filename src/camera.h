@@ -86,6 +86,8 @@ typedef enum {
 typedef enum {
     CAM_SELECT_RUNCAM_ECO = 0,
     CAM_SELECT_RUNCAM_LUX,
+
+    CAM_SELECT_RATIO,
     CAM_SELECT_EXIT,
 } camera_select_e;
 
@@ -94,6 +96,7 @@ uint8_t camera_status_update(uint8_t op);
 void camera_menu_init(void);
 void camera_select_menu_init(void);
 void camera_select_menu_cursor_update(uint8_t index);
+void camera_select_menu_ratio_upate();
 
 extern uint8_t camRatio;
 extern uint8_t video_format;

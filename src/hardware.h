@@ -37,6 +37,7 @@ typedef enum {
 #define EEP_ADDR_BAUDRATE     0x8B
 #define EEP_ADDR_LOWBAND_LOCK 0x8C
 #define EEP_ADDR_SHORTCUT     0x8D
+#define EEP_ADDR_CAM_RATIO    0x8E
 #define EEP_ADDR_TAB3         0xA0 // 0xA0 - 0xBF
 #define EEP_ADDR_DCOC1        0xC0 // 0xC0 - 0xC4
 #define EEP_ADDR_DCOC_EN      0xC0

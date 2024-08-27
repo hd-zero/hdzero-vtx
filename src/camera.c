@@ -21,7 +21,7 @@ uint8_t camera_setting_reg_menu[CAMERA_SETTING_NUM];
 uint8_t camera_profile_menu;
 
 uint8_t video_format = VDO_FMT_720P60;
-uint8_t camRatio = 0;
+uint8_t camRatio = 0; // 0->16:9   1->4:3
 uint8_t camMenuStatus = CAM_STATUS_IDLE;
 uint8_t reset_isp_need = 0;
 
@@ -58,7 +58,9 @@ void camera_ratio_detect(void) {
         break;
 #ifdef USE_TP9950
     case CAMERA_TYPE_OUTDATED:
-        camRatio = 1;
+        camRatio = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_CAM_RATIO);
+        if (camRatio > 1)
+            camRatio = 1;
         break;
 #endif
     default:
@@ -930,6 +932,7 @@ void camera_select_menu_init(void) {
     const char *cam_select_menu_string[] = {
         " > ENTER ECO CAMERA MENU",
         "   ENTER LUX CAMERA MENU",
+        "   CAMERA RATIO    <      >",
         "   EXIT",
     };
     char *osd_buf_p;
@@ -939,6 +942,7 @@ void camera_select_menu_init(void) {
         osd_buf_p = osd_buf[i] + osd_menu_offset + 3;
         strcpy(osd_buf_p, cam_select_menu_string[i]);
     }
+    camera_select_menu_ratio_upate();
 }
 
 void camera_select_menu_cursor_update(uint8_t index) {
@@ -949,4 +953,11 @@ void camera_select_menu_cursor_update(uint8_t index) {
         else
             osd_buf[i][osd_menu_offset + 4] = ' ';
     }
+}
+
+void camera_select_menu_ratio_upate() {
+    if (camRatio == 1)
+        strcpy(osd_buf[2] + osd_menu_offset + 24, " 4:3");
+    else
+        strcpy(osd_buf[2] + osd_menu_offset + 24, "16:9");
 }

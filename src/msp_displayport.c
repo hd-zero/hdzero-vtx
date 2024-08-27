@@ -1792,16 +1792,28 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                 if (camera_selected > CAM_SELECT_EXIT)
                     camera_selected = CAM_SELECT_RUNCAM_ECO;
                 camera_select_menu_cursor_update(camera_selected);
+            } else if (VirtualBtn == BTN_LEFT) {
+                if (camera_selected == CAM_SELECT_RATIO) {
+                    camRatio = 1 - camRatio;
+                    camera_select_menu_ratio_upate();
+                    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_CAM_RATIO, camRatio);
+                }
             } else if (VirtualBtn == BTN_RIGHT) {
-                camera_is_3v3 = (camera_selected == CAM_SELECT_RUNCAM_ECO);
-                clear_screen();
-                if (camera_selected == CAM_SELECT_EXIT) {
-                    disp_mode = DISPLAY_OSD;
-                    cms_state = CMS_OSD;
-                    msp_tx_cnt = 0;
+                if (camera_selected == CAM_SELECT_RATIO) {
+                    camRatio = 1 - camRatio;
+                    camera_select_menu_ratio_upate();
+                    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_CAM_RATIO, camRatio);
                 } else {
-                    camera_button_enter;
-                    cms_state = CMS_CAM;
+                    camera_is_3v3 = (camera_selected == CAM_SELECT_RUNCAM_ECO);
+                    clear_screen();
+                    if (camera_selected == CAM_SELECT_EXIT) {
+                        disp_mode = DISPLAY_OSD;
+                        cms_state = CMS_OSD;
+                        msp_tx_cnt = 0;
+                    } else {
+                        camera_button_enter;
+                        cms_state = CMS_CAM;
+                    }
                 }
             }
         }
