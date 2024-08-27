@@ -69,6 +69,10 @@ uint8_t mspVtxLock = 0;
 uint8_t init_table_done = 0;
 uint8_t init_table_unsupported = 0;
 
+#ifdef USE_TP9950
+uint16_t cam_menu_timeout_sec = 0;
+#endif
+
 uint8_t crc8tab[256] = {
     0x00, 0xD5, 0x7F, 0xAA, 0xFE, 0x2B, 0x81, 0x54, 0x29, 0xFC, 0x56, 0x83, 0xD7, 0x02, 0xA8, 0x7D,
     0x52, 0x87, 0x2D, 0xF8, 0xAC, 0x79, 0xD3, 0x06, 0x7B, 0xAE, 0x04, 0xD1, 0x85, 0x50, 0xFA, 0x2F,
@@ -1395,6 +1399,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
     static uint8_t camera_selected = 0;
 
     uint8_t VirtualBtn = BTN_INVALID;
+    static uint8_t VirtualBtn_last = BTN_INVALID;
 
     uint8_t IS_HI_yaw = IS_HI(yaw);
     uint8_t IS_LO_yaw = IS_LO(yaw);
@@ -1813,6 +1818,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     } else {
                         camera_button_enter;
                         camera_menu_mode_exit_note();
+                        cam_menu_timeout_sec = seconds;
                         cms_state = CMS_CAM;
                     }
                 }
@@ -1844,7 +1850,25 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
         break;
     }
     } // switch
+
     last_mid = mid;
+
+#ifdef USE_TP9950
+    if (cms_state == CMS_CAM && (camera_type == CAMERA_TYPE_UNKNOW || camera_type == CAMERA_TYPE_OUTDATED)) {
+        if (VirtualBtn_last == VirtualBtn) {
+            if (seconds - cam_menu_timeout_sec >= 60) {
+                // exit cam menu
+                disp_mode = DISPLAY_OSD;
+                cms_state = CMS_OSD;
+                fc_init();
+                msp_tx_cnt = 0;
+            }
+        } else {
+            cam_menu_timeout_sec = seconds;
+        }
+    }
+    VirtualBtn_last = VirtualBtn;
+#endif
 }
 
 void vtx_menu_init() {
