@@ -252,7 +252,6 @@ const uint16_t frequencies[] = {
 void DM6300_write_reg_map(const dm6300_reg_value_t *reg_map, uint8_t size) {
     uint8_t i = 0;
     for (i = 0; i < size; i++) {
-        // debugf("\r\nDM6300_write_reg_map: %bx %x %lx", reg_map[i].trans, reg_map[i].addr, reg_map[i].dat);
         SPI_Write(reg_map[i].trans, reg_map[i].addr, reg_map[i].dat);
     }
 }
@@ -294,10 +293,6 @@ dm6300_reg_value_t dm6300_set_channel_regs[] = {
 };
 
 void DM6300_SetChannel(uint8_t ch) {
-#ifdef _DEBUG_MODE
-    debugf("\r\nset ch:%x", (uint16_t)ch);
-#endif
-
     if (ch >= FREQ_NUM)
         ch = 0;
 
@@ -339,9 +334,7 @@ void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset) {
     uint16_t a_tab[2] = {0x21F, 0x41F};
 #endif
     int16_t p;
-#ifdef _DEBUG_MODE
-    debugf("\r\nDM6300 set power:%x, offset:%x", (uint16_t)pwr, (uint16_t)offset);
-#endif
+
     if (freq >= FREQ_NUM)
         freq = 0;
     SPI_Write(0x6, 0xFF0, 0x00000018);
@@ -400,13 +393,7 @@ void DM6300_InitAUXADC() {
 
     SPI_Write(0x6, 0xFF0, 0x00000018);
     SPI_Read(0x3, 0x254, &dat);
-#ifdef _DEBUG_DM6300
-    debugf("\r\nDM6300 0x254 = %x%x.\r\n", (uint16_t)((dat >> 16) & 0xFFFF), (uint16_t)(dat & 0xFFFF));
-#endif
     dat |= 0x200;
-#ifdef _DEBUG_DM6300
-    debugf("\r\nDM6300 0x254 = %x%x.\r\n", (uint16_t)((dat >> 16) & 0xFFFF), (uint16_t)(dat & 0xFFFF));
-#endif
     SPI_Write(0x3, 0x254, dat);
 
     SPI_Write(0x6, 0xFF0, 0x00000019);
@@ -444,9 +431,6 @@ void DM6300_InitAUXADC() {
     if (auxadc_offset < 0x420)
         auxadc_offset = 0x420;
 #endif
-#ifdef _DEBUG_DM6300
-    debugf("\r\nDM6300 AUXADC Calib done. data1=%x, data2=%x, data3=%x, offset=%x", dat1, dat2, dat3, auxadc_offset);
-#endif
 }
 
 void DM6300_AUXADC_Calib() {
@@ -469,12 +453,10 @@ void DM6300_AUXADC_Calib() {
     for (i=0;i<8;i++){
         DM6300_SetChannel(i);
         DM6300_SetPower(0, i, 0);
-        debugf("\r\nPA voltage detect: channel = %d,voltage =",(uint16_t)i);
         for(j=0;j<8;j++){
             SPI_Write(0x6, 0xFF0, 0x00000019);
             SPI_Read (0x3, 0x17C, &dl);
             vol = (((int32_t)dl) >> 20) + auxadc_offset;
-            debugf("%x ", vol);
         }
         //WAIT(1000);
     }
@@ -932,15 +914,7 @@ uint8_t DM6300_detect(void) {
     uint32_t rdat = 0;
     SPI_Write(0x6, 0xFF0, 0x18);
     SPI_Read(0x6, 0xFF0, &rdat);
-
-#ifdef _DEBUG_MODE
-    if (rdat != 0x18) {
-        debugf("\r\ndm6300 lost");
-    } else {
-        debugf("\r\ndm6300 alive");
-    }
-#endif
-    return (rdat != 0x18) ? 1 : 0;
+    return rdat != 0x18;
 }
 
 void DM6300_Init(uint8_t ch, BWType_e bw) {
@@ -986,9 +960,6 @@ void DM6300_Init(uint8_t ch, BWType_e bw) {
     DM6300_EFUSE2();
 #endif
     SPI_Write(0x6, 0xFF0, 0x00000018);
-#ifdef _DEBUG_MODE
-    debugf("\r\nDM6300 init done.");
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1173,13 +1144,8 @@ void DM6300_EFUSE1() {
     efuse.macro.m1.ical = (efuse.macro.m1.ical >> 8) | (efuse.macro.m1.ical << 8);
     efuse.macro.m1.rcal = (efuse.macro.m1.rcal >> 8) | (efuse.macro.m1.rcal << 8);
 #endif
-    // debugf("\r\nband_num=%x", efuse.macro.m0.band_num);
-    // debugf("\r\nbandgap=%lx", efuse.macro.m1.bandgap);
-    // debugf("\r\nical=%x", efuse.macro.m1.ical);
-    // debugf("\r\nrcal=%x", efuse.macro.m1.rcal);
 
     dat = ((efuse.macro.m1.ical & 0x1F) << 3) | (efuse.macro.m1.rcal & 0x7);
-    // debugf("\r\nrh=%lx", rh);
 
     SPI_Write(0x6, 0xF14, efuse.macro.m1.bandgap);
     SPI_Write(0x6, 0xF18, dat);
@@ -1203,9 +1169,6 @@ void DM6300_EFUSE2() {
     for (i = 0; i < 4; i++) {
         version[i] = efuse.macro.m0.efuse_ver[i];
     }
-#ifdef _DEBUG_DM6300
-    debugf("\r\n version = %s", version);
-#endif
     // version[1];  //version[1] M.N---M
     // version[3];  //version[3] M.N---N
 
@@ -1214,11 +1177,8 @@ void DM6300_EFUSE2() {
     for (i = 0; i < efuse.macro.m0.band_num; i++) // find match macro 5.8G
                                                   // for(i=0; i<FREQ_NUM_EXTERNAL; i++) // find match macro 5.8G
     {
-// efuse.macro.m2[i].tx1.freq_start = (efuse.macro.m2[i].tx1.freq_start >> 8) | (efuse.macro.m2[i].tx1.freq_start << 8);
-// efuse.macro.m2[i].tx1.freq_stop = (efuse.macro.m2[i].tx1.freq_stop >> 8) | (efuse.macro.m2[i].tx1.freq_stop << 8);
-#ifdef _DEBUG_DM6300
-        debugf("\r\n start=%x, stop=%x", efuse.macro.m2[i].tx1.freq_start, efuse.macro.m2[i].tx1.freq_stop);
-#endif
+        // efuse.macro.m2[i].tx1.freq_start = (efuse.macro.m2[i].tx1.freq_start >> 8) | (efuse.macro.m2[i].tx1.freq_start << 8);
+        // efuse.macro.m2[i].tx1.freq_stop = (efuse.macro.m2[i].tx1.freq_stop >> 8) | (efuse.macro.m2[i].tx1.freq_stop << 8);
 
         if (efuse.macro.m2[i].tx1.freq_start >= 5000 && efuse.macro.m2[i].tx1.freq_stop <= 6000) {
             //*((volatile unsigned int *)0x200D08) = efuse.macro.m2[i].tx1.iqmismatch;
@@ -1248,15 +1208,6 @@ void DM6300_EFUSE2() {
                                            ((efuse.macro.m2[i].tx1.dcoc_q << 8) & 0xFF0000) |
                                            ((efuse.macro.m2[i].tx1.dcoc_q << 24) & 0xFF000000);
 #endif
-#ifdef _DEBUG_DM6300
-            debugf("\r\niqmismatch_old=%lx", efuse.macro.m2[i].tx1.iqmismatch);
-            debugf("\r\ndcoc_i_old=%lx", efuse.macro.m2[i].tx1.dcoc_i);
-            debugf("\r\ndcoc_q_old=%lx", efuse.macro.m2[i].tx1.dcoc_q);
-
-            // change dc_i/dc_q
-            debugf("\r\n version[1] = %c", (uint16_t)version[1]);
-            debugf("\r\n version[3] = %c", (uint16_t)version[3]);
-#endif
             // if((version[1]>'2') | ((version[1]>='2') && (version[3]>'1'))){ //version > 2.1
             if ((version[1] == '2') && (version[3] == '2')) { // version = 2.2
                 ef_data = efuse.macro.m2[i].tx1.dcoc_i;
@@ -1272,19 +1223,12 @@ void DM6300_EFUSE2() {
             SPI_Write(0x3, 0x380, efuse.macro.m2[i].tx1.dcoc_i);
             SPI_Write(0x3, 0x388, efuse.macro.m2[i].tx1.dcoc_q);
 
-            debugf("\r\niqmismatch=%lx", efuse.macro.m2[i].tx1.iqmismatch);
-            debugf("\r\ndcoc_i=%lx", efuse.macro.m2[i].tx1.dcoc_i);
-            debugf("\r\ndcoc_q=%lx", efuse.macro.m2[i].tx1.dcoc_q);
-
             dcoc_ih = efuse.macro.m2[i].tx1.dcoc_i & 0xFFFF0000;
             dcoc_qh = efuse.macro.m2[i].tx1.dcoc_q & 0xFFFF0000;
 
             if (EE_VALID) {
                 rdat = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_EN);
                 if ((rdat & 0xFF) == 0) {
-#ifdef _DEBUG_DM6300
-                    debugf("\r\nDCOC read from EEPROM:");
-#endif
                     SPI_Write(0x6, 0xFF0, 0x00000018);
 
                     rdat = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_IH);
@@ -1292,47 +1236,14 @@ void DM6300_EFUSE2() {
                     rdat |= I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_IL);
                     rdat |= dcoc_ih;
                     SPI_Write(0x3, 0x380, rdat);
-#ifdef _DEBUG_DM6300
-                    debugf("\r\ndcoc_i=%lx", rdat);
-#endif
 
                     rdat = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_QH);
                     rdat <<= 8;
                     rdat |= I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_QL);
                     rdat |= dcoc_qh;
                     SPI_Write(0x3, 0x388, rdat);
-#ifdef _DEBUG_DM6300
-                    debugf("\r\ndcoc_q=%lx", rdat);
-#endif
                 }
             }
-
-            /*if(EE_VALID){
-                d0 = I2C_Read8_Wait(10, ADDR_EEPROM, 0xa8);
-                d1 = I2C_Read8_Wait(10, ADDR_EEPROM, 0xa9);
-                d2 = I2C_Read8_Wait(10, ADDR_EEPROM, 0xaa);
-                d3 = I2C_Read8_Wait(10, ADDR_EEPROM, 0xab);
-                d4 = I2C_Read8_Wait(10, ADDR_EEPROM, 0xac);
-                d5 = I2C_Read8_Wait(10, ADDR_EEPROM, 0xad);
-                d6 = I2C_Read8_Wait(10, ADDR_EEPROM, 0xae);
-                d7 = I2C_Read8_Wait(10, ADDR_EEPROM, 0xaf);
-
-                debugf("\r\nd0=%lx,d1=%lx,d2=%lx,d3=%lx", d0,d1,d2,d3);
-                debugf("\r\nd4=%lx,d5=%lx,d6=%lx,d7=%lx", d4,d5,d6,d7);
-
-                wdat = 0x075F0000;
-                wdat = wdat | (d0<<8) | d1;
-                SPI_Write(0x3, 0x380, wdat);
-                debugf("\r\nreg380=%lx", wdat);
-                wdat = 0x075F0000;
-                wdat = wdat | (d2<<8) | d3;
-                SPI_Write(0x3, 0x388, wdat);
-                debugf("\r\nreg388=%lx", wdat);
-                wdat = (d4 << 24) | (d5 << 16) | (d6 << 8) | d7;
-                SPI_Write(0x3, 0xD08, wdat);
-                debugf("\r\nregD08=%lx", wdat);
-            }*/
-
             break;
         }
     }

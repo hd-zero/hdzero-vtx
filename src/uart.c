@@ -42,9 +42,6 @@ void uart_set_baudrate(uint8_t baudIndex) {
         TH1 = 0xF6;
         break;
     }
-#ifdef _DEBUG_MODE
-    debugf("\r\nSet uart baudrate to %bx", baudIndex);
-#endif
 }
 
 void uart_init() {
@@ -216,10 +213,6 @@ void suart_rxint() // ISR
 
                 SUART_rbuf[SUART_rin++] = rxbyte;
                 SUART_rin &= (SUART_BUF_MAX - 1);
-#ifdef _DEBUG_SMARTAUDIO
-                if (SUART_rin == SUART_rout)
-                    SUART_rERR = 1;
-#endif
             }
         }
     }
@@ -234,12 +227,6 @@ uint8_t SUART_ready() {
 
 uint8_t SUART_rx() {
     uint8_t ret;
-#ifdef _DEBUG_SMARTAUDIO
-    if (SUART_rERR) {
-        SUART_rERR = 0;
-        _outchar('&');
-    }
-#endif
 
     ret = SUART_rbuf[SUART_rout];
     SUART_rout++;
