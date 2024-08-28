@@ -1818,7 +1818,9 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     } else {
                         camera_button_enter;
                         camera_menu_mode_exit_note();
+#ifdef USE_TP9950
                         cam_menu_timeout_sec = seconds;
+#endif
                         cms_state = CMS_CAM;
                     }
                 }
