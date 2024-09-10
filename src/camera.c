@@ -36,10 +36,6 @@ void camera_type_detect(void) {
         camera_type == CAMERA_TYPE_RUNCAM_NANO_90 ||
         camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
         camera_mfr = CAMERA_MFR_RUNCAM;
-#ifdef _DEBUG_CAMERA
-        debugf("\r\ncamera mfr : RUNCAM");
-        debugf("\r\ncamera type: %d", (uint16_t)camera_type);
-#endif
         return;
     }
 }
@@ -86,30 +82,13 @@ void camera_mode_detect(uint8_t init) {
 #endif
 
     Set_720P60_8bit(0);
-
-    debugf("\r\nchipID");
     id = I2C_Read8(ADDR_TP9950, 0xfe);
-    debugf("\r\n    fe:%2x", id);
     id = I2C_Read8(ADDR_TP9950, 0xff);
-    debugf("\r\n    ff:%2x\r\n", id);
     WAIT(200);
 
-    debugf("\r\nCamDetect");
-
     Set_720P60_8bit(0);
-
-#ifdef _DEBUG_MODE
-    debugf("\r\nchipID");
-#endif
     id = I2C_Read8(ADDR_TP9950, 0xfe);
-#ifdef _DEBUG_MODE
-    debugf("\r\n    fe:%2x", id);
-#endif
-
     id = I2C_Read8(ADDR_TP9950, 0xff);
-#ifdef _DEBUG_MODE
-    debugf("\r\n    ff:%2x\r\n", id);
-#endif
     WAIT(200);
 
     I2C_Write8(ADDR_TP9950, 0x26, 0x01);
@@ -226,23 +205,14 @@ void camera_mode_detect(uint8_t init) {
             if (video_format == VDO_FMT_720P50) {
                 Init_TC3587(0);
                 Set_720P50(IS_RX);
-#ifdef _DEBUG_CAMERA
-                debugf("\r\nCamDetect: Set 50fps.");
-#endif
             } else if (video_format == VDO_FMT_720P60) {
                 Init_TC3587(0);
                 Set_720P60(IS_RX);
-#ifdef _DEBUG_CAMERA
-                debugf("\r\nCamDetect: Set 60fps.");
-#endif
             }
             WAIT(100);
 
             for (detect_tries = 0; detect_tries < 5; detect_tries++) {
                 status_reg = ReadReg(0, 0x02);
-#ifdef _DEBUG_CAMERA
-                debugf("\r\nCamDetect status_reg: %x", status_reg);
-#endif
                 if ((status_reg >> 4) != 0) {
                     loss = 1;
                 }
@@ -276,13 +246,6 @@ void camera_mode_detect(uint8_t init) {
             RF_BW = BW_27M;
         RF_BW_last = RF_BW;
     }
-#ifdef _DEBUG_MODE
-    debugf("\r\ncameraID: %x, bw: ", (uint16_t)camera_type);
-    if (RF_BW == BW_17M)
-        debugf("17M");
-    else
-        debugf("27M");
-#endif
 }
 #endif
 
@@ -295,7 +258,6 @@ void camera_button_init() {
 
 void camera_reg_write_eep(uint16_t addr, uint8_t val) {
     I2C_Write8_Wait(10, ADDR_EEPROM, addr, val);
-    debugf("\r\neep write(%02x,%d)", addr, (uint16_t)val);
 }
 uint8_t camera_reg_read_eep(uint16_t addr) {
     return I2C_Read8_Wait(10, ADDR_EEPROM, addr);
@@ -337,9 +299,6 @@ void camera_setting_profile_check(uint8_t profile) {
     if (need_reset) {
         camera_setting_profile_reset(profile);
         camera_setting_profile_write(profile);
-#ifdef _DEBUG_CAMERA
-        debugf("\r\ncamera setting need to be reset");
-#endif
     }
 }
 void camera_profile_read(void) {
@@ -377,9 +336,6 @@ void camera_setting_read(void) {
         }
         camera_reg_write_eep(EEP_ADDR_CAM_TYPE, camera_type);
         i = camera_reg_read_eep(EEP_ADDR_CAM_TYPE);
-#ifdef _DEBUG_CAMERA
-        debugf("\r\ncamera changed(%d==>%d), reset camera setting", camera_type_last, i);
-#endif
     } else {
         camera_profile_read();
         camera_profile_check();
@@ -396,10 +352,6 @@ void camera_setting_reg_menu_update(void) {
     uint8_t i;
     for (i = 0; i < CAMERA_SETTING_NUM; i++)
         camera_setting_reg_menu[i] = camera_setting_reg_eep[camera_profile_menu][i];
-
-#ifdef _DEBUG_CAMERA
-    debugf("\r\ncamera profile:%d", camera_profile_menu);
-#endif
 }
 
 void camera_setting_reg_eep_update(void) {
@@ -877,9 +829,6 @@ uint8_t camera_status_update(uint8_t op) {
         break;
     case CAM_STATUS_REPOWER:
         if (op == BTN_RIGHT) {
-#ifdef _DEBUG_MODE
-            debugf("\r\nRF_Delay_Init: None");
-#endif
             camera_profile_write();
             reset_isp_need |= camera_set(camera_setting_reg_menu, 1, 0);
             camera_setting_reg_eep_update();

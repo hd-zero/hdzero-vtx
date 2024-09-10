@@ -351,22 +351,7 @@ void Setting_Save() {
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_TEAM_RACE, TEAM_RACE);
         err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SHORTCUT, SHORTCUT);
-#ifdef _DEBUG_MODE
-        if (!err)
-            debugf("\r\nEEPROM write success");
-#endif
     }
-
-#ifdef _DEBUG_MODE
-    debugf("\r\nSetting Save\r\n");
-    debugf("    RF_FREQ=%d\r\n", (uint16_t)RF_FREQ);
-    debugf("    RF_POWER=%d\r\n", (uint16_t)RF_POWER);
-    debugf("    LP_MODE=%d\r\n", (uint16_t)LP_MODE);
-    debugf("    PIT_MODE=%d\r\n", (uint16_t)PIT_MODE);
-    debugf("    OFFSET_25MW=%d\r\n", (uint16_t)OFFSET_25MW);
-    debugf("    TEAM_RACE=%d\r\n", (uint16_t)TEAM_RACE);
-    debugf("    SHORTCUT=%d\r\n", (uint16_t)SHORTCUT);
-#endif
 }
 
 void CFG_Back() {
@@ -388,10 +373,6 @@ void GetVtxParameter() {
     uint8_t tab_min[4] = {255, 255, 255, 255};
 
     EE_VALID = !I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_EEP_VLD, 0xFF);
-
-#ifdef _DEBUG_MODE
-    debugf("\r\nEE_VALID:%x", (uint16_t)EE_VALID);
-#endif
 
     if (EE_VALID) { // eeprom valid
 
@@ -429,9 +410,6 @@ void GetVtxParameter() {
         }
 
         if (ee_vld) {
-#ifdef _DEBUG_MODE
-            debugf("\r\nUSE EEPROM for rf_pwr_tab.");
-#endif
             for (i = 0; i < FREQ_NUM_EXTERNAL; i++) {
                 for (j = 0; j <= POWER_MAX; j++) {
                     table_power[i][j] = tab[i][j];
@@ -445,9 +423,6 @@ void GetVtxParameter() {
                 }
             }
         } else {
-#ifdef _DEBUG_MODE
-            debugf("\r\nEEPROM is NOT initialized. Use default rf_pwr_tab.");
-#endif
 
 #ifdef _RF_CALIB
             for (i = 0; i < FREQ_NUM_INTERNAL; i++) {
@@ -469,10 +444,6 @@ void GetVtxParameter() {
         SHORTCUT = I2C_Read8(ADDR_EEPROM, EEP_ADDR_SHORTCUT);
         CFG_Back();
 
-#ifdef _DEBUG_MODE
-        debugf("\r\nUSE EEPROM for VTX setting:RF_FREQ=%d, RF_POWER=%d, LPMODE=%d PIT_MODE=%d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
-#endif
-
 // last_SA_lock
 #if defined USE_SMARTAUDIO_SW || defined USE_SMARTAUDIO_HW
         last_SA_lock = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK);
@@ -480,9 +451,6 @@ void GetVtxParameter() {
             last_SA_lock = 0;
             I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK, last_SA_lock);
         }
-#ifdef _DEBUG_MODE
-        debugf("\r\nlast_SA_lock %x", (uint16_t)last_SA_lock);
-#endif
 #endif
 
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
@@ -492,15 +460,6 @@ void GetVtxParameter() {
     } else {
         CFG_Back();
     }
-
-#ifdef _DEBUG_DM6300
-    for (i = 0; i < FREQ_NUM_EXTERNAL; i++) {
-        debugf("\r\nrf_pwr_tab[%d]=", (uint16_t)i);
-        for (j = 0; j <= POWER_MAX; j++)
-            debugf(" %x", (uint16_t)table_power[i][j]);
-    }
-    debugf("\r\nUSE EEPROM for VTX setting:RF_FREQ=%d, RF_POWER=%d, LPMODE=%d PIT_MODE=%d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)LP_MODE, (uint16_t)PIT_MODE);
-#endif
 }
 
 void Init_6300RF(uint8_t freq, uint8_t pwr) {
@@ -521,9 +480,6 @@ void Init_6300RF(uint8_t freq, uint8_t pwr) {
     }
     WriteReg(0, 0x8F, 0x11);
     rf_delay_init_done = 1;
-#ifdef _DEBUG_MODE
-    debugf("\r\nInit_6300RF(%x, %x)", (uint16_t)freq, (uint16_t)pwr);
-#endif
 }
 
 void Init_HW() {
@@ -602,11 +558,6 @@ void TempDetect() {
             temperature = temperature - (temperature >> 2) + temp_new;
 
             temp0 = temp0 - (temp0 >> 2) + temp_new0;
-
-#ifdef _DEBUG_MODE
-// verbosef("\r\ntempADC  detect: temp = %d, temp_new = %d", (uint16_t)(temperature>>2), (uint16_t)temp_new);
-// verbosef("\r\ntemp6300 detect: temp = 0x%x, temp_new = 0x%x", (uint16_t)(temp0>>2), (uint16_t)temp_new0);
-#endif
         }
     }
 }
@@ -626,10 +577,6 @@ void TempDetect() {
         } else {
             temp_new = DM6300_GetTemp();
             temperature = temperature - (temperature >> 2) + temp_new;
-
-#ifdef _DEBUG_MODE
-// verbosef("\r\ntemp detect: temp = %x, temp_new = %x", (uint16_t)(temperature>>2), (uint16_t)temp_new);
-#endif
         }
     }
 }
@@ -709,10 +656,6 @@ void PowerAutoSwitch() {
         ;
     else {
         DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
-#ifdef _DEBUG_MODE
-        verbosef("\r\nPowerAutoSwitch: temp = %x%x, ", (uint16_t)(temperature >> 10), (uint16_t)((temperature >> 2) & 0xff));
-        verbosef("pwr_offset = %d", (uint16_t)pwr_offset);
-#endif
         cur_pwr = RF_POWER;
     }
 }
@@ -823,15 +766,9 @@ void PowerAutoSwitch() {
     }
 
     if (last_ofs != pwr_offset) {
-#ifdef _DEBUG_MODE
-        verbosef("\r\nPowerAutoSwitch:Yes 0x%x 0x%x", temp, (uint16_t)pwr_offset);
-#endif
         DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
         cur_pwr = RF_POWER;
     } else {
-#ifdef _DEBUG_MODE
-        verbosef("\r\nPowerAutoSwitch: No 0x%x 0x%x", temp, (uint16_t)pwr_offset);
-#endif
     }
 
     last_ofs = pwr_offset;
@@ -863,14 +800,6 @@ void HeatProtect() {
                     sec = 0;
                     temp = temperature >> 2;
 // temp = temperature >> 5;  //LM75AD
-#ifdef _DEBUG_MODE
-#ifdef USE_TEMPERATURE_SENSOR
-                    verbosef("\r\nHeat detect: temp = %d, pwr_offset=%d", (uint16_t)temp, (uint16_t)pwr_offset);
-#else
-                    // verbosef("\r\nHeat Protect detect: 0x%x", temp);
-#endif
-#endif
-
 #ifdef USE_TEMPERATURE_SENSOR
                     ;
 #else
@@ -888,9 +817,6 @@ void HeatProtect() {
                     {
                         cnt++;
                         if (cnt == 3) {
-#ifdef _DEBUG_MODE
-                            debugf("\r\nHeat Protect.");
-#endif
                             heat_protect = 1;
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
                             WriteReg(0, 0x8F, 0x00);
@@ -944,17 +870,12 @@ void PwrLMT() {
                                 p = table_power[RF_FREQ][3];
                             } else {
                                 p += 0x4;
-                                debugf("\r\npwr_plus 2dbm,p=%x", (uint16_t)p);
                             }
 
                             SPI_Write(0x3, 0xD1C, (uint32_t)p);
                             SPI_Write(0x3, 0x330, 0x31F); // 1W
                         }
                     }
-#endif
-
-#ifdef _DEBUG_MODE
-                    debugf("\r\npwr_lmt_sec %x", (uint16_t)pwr_lmt_sec);
 #endif
                     if (pwr_lmt_sec >= PWR_LMT_SEC) {
                         DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
@@ -963,10 +884,6 @@ void PwrLMT() {
                         pwr_lmt_sec = 0;
                         // test: power init reset
                         p_init = 1;
-
-#ifdef _DEBUG_MODE
-                        debugf("\r\nPower limit done.");
-#endif
                         Prompt();
                     }
                 }
@@ -1016,7 +933,6 @@ void PwrLMT() {
                                     p = table_power[RF_FREQ][3];
                                 else {
                                     p += 0x4;
-                                    debugf("\r\npwr_plus 2dbm,p=%x", (uint16_t)p + pwr_offset);
                                 }
                                 SPI_Write(0x3, 0xD1C, (uint32_t)(p + pwr_offset)); // digital offset
                                 SPI_Write(0x3, 0x330, 0x31F);                      // analog offset 1W
@@ -1024,9 +940,6 @@ void PwrLMT() {
                         }
 #endif // HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
 
-#ifdef _DEBUG_MODE
-                        debugf("\r\npwr_lmt_sec %x", (uint16_t)pwr_lmt_sec);
-#endif
                         if (pwr_lmt_sec >= PWR_LMT_SEC) {
                             DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
                             cur_pwr = RF_POWER;
@@ -1035,9 +948,6 @@ void PwrLMT() {
                             // test: power init reset
                             p_init = 1;
 
-#ifdef _DEBUG_MODE
-                            debugf("\r\nPower limit done.");
-#endif
                             Prompt();
                         }
                     }
@@ -1073,59 +983,6 @@ void video_detect(void) {
         last_sec = seconds;
         sec++;
 
-#ifdef _DEBUG_TC3587
-        debugf("\r\nTC3587 reg:");
-        val = I2C_Read16(ADDR_TC3587, 0x0062);
-        debugf("\r\n0x0062 = 0x%x", val);
-        val = I2C_Read16(ADDR_TC3587, 0x0064);
-        debugf("\r\n0x0064 = 0x%x", val);
-        val = I2C_Read16(ADDR_TC3587, 0x0066);
-        debugf("\r\n0x0066 = 0x%x", val);
-        val = I2C_Read16(ADDR_TC3587, 0x0068);
-        debugf("\r\n0x0068 = 0x%x", val);
-        val = I2C_Read16(ADDR_TC3587, 0x006A);
-        debugf("\r\n0x006A = 0x%x", val);
-        val = I2C_Read16(ADDR_TC3587, 0x006C);
-        debugf("\r\n0x006C = 0x%x", val);
-        val = I2C_Read16(ADDR_TC3587, 0x006E);
-        debugf("\r\n0x006E = 0x%x", val);
-        val = I2C_Read16(ADDR_TC3587, 0x0070);
-        debugf("\r\n0x0070 = 0x%x", val);
-        val = I2C_Read16(ADDR_TC3587, 0x0080);
-        debugf("\r\n0x0080 = 0x%x", val);
-        val = I2C_Read16(ADDR_TC3587, 0x0082);
-        debugf("\r\n0x0082 = 0x%x", val);
-        val = I2C_Read16(ADDR_TC3587, 0x0084);
-        debugf("\r\n0x0084 = 0x%x", val);
-        val = I2C_Read16(ADDR_TC3587, 0x0086);
-        debugf("\r\n0x0086 = 0x%x", val);
-        val = I2C_Read16(ADDR_TC3587, 0x0088);
-        debugf("\r\n0x0088 = 0x%x", val);
-        val = I2C_Read16(ADDR_TC3587, 0x008A);
-        debugf("\r\n0x008A = 0x%x", val);
-        val = I2C_Read16(ADDR_TC3587, 0x008C);
-        debugf("\r\n0x008C = 0x%x", val);
-        val = I2C_Read16(ADDR_TC3587, 0x008E);
-        debugf("\r\n0x008E = 0x%x", val);
-        val = I2C_Read16(ADDR_TC3587, 0x0090);
-        debugf("\r\n0x0090 = 0x%x", val);
-        val = I2C_Read16(ADDR_TC3587, 0x00F8);
-        debugf("\r\n0x00F8 = 0x%x", val);
-        debugf("\r\n");
-        I2C_Write16(ADDR_TC3587, 0x0064, 0x01ff);
-        I2C_Write16(ADDR_TC3587, 0x0068, 0x0000);
-        I2C_Write16(ADDR_TC3587, 0x006C, 0x0000);
-        I2C_Write16(ADDR_TC3587, 0x0080, 0x0000);
-        I2C_Write16(ADDR_TC3587, 0x0082, 0x0000);
-        I2C_Write16(ADDR_TC3587, 0x0084, 0x0000);
-        I2C_Write16(ADDR_TC3587, 0x0086, 0x0000);
-        I2C_Write16(ADDR_TC3587, 0x0088, 0x0000);
-        I2C_Write16(ADDR_TC3587, 0x008A, 0x0000);
-        I2C_Write16(ADDR_TC3587, 0x008C, 0x0000);
-        I2C_Write16(ADDR_TC3587, 0x008E, 0x0000);
-        I2C_Write16(ADDR_TC3587, 0x0090, 0x0000);
-#endif
-
         if (heat_protect)
             return;
 #if (0)
@@ -1149,9 +1006,6 @@ void video_detect(void) {
                 WAIT(1);
             }
             cameraLost = (video_type_id != 0x1E); // YUV422
-#ifdef _DEBUG_CAMERA
-            debugf("\r\nvideo_TypeID:%d, cameraLost:%d", video_type_id, uint16_t(val));
-#endif
             return;
         }
 
@@ -1164,9 +1018,6 @@ void video_detect(void) {
         if (sec == 3) {
             sec = 0;
             if (cameraLost) { // video loss
-#ifdef _DEBUG_CAMERA
-                debugf("r\ncamera lost");
-#endif
                 if (video_format == VDO_FMT_720P50) {
                     Set_720P60(IS_RX);
                     video_format = VDO_FMT_720P60;
@@ -1195,17 +1046,11 @@ void Imp_RF_Param() {
 }
 
 void Button1_SP() {
-#ifdef _DEBUG_MODE
-    debugf("\r\nButton1_SP.");
-#endif
 
     cfg_to_cnt = 0;
 
     // exit 0mW
     if (vtx_pit_save == PIT_0MW) {
-#ifdef _DEBUG_MODE
-        debugf("\n\rDM6300 init");
-#endif
         Init_6300RF(RF_FREQ, RF_POWER);
         DM6300_AUXADC_Calib();
         cur_pwr = RF_POWER;
@@ -1287,9 +1132,6 @@ void Button1_SP() {
         if (LP_MODE) {
             DM6300_SetPower(0, RF_FREQ, 0); // limit power to 25mW
             cur_pwr = 0;
-#ifdef _DEBUG_MODE
-            debugf("\n\rEnter LP_MODE");
-#endif
         } else {
             DM6300_SetPower(RF_POWER, RF_FREQ, 0);
         }
@@ -1299,13 +1141,9 @@ void Button1_SP() {
         Setting_Save();
         break;
     }
-    // debugf("\r\nShort Press: cfg_step=%d, RF_FREQ=%d, RF_POWER=%d", (uint16_t)cfg_step, (uint16_t)RF_FREQ, (uint16_t)RF_POWER);
 }
 
 void Button1_LP() {
-#ifdef _DEBUG_MODE
-    debugf("\r\nButton1_LP.");
-#endif
     cfg_to_cnt = 0;
     switch (cfg_step) {
     case 0:
@@ -1325,13 +1163,9 @@ void Button1_LP() {
         set_segment(0xFF);
         break;
     }
-    // debugf("\r\nShort Press: cfg_step=%d, FREQ_CFG=%d, POWER_CFG=%d", (uint16_t)cfg_step, (uint16_t)FREQ_CFG, (uint16_t)POWER_CFG);
 }
 
 void Button1_LLP() {
-#ifdef _DEBUG_MODE
-    debugf("\r\nButton1_LLP.");
-#endif
     cfg_to_cnt = 0;
     if (cfg_step == 0) {
         cfg_step = 3;
@@ -1413,9 +1247,6 @@ void CFGTimeout() {
                 cfg_step = 0;
 
                 set_segment(0xFF);
-#ifdef _DEBUG_MODE
-                debugf("\r\nCFG Timeout.");
-#endif
                 Prompt();
             }
         }
@@ -1557,9 +1388,6 @@ uint8_t RF_BW_to_be_changed(void) {
         RF_BW_last = RF_BW;
         ret = 1;
     }
-#ifdef _DEBUG_MODE
-    debugf("\r\ncamera_type:%x, video_mode:%x, RF_BW:%x, RF_BW_last:%x ret=%x", (uint16_t)camera_type, (uint16_t)camera_setting_reg_set[11], (uint16_t)RF_BW, (uint16_t)RF_BW_last, (uint16_t)ret);
-#endif
     return ret;
 }
 
@@ -1588,9 +1416,6 @@ void uart_baudrate_detect(void) {
 void vtx_paralized(void) {
     // Sleep until repower
     WriteReg(0, 0x8F, 0x00);
-#ifdef _DEBUG_MODE
-    debugf("\r\nvtx paralized");
-#endif
     while (1) {
         LED_Flip();
         WAIT(50);
@@ -1644,9 +1469,6 @@ void RF_Delay_Init() {
         if (seconds >= WAIT_SA_CONFIG) {
             I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK, SA_lock);
             SA_saved = 1;
-#ifdef _DEBUG_MODE
-            debugf("\r\nSave SA_lock(%x) to EEPROM", (uint16_t)SA_lock);
-#endif
         }
     }
 
@@ -1666,9 +1488,6 @@ void RF_Delay_Init() {
         rf_delay_init_done = 1;
 
     if (last_SA_lock) {
-#ifdef _DEBUG_MODE
-        debugf("\r\nRF_Delay_Init: SA");
-#endif
         pwr_lmt_sec = PWR_LMT_SEC;
         if (SA_lock) {
             if (pwr_init == POWER_MAX + 2) { // 0mW
@@ -1676,21 +1495,12 @@ void RF_Delay_Init() {
                 cur_pwr = POWER_MAX + 2;
             } else if (PIT_MODE) {
                 Init_6300RF(ch_init, POWER_MAX + 1);
-#ifdef _DEBUG_MODE
-                debugf("\r\n ch%x, pwr%x", (uint16_t)ch_init, (uint16_t)cur_pwr);
-#endif
             } else {
                 Init_6300RF(ch_init, pwr_init);
-#ifdef _DEBUG_MODE
-                debugf("\r\n ch%x, pwr%x", (uint16_t)ch_init, (uint16_t)cur_pwr);
-#endif
             }
             DM6300_AUXADC_Calib();
         }
     } else if (!mspVtxLock) {
-#ifdef _DEBUG_MODE
-        debugf("\r\nRF_Delay_Init: None");
-#endif
         if (TEAM_RACE == 0x01)
             vtx_paralized();
 #if (0)

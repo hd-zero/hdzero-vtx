@@ -45,10 +45,6 @@ void Update_EEP_LifeTime(void) {
 
     diff = sysLifeTime_last ^ sysLifeTime;
 
-#ifdef _DEBUG_LIFETIME
-    debugf("\r\nsysLifeTime:%ld", sysLifeTime);
-#endif
-
     if ((diff >> 0) & 0xff) {
         u8 = (sysLifeTime >> 0) & 0xff;
         I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LIFETIME_0, u8);

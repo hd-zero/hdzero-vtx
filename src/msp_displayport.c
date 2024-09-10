@@ -157,12 +157,6 @@ void msp_task() {
     static uint8_t t1 = 0;
     static uint8_t vmax = OSD_CANVAS_SD_VMAX;
 
-#ifdef _DEBUG_DISPLAYPORT
-    if (RS0_ERR) {
-        RS0_ERR = 0;
-        _outchar('$'); // RS0 buffer full
-    }
-#endif
     DP_tx_task();
 
     // decide by osd_frame size/rate and dptx rate
@@ -181,10 +175,6 @@ void msp_task() {
         len = get_tx_data_osd(t1);
         if (hdzero_dynamic_osd_refresh_adapter(t1))
             insert_tx_buf(len);
-
-#ifdef _DEBUG_DISPLAYPORT
-// debugf("\n\r%x ", (uint16_t)t1);
-#endif
         t1++;
         if (t1 >= vmax)
             t1 = 0;
@@ -245,10 +235,6 @@ uint8_t msp_read_one_frame() {
                 ptr = 0;
                 state = MSP_HEADER_M;
             }
-#ifdef _DEBUG_DISPLAYPORT
-            else
-                _outchar('&');
-#endif
             break;
 
         case MSP_HEADER_M:
@@ -297,7 +283,6 @@ uint8_t msp_read_one_frame() {
                 state = MSP_CRC1;
             else
                 state = MSP_RX1;
-            // debugf("\r\ncmd:%x ", (uint16_t)rx);
             break;
 
         case MSP_RX1:
@@ -339,10 +324,6 @@ uint8_t msp_read_one_frame() {
                     }
                 }
             }
-#ifdef _DEBUG_DISPLAYPORT
-            else
-                _outchar('^');
-#endif
             state = MSP_HEADER_START;
             break;
 
@@ -674,10 +655,6 @@ uint8_t get_tx_data_osd(uint8_t index) // prepare osd+data to VTX
 
 void insert_tx_byte(uint8_t c) {
     dptxbuf[dptx_wptr++] = c;
-#ifdef _DEBUG_DISPLAYPORT
-    if (dptx_wptr == dptx_rptr) // dptxbuf full
-        _outchar('*');
-#endif
 }
 
 #ifdef SDCC
@@ -971,10 +948,6 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     crc ^= 0x00; // disable/clear vtx table
     msp_tx(crc);
 
-#ifdef _DEBUG_MODE
-    debugf("\r\nmsp_set_vtx_config:FRQ%x,PWR%x,PIT:%x, LP:%x, SAVE:%x", (uint16_t)RF_FREQ, (uint16_t)power, (uint16_t)PIT_MODE, (uint16_t)LP_MODE, (uint16_t)save);
-#endif
-
     if (save)
         msp_eeprom_write();
 }
@@ -990,10 +963,6 @@ void parse_status() {
     if (g_IS_PARALYZE) {
         vtx_paralized();
     }
-#endif
-
-#if (0)
-    debugf("\n\rstatus:%x %x %x %x", (uint16_t)msp_rx_buf[6], (uint16_t)msp_rx_buf[7], (uint16_t)msp_rx_buf[8], (uint16_t)msp_rx_buf[9]);
 #endif
 }
 
@@ -1022,9 +991,7 @@ void parse_rc() {
 uint8_t msp_vtx_set_channel(uint8_t const channel) {
     if (channel == INVALID_CHANNEL || channel == RF_FREQ)
         return 0;
-#ifdef _DEBUG_MODE
-    debugf("\r\nRF_FREQ to %x", (uint16_t)channel);
-#endif
+
     vtx_channel = channel;
     RF_FREQ = channel;
     if (dm6300_init_done)
@@ -1087,7 +1054,6 @@ void msp_set_osd_canvas(void) {
         msp_tx(OSD_CANVAS_HD_VMAX0);
         crc ^= OSD_CANVAS_HD_VMAX0;
         msp_tx(crc);
-        // debugf("\r\nmsp_set_osd_canvas");
     }
 }
 
@@ -1132,25 +1098,7 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
     pwr_lmt_done = 1;
     mspVtxLock |= 1;
 
-#ifdef _DEBUG_MODE
-    debugf("\r\nparseMspVtx_V2");
-    debugf("\r\n    fc_vtx_dev:    %x", (uint16_t)msp_rx_buf[0]);
-    debugf("\r\n    fc_band_rx:    %x", (uint16_t)msp_rx_buf[1]);
-    debugf("\r\n    fc_channel_rx: %x", (uint16_t)msp_rx_buf[2]);
-    debugf("\r\n    fc_pwr_rx:     %x", (uint16_t)fc_pwr_rx);
-    debugf("\r\n    fc_pit_rx :    %x", (uint16_t)fc_pit_rx);
-    debugf("\r\n    fc_frequency : %x", ((uint16_t)msp_rx_buf[6] << 8) + msp_rx_buf[5]);
-    debugf("\r\n    fc_vtx_status: %x", (uint16_t)msp_rx_buf[7]);
-    debugf("\r\n    fc_lp_rx:      %x", (uint16_t)fc_lp_rx);
-    debugf("\r\n    fc_bands:      %x", (uint16_t)msp_rx_buf[12]);
-    debugf("\r\n    fc_channels:   %x", (uint16_t)msp_rx_buf[13]);
-    debugf("\r\n    fc_powerLevels %x", (uint16_t)msp_rx_buf[14]);
-#endif
-
     if (SA_lock || (init_table_done == 0 && !init_table_unsupported)) {
-#ifdef _DEBUG_MODE
-        debugf("\r\nparseMspVtx_V2 skipped. (SA_lock: %i, init_table_done: %i, init_table_unsupported: %i)\r\n", SA_lock, init_table_done, init_table_unsupported);
-#endif
         return;
     }
 
@@ -1198,9 +1146,6 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
     }
 
     PIT_MODE = fc_pit_rx & 1;
-#ifdef _DEBUG_MODE
-    debugf("\r\nPIT_MODE = %x", (uint16_t)PIT_MODE);
-#endif
     if (fc_pit_rx != last_pit) {
         if (PIT_MODE) {
             DM6300_SetPower(POWER_MAX + 1, RF_FREQ, pwr_offset);
@@ -1283,10 +1228,6 @@ void parseMspVtx_V2(uint16_t const cmd_u16) {
 
     if (needSaveEEP)
         ; // Setting_Save();
-
-#ifdef _DEBUG_MODE
-    debugf("\r\nparseMspVtx_V2 pwr:%x, pit:%x", (uint16_t)nxt_pwr, (uint16_t)fc_pit_rx);
-#endif
 }
 
 uint8_t parse_displayport(uint8_t len) {
@@ -1307,24 +1248,12 @@ uint8_t parse_displayport(uint8_t len) {
                 if (disp_mode == DISPLAY_OSD)
                     clear_screen();
                 osd_ready = 0;
-#ifdef _DEBUG_DISPLAYPORT
-                _outchar('\r');
-                _outchar('\n');
-                _outchar('C');
-#endif
                 return 0;
             } else if (msp_rx_buf[0] == SUBCMD_WRITE) {
-#ifdef _DEBUG_DISPLAYPORT
-                _outchar('W');
-#endif
                 osd_ready = 0;
                 state_osd = MSP_OSD_LOC;
             } else if (msp_rx_buf[0] == SUBCMD_DRAW) {
                 osd_ready = 1;
-#ifdef _DEBUG_DISPLAYPORT
-                _outchar('D');
-                _outchar(' ');
-#endif
                 if (!(fc_lock & FC_OSD_LOCK)) {
                     Flicker_LED(3);
                     fc_lock |= FC_OSD_LOCK;
@@ -1453,28 +1382,23 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
         if (!g_IS_ARMED) {
             if (stick_cmd_exit_0mw && (cur_pwr == POWER_MAX + 2)) {
                 cms_state = CMS_EXIT_0MW;
-                // debugf("\r\ncms_state(%x),cur_pwr(%x)",cms_state, cur_pwr);
                 cms_cnt = 0;
                 break;
             } else if (IS_HI_yaw && IS_LO_throttle && IS_LO_roll && IS_LO_pitch) {
                 cms_state = CMS_ENTER_VTX_MENU;
-                // debugf("\r\ncms_state(%x)",cms_state);
                 vtx_menu_init();
                 vtx_menu_state = VTX_MENU_CHANNEL;
             } else if (stick_cmd_enter_0mw) {
                 if (cur_pwr != POWER_MAX + 2) {
                     cms_state = CMS_ENTER_0MW;
-                    // debugf("\r\ncms_state(%x)",cms_state);
                     cms_cnt = 0;
                 }
             } else if (VirtualBtn == BTN_ENTER) {
                 cms_state = CMS_ENTER_CAM;
-                // debugf("\r\ncms_state(%x)",cms_state);
                 cms_cnt = 0;
             } else
                 cms_cnt = 0;
         }
-        // debugf("\n\r CMS_OSD");
         break;
 
     case CMS_ENTER_0MW:
@@ -1521,10 +1445,6 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                 Init_6300RF(RF_FREQ, POWER_MAX + 1);
                 cur_pwr = POWER_MAX + 1;
                 DM6300_AUXADC_Calib();
-#ifdef _DEBUG_MODE
-                debugf("\r\nExit 0mW\r\n");
-#endif
-                // debugf("\r\n exit0");
             } else {
                 save_vtx_param();
                 pit_mode_cfg_done = 1; // avoid to config DM6300 again
@@ -1532,10 +1452,6 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                 // SPI_Write(0x3, 0xd00, 0x00000003);
                 Init_6300RF(RF_FREQ, RF_POWER);
                 DM6300_AUXADC_Calib();
-#ifdef _DEBUG_MODE
-                debugf("\r\nExit 0mW\r\n");
-#endif
-                // debugf("\r\n exit0");
             }
         }
 
@@ -2053,11 +1969,8 @@ void set_vtx_param() {
                 if (vtx_pit_save == PIT_0MW) {
                     WriteReg(0, 0x8F, 0x10);
                     dm6300_init_done = 0;
-// SPI_Write(0x6, 0xFF0, 0x00000018);
-// SPI_Write(0x3, 0xd00, 0x00000000);
-#ifdef _DEBUG_MODE
-                    debugf("\r\nDM6300 0mW");
-#endif
+                    // SPI_Write(0x6, 0xFF0, 0x00000018);
+                    // SPI_Write(0x3, 0xd00, 0x00000000);
                     cur_pwr = POWER_MAX + 2;
                     temp_err = 1;
                 } else // if(vtx_pit_save == PIT_P1MW)
@@ -2067,9 +1980,6 @@ void set_vtx_param() {
                         DM6300_AUXADC_Calib();
                     } else
                         DM6300_SetPower(POWER_MAX + 1, RF_FREQ, 0);
-#ifdef _DEBUG_MODE
-                    debugf("\r\nDM6300 P1mW");
-#endif
                     cur_pwr = POWER_MAX + 1;
                 }
             }
@@ -2078,9 +1988,6 @@ void set_vtx_param() {
             if (LP_MODE) {
                 DM6300_SetPower(0, RF_FREQ, 0); // limit power to 25mW
                 cur_pwr = 0;
-#ifdef _DEBUG_MODE
-                debugf("\n\rEnter LP_MODE");
-#endif
             }
             lp_mode_cfg_done = 1;
         }
@@ -2101,9 +2008,6 @@ void set_vtx_param() {
             }
         } else if (PIT_MODE || LP_MODE) {
 // exit pitmode or lp_mode
-#ifdef _DEBUG_MDOE
-            debugf("\n\rExit PIT or LP");
-#endif
 #ifndef VIDEO_PAT
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
             if (RF_POWER == 3 && !g_IS_ARMED)
@@ -2139,9 +2043,6 @@ void set_vtx_param() {
         if (LP_MODE == 1) {
             DM6300_SetPower(0, RF_FREQ, 0); // limit power to 25mW during disarmed
             cur_pwr = 0;
-#ifdef _DEBUG_MODE
-            debugf("\n\rEnter LP_MODE");
-#endif
         }
     }
 
@@ -2210,10 +2111,6 @@ void InitVtxTable() {
     uint8_t i, j;
     uint8_t crc;
     uint8_t const *power_table[5];
-
-#ifdef _DEBUG_MODE
-    debugf("\r\nInitVtxTable");
-#endif
 
     // set band num, channel num and power level number
     if (TEAM_RACE)
