@@ -15,12 +15,14 @@
 #define CAMERA_SETTING_NUM 16
 #define CAMERA_PROFILE_NUM 3
 
-#define camera_button_enter WriteReg(0, 0x14, 0x32)
-#define camera_button_right WriteReg(0, 0x14, 0x58)
-#define camera_button_down  WriteReg(0, 0x14, 0x64)
-#define camera_button_left  WriteReg(0, 0x14, 0x3F)
-#define camera_button_up    WriteReg(0, 0x14, 0x4B)
-#define camera_button_mid   WriteReg(0, 0x14, 0x00)
+extern uint8_t camera_is_3v3;
+
+#define camera_button_enter WriteReg(0, 0x14, camera_is_3v3 ? 50 : 65)
+#define camera_button_right WriteReg(0, 0x14, camera_is_3v3 ? 88 : 89)
+#define camera_button_down  WriteReg(0, 0x14, camera_is_3v3 ? 100 : 100)
+#define camera_button_left  WriteReg(0, 0x14, camera_is_3v3 ? 63 : 72)
+#define camera_button_up    WriteReg(0, 0x14, camera_is_3v3 ? 75 : 80)
+#define camera_button_mid   WriteReg(0, 0x14, camera_is_3v3 ? 0 : 44)
 
 typedef enum {
     CAMERA_MFR_UNKNOW,
@@ -81,9 +83,21 @@ typedef enum {
     CAM_STATUS_END,
 } camera_status_e;
 
+typedef enum {
+    CAM_SELECT_RUNCAM_ECO = 0,
+    CAM_SELECT_RUNCAM_LUX,
+
+    CAM_SELECT_RATIO,
+    CAM_SELECT_EXIT,
+} camera_select_e;
+
 void camera_init();
 uint8_t camera_status_update(uint8_t op);
 void camera_menu_init(void);
+void camera_select_menu_init(void);
+void camera_select_menu_cursor_update(uint8_t index);
+void camera_select_menu_ratio_upate();
+void camera_menu_mode_exit_note();
 
 extern uint8_t camRatio;
 extern uint8_t video_format;

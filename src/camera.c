@@ -21,9 +21,11 @@ uint8_t camera_setting_reg_menu[CAMERA_SETTING_NUM];
 uint8_t camera_profile_menu;
 
 uint8_t video_format = VDO_FMT_720P60;
-uint8_t camRatio = 0;
+uint8_t camRatio = 0; // 0->16:9   1->4:3
 uint8_t camMenuStatus = CAM_STATUS_IDLE;
 uint8_t reset_isp_need = 0;
+
+uint8_t camera_is_3v3 = 0;
 
 void camera_type_detect(void) {
     camera_type = CAMERA_TYPE_UNKNOW;
@@ -52,7 +54,9 @@ void camera_ratio_detect(void) {
         break;
 #ifdef USE_TP9950
     case CAMERA_TYPE_OUTDATED:
-        camRatio = 1;
+        camRatio = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_CAM_RATIO);
+        if (camRatio > 1)
+            camRatio = 1;
         break;
 #endif
     default:
@@ -542,19 +546,15 @@ void camera_menu_init(void) {
 
     memset(osd_buf, 0x20, sizeof(osd_buf));
     disp_mode = DISPLAY_CMS;
-    if (camera_type == CAMERA_TYPE_UNKNOW ||
-        camera_type == CAMERA_TYPE_OUTDATED)
-        camera_button_enter;
-    else {
-        for (i = 0; i <= 15; i++) {
-            osd_buf_p = osd_buf[i] + osd_menu_offset + 3;
-            strcpy(osd_buf_p, cam_menu_string[i]);
-        }
-        camera_profile_menu = camera_profile_eep;
-        camera_setting_reg_menu_update();
-        camera_menu_draw_bracket();
-        camera_menu_draw_value();
+
+    for (i = 0; i <= 15; i++) {
+        osd_buf_p = osd_buf[i] + osd_menu_offset + 3;
+        strcpy(osd_buf_p, cam_menu_string[i]);
     }
+    camera_profile_menu = camera_profile_eep;
+    camera_setting_reg_menu_update();
+    camera_menu_draw_bracket();
+    camera_menu_draw_value();
 }
 void camera_menu_show_repower(void) {
     memset(osd_buf, 0x20, sizeof(osd_buf));
@@ -876,3 +876,42 @@ uint8_t camera_status_update(uint8_t op) {
     return ret;
 }
 #endif
+
+void camera_select_menu_init(void) {
+    const char *cam_select_menu_string[] = {
+        "> ECO CAMERA MENU",
+        "  LUX CAMERA MENU",
+        "  VTX RATIO FOR LUX CAMERA  <4:3> ",
+        "  EXIT",
+    };
+    char *osd_buf_p;
+    uint8_t i;
+
+    for (i = 0; i <= CAM_SELECT_EXIT; i++) {
+        osd_buf_p = osd_buf[i] + osd_menu_offset;
+        strcpy(osd_buf_p, cam_select_menu_string[i]);
+    }
+    camera_select_menu_ratio_upate();
+}
+
+void camera_select_menu_cursor_update(uint8_t index) {
+    uint8_t i;
+    for (i = 0; i <= CAM_SELECT_EXIT; i++) {
+        if (i == index)
+            osd_buf[i][osd_menu_offset] = '>';
+        else
+            osd_buf[i][osd_menu_offset] = ' ';
+    }
+}
+
+void camera_select_menu_ratio_upate() {
+    if (camRatio == 1)
+        strcpy(osd_buf[2] + osd_menu_offset + 28, "<4:3> ");
+    else
+        strcpy(osd_buf[2] + osd_menu_offset + 28, "<16:9>");
+}
+
+void camera_menu_mode_exit_note() {
+    const char note_string[] = "LEFT MOVE THROTTLE TO EXIT CAMERA MENU";
+    strcpy(osd_buf[15] + 5, note_string);
+}
