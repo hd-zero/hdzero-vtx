@@ -768,7 +768,9 @@ uint8_t msp_send_header_v2(uint16_t len, uint16_t msg) {
     return crc;
 }
 
-void msp_cmd_tx() // Send between 1 and 5 commands to the FC
+ // Send commands to the FC.
+ // Ensure VARIANT is processed first, followed by CONFIG, then the others.
+void msp_cmd_tx()
 {
     uint8_t i;
 
