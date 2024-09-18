@@ -772,11 +772,17 @@ uint8_t msp_send_header_v2(uint16_t len, uint16_t msg) {
  // Ensure VARIANT is processed first, followed by CONFIG, then the others.
 void msp_cmd_tx()
 {
-    uint8_t i;
+    uint8_t i, start = 0, count = 1;
 
     // Wait for variant, then config, then continue with status/rx/osd_canvas
-    uint8_t const start = (fc_lock & FC_VTX_CONFIG_LOCK) ? 2 : (fc_lock & FC_VARIANT_LOCK) ? 1 : 0;
-    uint8_t const end = (fc_lock & FC_VTX_CONFIG_LOCK) ? 5 : (fc_lock & FC_VARIANT_LOCK) ? 2 : 1;
+    if (fc_lock & FC_VARIANT_LOCK) {
+        start = 1;
+        if (fc_lock & FC_VTX_CONFIG_LOCK) {
+            start = 2;
+            count = (msp_cmp_fc_variant("BTFL")) ? 3 : 2;
+        }
+    }
+        
     uint8_t const msp_cmd[5] = {
         MSP_FC_VARIANT,
         MSP_GET_VTX_CONFIG,
@@ -785,7 +791,7 @@ void msp_cmd_tx()
         MSP_GET_OSD_CANVAS,
     };
 
-    for (i = start; i < end; i++) {
+    for (i = start; count--; i++) {
         msp_send_command(0, MSP_HEADER_V1);
         msp_tx(0x00);       // len
         msp_tx(msp_cmd[i]); // function
