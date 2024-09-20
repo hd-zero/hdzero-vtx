@@ -933,18 +933,8 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     crc ^= 0x06; // band count
     msp_tx(0x08);
     crc ^= 0x08; // channel count
-#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
-    if (powerLock) {
-        msp_tx(3);
-        crc ^= (3); // power count
-    } else {
-        msp_tx(5);
-        crc ^= (5); // power count
-    }
-#else
-    msp_tx(POWER_MAX + 2);
-    crc ^= (POWER_MAX + 2); // power count
-#endif
+    msp_tx(POWER_MAX + 1);
+    crc ^= (POWER_MAX + 1); // max power
     msp_tx(0x00);
     crc ^= 0x00; // disable/clear vtx table
     msp_tx(crc);
@@ -1054,6 +1044,10 @@ void parse_vtx_settings(uint8_t ident) {
         fc_pwr_rx = msp_rx_buf[3];
         fc_pit_rx = msp_rx_buf[4];
         fc_lp_rx = msp_rx_buf[8];
+    }
+
+    if (fc_pwr_rx == 0) {
+        fc_pwr_rx = POWER_MAX+2;
     }
 
     mspVtxLock = 1;
