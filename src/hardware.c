@@ -74,34 +74,38 @@ uint8_t led_status = 0;
 
 // Blue LED diagnostic encoding, in 1/16s blocks over 4s (64 flags)
 // Short pulse 1/4s (4 flags)
-// Long pulse 1s    (16 flags)
-// OFF   3/8s       (6 flags)
+// Long pulse  1s   (16 flags)
+// OFF         3/8s (6 flags)
 
-// SS
+// Note that the OFF pulse is intentionally longer than the short ON pulse because
+// the LED continues to glow for a short period when turned off.
+// The longer off pulse makes it easier to visually separate the ON pulses.
+
+// Short     Short
 // XXXX------XXXX---------------------------------------------------
 const uint8_t diag_led_flags_cameralost[64] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0,
                                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-// SSS
+// Short     Short     Short
 // XXXX------XXXX------XXXX-----------------------------------------
 const uint8_t diag_led_flags_heatprotect[64] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0,
                                                 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
                                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-// SSSS
+// Short     Short     Short     Short
 // XXXX------XXXX------XXXX------XXXX-------------------------------
 const uint8_t diag_led_flags_dm6300lost[64] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0,
                                                0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1,
                                                1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-// LS
+// Long                  Short
 // XXXXXXXXXXXXXXXX------XXXX-------------------------------------
 const uint8_t diag_led_flags_0mW[64] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                                         0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-// LSS
+// Long                  Short     Short
 // XXXXXXXXXXXXXXXX------XXXX------XXXX---------------------------
 const uint8_t diag_led_flags_pit[64] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                                         0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
