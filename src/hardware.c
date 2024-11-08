@@ -1626,6 +1626,10 @@ void check_eeprom() {
     uint8_t ff_cnt[3];
     uint8_t i, j, k;
 
+#ifdef _RF_CALIB
+    return;
+#endif
+
     // read all 3 table_power partitions
     for (i = 0; i < 3; i++) {
         ff_cnt[i] = 0;
@@ -1697,8 +1701,6 @@ void check_eeprom() {
         }
     }
 
-    if (ff_cnt[0] == 3)
-        return;
     // Init partition 1/2 by copy paratition 0 if is needed (one time)
     if ((ff_cnt[1] + ff_cnt[2]) > 5) {
         for (j = 0; j < 5; j++) {
