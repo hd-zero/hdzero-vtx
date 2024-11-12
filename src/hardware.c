@@ -518,6 +518,12 @@ void Init_HW() {
     GetVtxParameter();
     Get_EEP_LifeTime();
     camera_init();
+#ifdef _RF_CALIB
+    RF_POWER = 0; // max power
+    RF_FREQ = 0;  // ch1
+    Init_6300RF(RF_FREQ, RF_POWER);
+    DM6300_AUXADC_Calib();
+#endif
 //--------- dm6300 --------------------
 // move to RF_Delay_Init()
 #endif
