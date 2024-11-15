@@ -190,7 +190,9 @@ void main(void) {
             uart_baudrate_detect();
             runcam_shutter_fix(seconds);
         }
+#ifndef _RF_CALIB
         RF_Delay_Init();
+#endif
 
 #ifdef USE_USB_DET
         usb_det_task();

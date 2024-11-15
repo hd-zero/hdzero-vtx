@@ -247,6 +247,7 @@ void tramp_receive(void) {
 }
 
 void tramp_init(void) {
+#ifndef _RF_CALIB
     uint16_t time_ms = 3000;
     RF_POWER = POWER_MAX + 2;
     while (time_ms--) {
@@ -255,5 +256,6 @@ void tramp_init(void) {
     }
     if (!tramp_lock)
         RF_POWER = I2C_Read8(ADDR_EEPROM, EEP_ADDR_RF_POWER);
+#endif
 }
 #endif
