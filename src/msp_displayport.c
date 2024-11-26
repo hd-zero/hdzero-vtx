@@ -305,13 +305,13 @@ uint8_t msp_read_one_frame() {
                 else if (cur_cmd == CUR_FC_VARIANT)
                     parse_variant();
                 else if (cur_cmd == CUR_VTX_CONFIG)
-                    parse_vtx_config(state);
+                    parse_vtx_config();
                 else if (cur_cmd == CUR_GET_OSD_CANVAS)
                     parse_get_osd_canvas();
                 else if (cur_cmd == CUR_DISPLAYPORT)
                     ret = parse_displayport(osd_len);
                 full_frame = 1;
-                if ((fc_lock & FC_VTX_CONFIG_LOCK) && (fc_lock & FC_INIT_VTX_TABLE_LOCK) == 0 && (fc_lock & FC_VARIANT_LOCK)) {
+                if ((fc_lock & FC_VTX_CONFIG_LOCK) && (fc_lock & FC_VARIANT_LOCK) && (fc_lock & FC_INIT_VTX_TABLE_LOCK) == 0) {
                     fc_lock |= FC_INIT_VTX_TABLE_LOCK;
                     if (msp_cmp_fc_variant("BTFL") || msp_cmp_fc_variant("QUIC")) {
 #ifdef INIT_VTX_TABLE
@@ -403,7 +403,7 @@ uint8_t msp_read_one_frame() {
                     msp_send_vtx_hw_faults();
                     break;
                 case MSP_GET_VTX_CONFIG:
-                    parseMspVtx_V2(state);
+                    parseMspVtx_V2();
                 default:
                     break;
                 }
@@ -772,31 +772,33 @@ uint8_t msp_send_header_v2(uint16_t len, uint16_t msg) {
  // Send commands to the FC.
  // Ensure VARIANT is processed first, followed by CONFIG, then the others.
 void msp_cmd_tx()
-{
-    uint8_t i, start = 0, count = 1;
-
-    // Wait for variant, then config, then continue with status/rx/osd_canvas
-    if (fc_lock & FC_VARIANT_LOCK) {
-        start = 1;
-        if (fc_lock & FC_VTX_CONFIG_LOCK) {
-            start = 2;
-            count = (msp_cmp_fc_variant("BTFL")) ? 3 : 2;
-        }
-    }
-        
+{      
     uint8_t const msp_cmd[5] = {
         MSP_FC_VARIANT,
         MSP_GET_VTX_CONFIG,
-        MSP_STATUS,
-        MSP_RC,
         MSP_GET_OSD_CANVAS,
+        MSP_STATUS,
+        MSP_RC
     };
 
-    for (i = start; count--; i++) {
+    uint8_t idx, start = 0, end = 0;
+    
+    // Process in strict order: VARIANT; VTX_CONFIG; then STATUS/RC/OSD_CANVAS
+    if (fc_lock & FC_VARIANT_LOCK) {
+        start = 1; end = 1; // Config only
+        if (fc_lock & FC_VTX_CONFIG_LOCK) {
+            end = 4; // the rest...
+            if (msp_cmp_fc_variant("INAV")) {
+                start = 3; // OSD_CANVAS not reuired for iNav
+            }
+        }
+    }
+
+    for (idx = start; idx <= end; idx++) {
         msp_send_command(0, MSP_HEADER_V1);
         msp_tx(0x00);       // len
-        msp_tx(msp_cmd[i]); // function
-        msp_tx(msp_cmd[i]); // crc
+        msp_tx(msp_cmd[idx]); // function
+        msp_tx(msp_cmd[idx]); // crc
     }
 }
 
@@ -946,14 +948,14 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     crc ^= 0x08; // channel count
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
     if (powerLock) {
-        msp_tx((POWER_MAX & 0x1) + 1);
-        crc ^= ((POWER_MAX & 0x1) + 1); // power locked to 25/200mW
+        msp_tx(3);  // power locked to 25/200/0mW
+        crc ^= (3);
     }
     else
 #endif
     {
-        msp_tx(POWER_MAX + 1);
-        crc ^= (POWER_MAX + 1); // power count
+        msp_tx(POWER_MAX + 2); // power count (including 0mW)
+        crc ^= (POWER_MAX + 2);
     }
     msp_tx(0x00);
     crc ^= 0x00; // disable/clear vtx table
@@ -1043,32 +1045,25 @@ void parse_get_osd_canvas(void) {
     }
 }
 
-void parse_vtx_settings(uint8_t ident) {
+void parse_vtx_params(uint8_t isMSP_V2) {
     uint8_t nxt_ch = INVALID_CHANNEL;
     uint8_t nxt_pwr;
     uint8_t nxt_pit;
     uint8_t needSaveEEP = 0;
 
-    if (SA_lock || tramp_lock || init_table_supported) {
+    if (SA_lock || tramp_lock || (isMSP_V2 && init_table_supported)) {
         return;
     }
 
-    if (ident == MSP_CRC1) { // V1 (initial) config
-
-        fc_pwr_rx = msp_rx_buf[3];
-        fc_pit_rx = msp_rx_buf[4];
-        fc_lp_rx = msp_rx_buf[6];
-
-    } else { // MSP_CRC2 (V2 config)
-
-        fc_pwr_rx = msp_rx_buf[3];
-        fc_pit_rx = msp_rx_buf[4];
-        fc_lp_rx = msp_rx_buf[8];
-    }
-
+    fc_pwr_rx = msp_rx_buf[3];
     if (fc_pwr_rx == 0) {
-        fc_pwr_rx = POWER_MAX+2;
+        fc_pwr_rx = POWER_MAX+2; // 0mW
+    } else if (fc_pwr_rx > (POWER_MAX+2)) {
+        fc_pwr_rx = 1; // min power if invalid
     }
+
+    fc_pit_rx = msp_rx_buf[4];
+    fc_lp_rx = (isMSP_V2) ? msp_rx_buf[6] : msp_rx_buf[8];
 
     mspVtxLock = 1;
     pwr_lmt_done = 1;
@@ -1087,10 +1082,6 @@ void parse_vtx_settings(uint8_t ident) {
         // Won't harm to validate frequency in all cases.
         uint16_t const fc_frequency = ((uint16_t)msp_rx_buf[6] << 8) + msp_rx_buf[5];
         nxt_ch = DM6300_GetChannelByFreq(fc_frequency);
-        if (nxt_ch == INVALID_CHANNEL) {
-            // Invalid config requested -> ignore
-            return;
-        }
     }
     needSaveEEP |= msp_vtx_set_channel(nxt_ch);
 
@@ -1199,18 +1190,17 @@ void parse_vtx_settings(uint8_t ident) {
 
     if (needSaveEEP) {
         Setting_Save();
-        // msp_set_vtx_config(RF_POWER, (ident == MSP_CRC1));
     }       
 }
  
-void parse_vtx_config(uint8_t ident) {
+void parse_vtx_config(void) {
     fc_lock |= FC_VTX_CONFIG_LOCK;
-    parse_vtx_settings(ident);
+    parse_vtx_params(0);
 }
 
-void parseMspVtx_V2(uint8_t ident) {
+void parseMspVtx_V2(void) {
     if (fc_lock & FC_VTX_CONFIG_LOCK) {
-        parse_vtx_settings(ident);
+        parse_vtx_params(1);
     }
 }
 
