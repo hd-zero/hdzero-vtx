@@ -50,6 +50,10 @@ uint8_t fc_lp_rx = 0;
 uint8_t g_IS_ARMED = 0;
 uint8_t g_IS_PARALYZE = 0;
 
+uint8_t g_boxCamera1_page = 0xff;
+uint8_t g_boxCamera1_mask;
+uint8_t g_camera_sel = 0;
+
 uint8_t pit_mode_cfg_done = 0;
 uint8_t lp_mode_cfg_done = 0;
 
@@ -62,8 +66,6 @@ uint8_t msp_tx_cnt = 0xff;
 uint8_t msp_rcv = 0;
 uint16_t tick_8hz = 0;
 uint16_t msp_rcv_tick_8hz = 0;
-
-uint8_t msp_rbuf[64];
 
 uint8_t mspVtxLock = 0;
 uint8_t init_table_supported = 0;
@@ -272,6 +274,8 @@ uint8_t msp_read_one_frame() {
                 cur_cmd = CUR_STATUS;
             } else if (rx == MSP_FC_VARIANT) {
                 cur_cmd = CUR_FC_VARIANT;
+            } else if (rx == MSP_BOXIDS) {
+                cur_cmd = CUR_BOXIDS;
             } else if (rx == MSP_GET_VTX_CONFIG) {
                 cur_cmd = CUR_VTX_CONFIG;
             } else if (rx == MSP_GET_OSD_CANVAS) {
@@ -288,7 +292,7 @@ uint8_t msp_read_one_frame() {
         case MSP_RX1:
             crc ^= rx;
             msp_rx_buf[ptr++] = rx;
-            ptr &= 63;
+            ptr &= 63; // limit buffer size to 64 bytes
             length--;
             if (length == 0)
                 state = MSP_CRC1;
@@ -304,6 +308,8 @@ uint8_t msp_read_one_frame() {
                     parse_rc();
                 else if (cur_cmd == CUR_FC_VARIANT)
                     parse_variant();
+                else if (cur_cmd == CUR_BOXIDS)
+                    parse_boxids(ptr);
                 else if (cur_cmd == CUR_VTX_CONFIG)
                     parse_vtx_config();
                 else if (cur_cmd == CUR_GET_OSD_CANVAS)
@@ -773,8 +779,9 @@ uint8_t msp_send_header_v2(uint16_t len, uint16_t msg) {
  // Ensure VARIANT is processed first, followed by CONFIG, then the others.
 void msp_cmd_tx()
 {      
-    uint8_t const msp_cmd[5] = {
+    uint8_t const msp_cmd[6] = {
         MSP_FC_VARIANT,
+        MSP_BOXIDS,
         MSP_GET_VTX_CONFIG,
         MSP_GET_OSD_CANVAS,
         MSP_STATUS,
@@ -783,13 +790,17 @@ void msp_cmd_tx()
 
     uint8_t idx, start = 0, end = 0;
     
-    // Process in strict order: VARIANT; VTX_CONFIG; then STATUS/RC/OSD_CANVAS
-    if (fc_lock & FC_VARIANT_LOCK) {
-        start = 1; end = 1; // Config only
-        if (fc_lock & FC_VTX_CONFIG_LOCK) {
-            end = 4; // the rest...
-            if (msp_cmp_fc_variant("INAV")) {
-                start = 3; // OSD_CANVAS not reuired for iNav
+    // Process in strict order: VARIANT; BOXID; VTX_CONFIG; then the others
+    // Note BTFL requires CONFIG requests or the FC will not send VTX changes.
+        if (fc_lock & FC_VARIANT_LOCK) {
+        start = 1; end = 1; // BOXID only
+        if (fc_lock & FC_BOXIDS_LOCK) {
+            start = 2; end = 2; // Config Only
+            if (fc_lock & FC_VTX_CONFIG_LOCK) {
+                end = 5; // the rest
+                if (msp_cmp_fc_variant("INAV")) {
+                    start = 4; // VTX_CONFIG/OSD_CANVAS not required for iNav
+                }
             }
         }
     }
@@ -965,11 +976,23 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
         msp_eeprom_write();
 }
 
+void camera_switch(uint8_t camera_sel) {
+    if (camera_sel != g_camera_sel) {
+        g_camera_sel = camera_sel;
+        pca9570_set(0x02 | ((g_camera_sel) ? 0x01 : 0x00));
+    }
+}
+
 void parse_status() {
 
     fc_lock |= FC_STATUS_LOCK;
 
     g_IS_ARMED = (msp_rx_buf[6] & 0x01);
+
+    if (g_boxCamera1_page != 0xff) {
+        camera_switch(msp_rx_buf[g_boxCamera1_page] & g_boxCamera1_mask);
+    }
+
 #if (0)
     g_IS_PARALYZE = (msp_rx_buf[9] & 0x80);
 
@@ -986,6 +1009,26 @@ void parse_variant() {
 
     for (i = 0; i < 4; i++)
         fc_variant[i] = msp_rx_buf[i];
+}
+
+void parse_boxids(uint8_t msgLen) {
+    uint8_t idx, permanentId = 0xff;
+
+    fc_lock |= FC_BOXIDS_LOCK;
+
+    if (msp_cmp_fc_variant("BTFL")) {
+        permanentId = BOXCAMERA1_BTFL;
+    }
+    else if (msp_cmp_fc_variant("INAV")) {
+        permanentId = BOXCAMERA1_INAV;
+    }
+
+    for (idx = 0; idx < msgLen; idx++) {
+        if (msp_rx_buf[idx] == permanentId) {
+            g_boxCamera1_page = 6 + idx / 8;
+            g_boxCamera1_mask = 1 << (idx % 8);
+        }
+    }
 }
 
 void parse_rc() {
@@ -1784,11 +1827,12 @@ void vtx_menu_init() {
     strcpy(osd_buf[9] + osd_menu_offset + 2, " EXIT  ");
     strcpy(osd_buf[10] + osd_menu_offset + 2, " SAVE&EXIT");
     strcpy(osd_buf[11] + osd_menu_offset + 2, "------INFO------");
-    strcpy(osd_buf[12] + osd_menu_offset + 2, " VTX");
-    strcpy(osd_buf[13] + osd_menu_offset + 2, " VER");
-    strcpy(osd_buf[14] + osd_menu_offset + 2, " LIFETIME");
+    strcpy(osd_buf[12] + osd_menu_offset + 2, " CAMERA");
+   strcpy(osd_buf[13] + osd_menu_offset + 2, " VTX");
+    strcpy(osd_buf[14] + osd_menu_offset + 2, " VER");
+    strcpy(osd_buf[15] + osd_menu_offset + 2, " LIFETIME");
 #ifdef USE_TEMPERATURE_SENSOR
-    strcpy(osd_buf[15] + osd_menu_offset + 2, " TEMPERATURE");
+    strcpy(osd_buf[16] + osd_menu_offset + 2, " TEMPERATURE");
 #endif
 
     for (i = 2; i < 9; i++) {
@@ -1797,10 +1841,11 @@ void vtx_menu_init() {
     }
 
     // draw variant
-    strcpy(osd_buf[12] + osd_menu_offset + 13, VTX_NAME);
+    strcpy(osd_buf[13] + osd_menu_offset + 13, VTX_NAME);
 
     // draw version
-    strcpy(osd_buf[13] + osd_menu_offset + 13, VTX_VERSION_STRING);
+     strcpy(osd_buf[14] + osd_menu_offset + 13, VTX_VERSION_STRING);
+
 
     vtx_channel = RF_FREQ;
     vtx_power = RF_POWER;
@@ -1870,19 +1915,23 @@ void update_vtx_menu_param(uint8_t state) {
 
     strcpy(osd_buf[8] + osd_menu_offset + 20, shortcutString[vtx_shortcut]);
 
+        // dual camera selection
+    strcpy(osd_buf[12] + osd_menu_offset + 13, (g_camera_sel) ? "2" : "1");
+
     ParseLifeTime(hourString, minuteString);
-    osd_buf[14][osd_menu_offset + 16] = hourString[0];
-    osd_buf[14][osd_menu_offset + 17] = hourString[1];
-    osd_buf[14][osd_menu_offset + 18] = hourString[2];
-    osd_buf[14][osd_menu_offset + 19] = hourString[3];
-    osd_buf[14][osd_menu_offset + 20] = 'H';
-    osd_buf[14][osd_menu_offset + 21] = minuteString[0];
-    osd_buf[14][osd_menu_offset + 22] = minuteString[1];
-    osd_buf[14][osd_menu_offset + 23] = 'M';
+    osd_buf[15][osd_menu_offset + 16] = hourString[0];
+    osd_buf[15][osd_menu_offset + 17] = hourString[1];
+    osd_buf[15][osd_menu_offset + 18] = hourString[2];
+    osd_buf[15][osd_menu_offset + 19] = hourString[3];
+    osd_buf[15][osd_menu_offset + 20] = 'H';
+    osd_buf[15][osd_menu_offset + 21] = minuteString[0];
+    osd_buf[15][osd_menu_offset + 22] = minuteString[1];
+    osd_buf[15][osd_menu_offset + 23] = 'M';
+
 #ifdef USE_TEMPERATURE_SENSOR
-    osd_buf[15][osd_menu_offset + 16] = (temperature >> 2) / 100 + '0';
-    osd_buf[15][osd_menu_offset + 17] = ((temperature >> 2) % 100) / 10 + '0';
-    osd_buf[15][osd_menu_offset + 18] = ((temperature >> 2) % 10) + '0';
+    osd_buf[16][osd_menu_offset + 16] = (temperature >> 2) / 100 + '0';
+    osd_buf[16][osd_menu_offset + 17] = ((temperature >> 2) % 100) / 10 + '0';
+    osd_buf[16][osd_menu_offset + 18] = ((temperature >> 2) % 10) + '0';
 #endif
 }
 

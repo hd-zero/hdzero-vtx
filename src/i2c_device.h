@@ -11,12 +11,14 @@
 #define ADDR_EEPROM  0x50
 #define ADDR_TEMPADC 0x48
 #define ADDR_RUNCAM  0x21
+#define ADDR_PCA9570 0x24 // camera switch
 
 void set_segment(uint32_t val);
 #ifdef USE_TC3587_LED
 void LED_TC3587_Init();
 #endif
 void Init_TC3587(uint8_t fmt);
+void pca9570_set(uint8_t val);
 
 extern uint8_t USE_MAX7315;
 extern uint8_t USE_PCA9554;

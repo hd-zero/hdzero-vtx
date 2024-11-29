@@ -34,6 +34,11 @@ typedef enum {
 } vtxPtiType_e;
 
 typedef enum {
+BOXCAMERA1_BTFL = 32,
+BOXCAMERA1_INAV = 39
+} boxCameraId_e;
+
+typedef enum {
     MSP_HEADER_START,
     MSP_HEADER_M,
     MSP_PACKAGE_REPLAY1,
@@ -67,6 +72,7 @@ typedef enum {
     CUR_RC,
     CUR_STATUS,
     CUR_FC_VARIANT,
+    CUR_BOXIDS,
     CUR_VTX_CONFIG,
     CUR_GET_OSD_CANVAS,
     CUR_OTHERS
@@ -138,6 +144,7 @@ void msp_send_vtx_hw_faults();
 void parse_status();
 void parse_rc();
 void parse_variant();
+void parse_boxids(uint8_t len);
 void parse_vtx_params(uint8_t isMSP_V2);
 void parse_vtx_config();
 void parseMspVtx_V2();

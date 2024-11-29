@@ -111,3 +111,7 @@ void Init_TC3587(uint8_t fmt) {
     I2C_Write16(ADDR_TC3587, 0x0002, 0x0001);
     I2C_Write16(ADDR_TC3587, 0x0002, 0x0000);
 }
+
+void pca9570_set(uint8_t val) {
+    I2C_Write8(ADDR_PCA9570, 0, val);
+}

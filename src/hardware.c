@@ -515,6 +515,7 @@ void Init_HW() {
     reset_config();
 #endif
 
+    pca9570_set(0x02); // camera switch to camera 1
     GetVtxParameter();
     Get_EEP_LifeTime();
     camera_init();

@@ -18,6 +18,7 @@
 #define MSP_SET_VTX_CONFIG 0x59 // 89  // in message
 #define MSP_STATUS         0x65 // 101 //out message
 #define MSP_RC             0x69 // 105 //out message
+#define MSP_BOXIDS         0x77 // 119 //out message
 #define MSP_DISPLAYPORT    0xB6 // 182 // in message
 #define MSP_SET_OSD_CANVAS 0xBC // 188 // in message
 #define MSP_GET_OSD_CANVAS 0xBD // 188 //out message
@@ -30,6 +31,7 @@
 #define FC_RC_LOCK             0x04
 #define FC_VTX_CONFIG_LOCK     0x08
 #define FC_STATUS_LOCK         0x10
+#define FC_BOXIDS_LOCK         0x20
 #define FC_INIT_VTX_TABLE_LOCK 0x80
 
 #define OSD_CANVAS_SD_HMAX  30
