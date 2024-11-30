@@ -32,6 +32,7 @@
 #define FC_VTX_CONFIG_LOCK     0x08
 #define FC_STATUS_LOCK         0x10
 #define FC_BOXIDS_LOCK         0x20
+#define FC_STARTUP_LOCK        0x40
 #define FC_INIT_VTX_TABLE_LOCK 0x80
 
 #define OSD_CANVAS_SD_HMAX  30

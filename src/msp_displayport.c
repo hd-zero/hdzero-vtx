@@ -300,24 +300,37 @@ uint8_t msp_read_one_frame() {
 
         case MSP_CRC1:
             if (rx == crc) {
+                full_frame = 1;
                 msp_lst_rcv_sec = seconds;
                 msp_tx_en = 1;
-                if (cur_cmd == CUR_STATUS)
-                    parse_status();
-                else if (cur_cmd == CUR_RC)
-                    parse_rc();
-                else if (cur_cmd == CUR_FC_VARIANT)
+
+                switch (cur_cmd) {
+                case CUR_FC_VARIANT:
                     parse_variant();
-                else if (cur_cmd == CUR_BOXIDS)
+                    break;
+                case CUR_BOXIDS:
                     parse_boxids(ptr);
-                else if (cur_cmd == CUR_VTX_CONFIG)
+                    break;
+                case CUR_VTX_CONFIG:
                     parse_vtx_config();
-                else if (cur_cmd == CUR_GET_OSD_CANVAS)
+                    break;
+                case CUR_STATUS:
+                    parse_status();
+                    break;
+                case CUR_RC:
+                    parse_rc();
+                    break;
+                case CUR_GET_OSD_CANVAS:
                     parse_get_osd_canvas();
-                else if (cur_cmd == CUR_DISPLAYPORT)
+                    break;
+                case CUR_DISPLAYPORT:
                     ret = parse_displayport(osd_len);
-                full_frame = 1;
-                if ((fc_lock & FC_VTX_CONFIG_LOCK) && (fc_lock & FC_VARIANT_LOCK) && (fc_lock & FC_INIT_VTX_TABLE_LOCK) == 0) {
+                    break;
+                default:
+                    break;
+                }
+
+                if ((fc_lock & FC_INIT_VTX_TABLE_LOCK) == 0 && (fc_lock & FC_STARTUP_LOCK)) {
                     fc_lock |= FC_INIT_VTX_TABLE_LOCK;
                     if (msp_cmp_fc_variant("BTFL") || msp_cmp_fc_variant("QUIC")) {
 #ifdef INIT_VTX_TABLE
@@ -392,6 +405,8 @@ uint8_t msp_read_one_frame() {
         case MSP_CRC2:
             if (crc == rx) {
                 full_frame = 1;
+                msp_lst_rcv_sec = seconds;
+                msp_tx_en = 1;
                 switch (cmd_u16) {
                 case MSP_VTX_GET_MODEL_NAME:
                     msp_send_vtx_model_name();
@@ -413,8 +428,6 @@ uint8_t msp_read_one_frame() {
                 default:
                     break;
                 }
-                msp_lst_rcv_sec = seconds;
-                msp_tx_en = 1;
             }
             state = MSP_HEADER_START;
             break;
@@ -788,18 +801,22 @@ void msp_cmd_tx()
         MSP_RC
     };
 
-    uint8_t idx, start = 0, end = 0;
-    
-    // Process in strict order: VARIANT; BOXID; VTX_CONFIG; then the others
-    // Note BTFL requires CONFIG requests or the FC will not send VTX changes.
-        if (fc_lock & FC_VARIANT_LOCK) {
-        start = 1; end = 1; // BOXID only
-        if (fc_lock & FC_BOXIDS_LOCK) {
-            start = 2; end = 2; // Config Only
-            if (fc_lock & FC_VTX_CONFIG_LOCK) {
-                end = 5; // the rest
-                if (msp_cmp_fc_variant("INAV")) {
-                    start = 4; // VTX_CONFIG/OSD_CANVAS not required for iNav
+    uint8_t idx;
+    static uint8_t start = 0, end = 0;
+
+    if ((fc_lock & FC_STARTUP_LOCK) == 0) {
+        // Process startup in strict order: VARIANT; BOXID; VTX_CONFIG; then the others
+        // Note BTFL requires CONFIG requests or the FC will not send VTX changes.
+            if (fc_lock & FC_VARIANT_LOCK) {
+            start = 1; end = 1; // BOXID only
+            if (fc_lock & FC_BOXIDS_LOCK) {
+                start = 2; end = 2; // Config Only
+                if (fc_lock & FC_VTX_CONFIG_LOCK) {
+                    end = 5; // the rest
+                    if (msp_cmp_fc_variant("INAV")) {
+                        start = 4; // VTX_CONFIG/OSD_CANVAS not required for iNav
+                    }
+                    fc_lock |= FC_STARTUP_LOCK;
                 }
             }
         }
@@ -1027,6 +1044,7 @@ void parse_boxids(uint8_t msgLen) {
         if (msp_rx_buf[idx] == permanentId) {
             g_boxCamera1_page = 6 + idx / 8;
             g_boxCamera1_mask = 1 << (idx % 8);
+            break;
         }
     }
 }
