@@ -1055,6 +1055,11 @@ void parse_vtx_params(uint8_t isMSP_V2) {
         return;
     }
 
+    // Check for unknown VTX device  (probably from a device that is not interested in controlling the VTX directly)
+    if (msp_rx_buf[0] = 0xff) {
+        return;
+    }
+
     fc_pwr_rx = msp_rx_buf[3];
     if (fc_pwr_rx == 0) {
         fc_pwr_rx = POWER_MAX+2; // 0mW
