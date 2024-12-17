@@ -113,6 +113,16 @@ typedef enum {
 } vtx_menu_state_e;
 
 typedef enum {
+    VTXDEV_UNSUPPORTED = 0, // reserved for MSP
+    VTXDEV_RTC6705     = 1,
+    // 2 reserved
+    VTXDEV_SMARTAUDIO  = 3,
+    VTXDEV_TRAMP       = 4,
+    VTXDEV_MSP         = 5,
+    VTXDEV_UNKNOWN     = 0xFF,
+} vtxDevType_e;
+
+typedef enum {
     DISPLAY_OSD,
     DISPLAY_CMS,
 } disp_mode_e;
