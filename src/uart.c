@@ -50,10 +50,9 @@ void uart_init() {
     BAUDRATE = 0;
 #else
     BAUDRATE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_BAUDRATE);
-#endif
     if (BAUDRATE > 1)
         BAUDRATE = 0;
-
+#endif
     uart_set_baudrate(BAUDRATE);
 }
 
