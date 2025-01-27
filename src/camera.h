@@ -10,7 +10,7 @@
 #define RUNCAM_MICRO_V1 0x42
 #define RUNCAM_MICRO_V2 0x44
 #define RUNCAM_NANO_90  0x46
-#define RUNCAM_MICRO_V3 0x4A // Temp change from 0x48 for testing
+#define RUNCAM_MICRO_V3 0x48
 
 #define CAMERA_SETTING_NUM 16
 #define CAMERA_PROFILE_NUM 3

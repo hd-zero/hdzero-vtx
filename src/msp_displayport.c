@@ -996,7 +996,7 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
 void camera_switch(uint8_t camera_sel) {
     if (camera_sel != g_camera_sel) {
         g_camera_sel = camera_sel;
-        pca9570_set(0x02 | ((g_camera_sel) ? 0x01 : 0x00));
+        pi4io_set(0x05, (g_camera_sel) ? 0x60 : 0x10);
     }
 }
 
@@ -1850,8 +1850,8 @@ void vtx_menu_init() {
     strcpy(osd_buf[9] + osd_menu_offset + 2, " EXIT  ");
     strcpy(osd_buf[10] + osd_menu_offset + 2, " SAVE&EXIT");
     strcpy(osd_buf[11] + osd_menu_offset + 2, "------INFO------");
-    strcpy(osd_buf[12] + osd_menu_offset + 2, " CAMERA");
-   strcpy(osd_buf[13] + osd_menu_offset + 2, " VTX");
+    strcpy(osd_buf[12] + osd_menu_offset + 2, " CAMERA x  1.0");
+    strcpy(osd_buf[13] + osd_menu_offset + 2, " VTX");
     strcpy(osd_buf[14] + osd_menu_offset + 2, " VER");
     strcpy(osd_buf[15] + osd_menu_offset + 2, " LIFETIME");
 #ifdef USE_TEMPERATURE_SENSOR
@@ -1938,8 +1938,8 @@ void update_vtx_menu_param(uint8_t state) {
 
     strcpy(osd_buf[8] + osd_menu_offset + 20, shortcutString[vtx_shortcut]);
 
-        // dual camera selection
-    strcpy(osd_buf[12] + osd_menu_offset + 13, (g_camera_sel) ? "2" : "1");
+    // camera selection
+    strcpy(osd_buf[12] + osd_menu_offset + 10, (g_camera_sel) ? "2" : "1");   
 
     ParseLifeTime(hourString, minuteString);
     osd_buf[15][osd_menu_offset + 16] = hourString[0];

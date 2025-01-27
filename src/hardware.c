@@ -515,7 +515,8 @@ void Init_HW() {
     reset_config();
 #endif
 
-    pca9570_set(0x02); // camera switch to camera 1
+    pi4io_set(0x03, 0x77); // set camera switch to VTX control
+    
     GetVtxParameter();
     Get_EEP_LifeTime();
     camera_init();
