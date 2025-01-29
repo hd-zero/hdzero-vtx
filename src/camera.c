@@ -28,7 +28,7 @@ uint8_t reset_isp_need = 0;
 uint8_t camera_is_3v3 = 0;
 
 void camera_type_detect(void) {
-    camera_type = CAMERA_TYPE_UNKNOW;
+    camera_type = CAMERA_TYPE_UNKNOWN;
 
     runcam_type_detect();
     if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 ||
@@ -322,7 +322,7 @@ void camera_setting_read(void) {
     uint8_t camera_type_last;
     uint8_t i;
 
-    if (camera_type == CAMERA_TYPE_UNKNOW ||
+    if (camera_type == CAMERA_TYPE_UNKNOWN ||
         camera_type == CAMERA_TYPE_OUTDATED ||
         camera_type == CAMERA_TYPE_RESERVED)
         return;
@@ -723,7 +723,7 @@ uint8_t camera_status_update(uint8_t op) {
     if (op >= BTN_INVALID)
         return ret;
 
-    if (camera_type == CAMERA_TYPE_UNKNOW ||
+    if (camera_type == CAMERA_TYPE_UNKNOWN ||
         camera_type == CAMERA_TYPE_OUTDATED) {
         camera_button_op(op);
         return ret;

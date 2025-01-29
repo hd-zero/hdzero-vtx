@@ -54,6 +54,7 @@ uint8_t g_boxCamera1_page = 0xff;
 uint8_t g_boxCamera1_mask;
 uint8_t g_camera_id = 0;
 uint8_t g_manual_camera_sel = 0;
+uint8_t g_camera_mode_lock = 0;
 
 uint8_t pit_mode_cfg_done = 0;
 uint8_t lp_mode_cfg_done = 0;
@@ -1731,9 +1732,10 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
             cms_cnt = 0;
             disp_mode = DISPLAY_CMS;
             clear_screen();
-            if (camera_type == CAMERA_TYPE_UNKNOW ||
+            if (camera_type == CAMERA_TYPE_UNKNOWN ||
                 camera_type == CAMERA_TYPE_OUTDATED) {
                 camera_select_menu_init();
+                g_camera_mode_lock = 1;
                 camera_selected = 0;
                 cms_state = CMS_SELECT_CAM;
             } else {
@@ -1815,7 +1817,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
     last_mid = mid;
 
 #ifdef USE_TP9950
-    if (cms_state == CMS_CAM && (camera_type == CAMERA_TYPE_UNKNOW || camera_type == CAMERA_TYPE_OUTDATED)) {
+    if (cms_state == CMS_CAM && (camera_type == CAMERA_TYPE_UNKNOWN || camera_type == CAMERA_TYPE_OUTDATED)) {
         if (VirtualBtn_last == VirtualBtn) {
             if (seconds - cam_menu_timeout_sec >= 60) {
                 // exit cam menu
@@ -1854,7 +1856,7 @@ void vtx_menu_init() {
     strcpy(osd_buf[9] + osd_menu_offset + 2, " EXIT  ");
     strcpy(osd_buf[10] + osd_menu_offset + 2, " SAVE&EXIT");
     strcpy(osd_buf[11] + osd_menu_offset + 2, "------INFO------");
-    strcpy(osd_buf[12] + osd_menu_offset + 2, " CAMERA V1");
+    strcpy(osd_buf[12] + osd_menu_offset + 2, " CAMERA");
     strcpy(osd_buf[13] + osd_menu_offset + 2, " VTX");
     strcpy(osd_buf[14] + osd_menu_offset + 2, " VER");
     strcpy(osd_buf[15] + osd_menu_offset + 2, " LIFETIME");
@@ -1867,12 +1869,9 @@ void vtx_menu_init() {
         osd_buf[i][osd_menu_offset + 26] = '>';
     }
 
-    // draw variant
+    // draw variant & version
     strcpy(osd_buf[13] + osd_menu_offset + 13, VTX_NAME);
-
-    // draw version
-     strcpy(osd_buf[14] + osd_menu_offset + 13, VTX_VERSION_STRING);
-
+    strcpy(osd_buf[14] + osd_menu_offset + 13, VTX_VERSION_STRING);
 
     vtx_channel = RF_FREQ;
     vtx_power = RF_POWER;
@@ -1893,6 +1892,7 @@ void update_vtx_menu_param(uint8_t state) {
     const char *pitString[] = {"  OFF", " P1MW", "  0MW"};
     const char *treamRaceString[] = {"  OFF", "MODE1", "MODE2"};
     const char *shortcutString[] = {"OPT_A", "OPT_B"};
+    const char *cameraTypeString[] = {"UNKNOWN", "RESERVED", "OUTDATED", "MICRO_V1", "MICRO_V2", "NANO_90", "MICRO_V3" };
 
     // cursor
     state += 2;
@@ -1943,8 +1943,9 @@ void update_vtx_menu_param(uint8_t state) {
     strcpy(osd_buf[8] + osd_menu_offset + 20, shortcutString[vtx_shortcut]);
 
     // camera selection
-    osd_buf[12][osd_menu_offset + 13] = '0' + g_camera_id;
-    osd_buf[12][osd_menu_offset + 14] = (g_manual_camera_sel) ? 'M' : ' ';   
+    osd_buf[12][osd_menu_offset + 10] = '0' + g_camera_id;
+    osd_buf[12][osd_menu_offset + 11] = (g_manual_camera_sel) ? 'M' : ' '; 
+    strcpy(osd_buf[12] + osd_menu_offset + 13, cameraTypeString[camera_type]);
 
     ParseLifeTime(hourString, minuteString);
     osd_buf[15][osd_menu_offset + 16] = hourString[0];

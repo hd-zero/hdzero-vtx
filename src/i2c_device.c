@@ -136,13 +136,13 @@ void select_camera(uint8_t camera_id, uint8_t shared_i2c) {
     default:
         command = 0x40;
         if (!shared_i2c) {
-            command |= 0x01;
+            command |= 0x04;
         }
         break;    
     case 2:
         command = 0x60;
         if (!shared_i2c) { // changes only affect this camera
-            command |= 0x04;
+            command |= 0x01;
         }
         break;
     }
