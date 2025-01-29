@@ -515,7 +515,7 @@ void Init_HW() {
     reset_config();
 #endif
 
-    pi4io_set(0x03, 0x77); // set camera switch to VTX control
+    init_camera_switch();
     
     GetVtxParameter();
     Get_EEP_LifeTime();

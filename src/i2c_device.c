@@ -7,6 +7,9 @@
 #include "i2c.h"
 #include "print.h"
 
+extern uint8_t g_camera_id;
+extern uint8_t g_manual_camera_sel;
+
 /////////////////////////////////////////////////////////////////
 // MAX7315
 /*
@@ -112,7 +115,56 @@ void Init_TC3587(uint8_t fmt) {
     I2C_Write16(ADDR_TC3587, 0x0002, 0x0000);
 }
 
+/////////////////////////////////////////////////////////////////
+// Camera Expander Switch
+
+// Read from camera switch
+uint8_t pi4io_get(uint8_t reg) {
+    return I2C_Read8(ADDR_PI4IO, reg);
+}
+
 // Write to camera switch
 void pi4io_set(uint8_t reg, uint8_t val) {
     I2C_Write8(ADDR_PI4IO, reg, val);
+}
+
+// Select camera 1 or camera 2 and whether the i2c is shared
+void select_camera(uint8_t camera_id, uint8_t shared_i2c) {
+    uint8_t command;
+    switch (camera_id) {
+    case 1:
+    default:
+        command = 0x40;
+        if (!shared_i2c) {
+            command |= 0x01;
+        }
+        break;    
+    case 2:
+        command = 0x60;
+        if (!shared_i2c) { // changes only affect this camera
+            command |= 0x04;
+        }
+        break;
+    }
+    pi4io_set(0x05, command);
+}
+
+void init_camera_switch() {
+    pi4io_set(0x03, 0x77); // P7 and P3 are inputs
+    g_manual_camera_sel = 0;
+    select_camera(1, 0); // camera 1 is default
+}
+
+// Check if manual camera selection is enabled and switch if required
+// (called from loop)
+void manual_select_camera(void) {
+    uint8_t command = pi4io_get(0x0F);
+    g_manual_camera_sel = (command & 0x80);
+    if (g_manual_camera_sel) {
+        uint8_t camera_id = ((command & 0x08) >> 4) + 1;
+        if (camera_id != g_camera_id) {
+            g_camera_id = camera_id;
+            select_camera(camera_id, 0);
+        }
+    }
 }

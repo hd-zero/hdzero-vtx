@@ -52,7 +52,8 @@ uint8_t g_IS_PARALYZE = 0;
 
 uint8_t g_boxCamera1_page = 0xff;
 uint8_t g_boxCamera1_mask;
-uint8_t g_camera_sel = 0;
+uint8_t g_camera_id = 0;
+uint8_t g_manual_camera_sel = 0;
 
 uint8_t pit_mode_cfg_done = 0;
 uint8_t lp_mode_cfg_done = 0;
@@ -160,6 +161,10 @@ void msp_task() {
     static uint8_t vmax = OSD_CANVAS_SD_VMAX;
 
     DP_tx_task();
+
+    if (timer_8hz) {
+        manual_select_camera();
+    }
 
     // decide by osd_frame size/rate and dptx rate
     if (msp_read_one_frame()) {
@@ -992,14 +997,13 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     if (save)
         msp_eeprom_write();
 }
-
 void camera_switch(uint8_t camera_sel) {
-    if (camera_sel != g_camera_sel) {
-        g_camera_sel = camera_sel;
-        pi4io_set(0x05, (g_camera_sel) ? 0x60 : 0x10);
+    uint8_t camera_id = camera_sel ? 2 : 1;
+    if (!g_manual_camera_sel && camera_id != g_camera_id) {
+        g_camera_id = camera_id;
+        select_camera(g_camera_id, 0);
     }
 }
-
 void parse_status() {
 
     fc_lock |= FC_STATUS_LOCK;
@@ -1850,7 +1854,7 @@ void vtx_menu_init() {
     strcpy(osd_buf[9] + osd_menu_offset + 2, " EXIT  ");
     strcpy(osd_buf[10] + osd_menu_offset + 2, " SAVE&EXIT");
     strcpy(osd_buf[11] + osd_menu_offset + 2, "------INFO------");
-    strcpy(osd_buf[12] + osd_menu_offset + 2, " CAMERA x  1.0");
+    strcpy(osd_buf[12] + osd_menu_offset + 2, " CAMERA V1");
     strcpy(osd_buf[13] + osd_menu_offset + 2, " VTX");
     strcpy(osd_buf[14] + osd_menu_offset + 2, " VER");
     strcpy(osd_buf[15] + osd_menu_offset + 2, " LIFETIME");
@@ -1939,7 +1943,8 @@ void update_vtx_menu_param(uint8_t state) {
     strcpy(osd_buf[8] + osd_menu_offset + 20, shortcutString[vtx_shortcut]);
 
     // camera selection
-    strcpy(osd_buf[12] + osd_menu_offset + 10, (g_camera_sel) ? "2" : "1");   
+    osd_buf[12][osd_menu_offset + 13] = '0' + g_camera_id;
+    osd_buf[12][osd_menu_offset + 14] = (g_manual_camera_sel) ? 'M' : ' ';   
 
     ParseLifeTime(hourString, minuteString);
     osd_buf[15][osd_menu_offset + 16] = hourString[0];
@@ -2225,7 +2230,11 @@ void InitVtxTable() {
 #else
 
 void fc_init() {}
-void msp_task() {}
+void msp_task() {
+    if (timer_8hz) {
+        manual_select_camera();
+    }
+}
 void msp_set_vtx_config(uint8_t power, uint8_t save) {
     (void)power;
     (void)save;
