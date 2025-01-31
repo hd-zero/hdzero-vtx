@@ -1002,7 +1002,7 @@ void camera_switch(uint8_t camera_sel) {
     uint8_t camera_id = camera_sel ? 2 : 1;
     if (!g_manual_camera_sel && camera_id != g_camera_id) {
         g_camera_id = camera_id;
-        select_camera(g_camera_id, 0);
+        select_camera(g_camera_id, 1);
     }
 }
 void parse_status() {
@@ -1885,8 +1885,6 @@ void vtx_menu_init() {
 
 void update_vtx_menu_param(uint8_t state) {
     uint8_t i;
-    uint8_t hourString[4];
-    uint8_t minuteString[2];
     const char *powerString[] = {"   25", "  200", "  500", "  MAX"};
     const char *lowPowerString[] = {"  OFF", "   ON", "  1ST"};
     const char *pitString[] = {"  OFF", " P1MW", "  0MW"};
@@ -1947,15 +1945,7 @@ void update_vtx_menu_param(uint8_t state) {
     osd_buf[12][osd_menu_offset + 11] = (g_manual_camera_sel) ? 'M' : ' '; 
     strcpy(osd_buf[12] + osd_menu_offset + 13, cameraTypeString[camera_type]);
 
-    ParseLifeTime(hourString, minuteString);
-    osd_buf[15][osd_menu_offset + 16] = hourString[0];
-    osd_buf[15][osd_menu_offset + 17] = hourString[1];
-    osd_buf[15][osd_menu_offset + 18] = hourString[2];
-    osd_buf[15][osd_menu_offset + 19] = hourString[3];
-    osd_buf[15][osd_menu_offset + 20] = 'H';
-    osd_buf[15][osd_menu_offset + 21] = minuteString[0];
-    osd_buf[15][osd_menu_offset + 22] = minuteString[1];
-    osd_buf[15][osd_menu_offset + 23] = 'M';
+    strcpy(osd_buf[15] + osd_menu_offset + 13, parseLifeTime());
 
 #ifdef USE_TEMPERATURE_SENSOR
     osd_buf[16][osd_menu_offset + 16] = (temperature >> 2) / 100 + '0';

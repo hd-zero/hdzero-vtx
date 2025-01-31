@@ -129,19 +129,19 @@ void pi4io_set(uint8_t reg, uint8_t val) {
 }
 
 // Select camera 1 or camera 2 and whether the i2c is shared
-void select_camera(uint8_t camera_id, uint8_t shared_i2c) {
+void select_camera(uint8_t camera_id, uint8_t sync_config) {
     uint8_t command;
     switch (camera_id) {
     case 1:
     default:
         command = 0x40;
-        if (!shared_i2c) {
+        if (!sync_config) {
             command |= 0x04;
         }
         break;    
     case 2:
         command = 0x60;
-        if (!shared_i2c) { // changes only affect this camera
+        if (!sync_config) {
             command |= 0x01;
         }
         break;
@@ -152,7 +152,7 @@ void select_camera(uint8_t camera_id, uint8_t shared_i2c) {
 void init_camera_switch() {
     pi4io_set(0x03, 0x77); // P7 and P3 are inputs
     g_manual_camera_sel = 0;
-    select_camera(1, 0); // camera 1 is default
+    select_camera(1, 1); // camera 1 is default, synchronised config
 }
 
 // Check if manual camera selection is enabled and switch if required
@@ -161,10 +161,10 @@ void manual_select_camera(void) {
     uint8_t command = pi4io_get(0x0F);
     g_manual_camera_sel = (command & 0x80);
     if (g_manual_camera_sel) {
-        uint8_t camera_id = ((command & 0x08) >> 4) + 1;
+        uint8_t camera_id = ((command & 0x08) >> 3) + 1;
         if (camera_id != g_camera_id) {
             g_camera_id = camera_id;
-            select_camera(camera_id, 0);
+            select_camera(camera_id, 1);
         }
     }
 }

@@ -37,7 +37,7 @@ void Update_EEP_LifeTime(void) {
     if (seconds - lstSeconds >= 10) {
         sysLifeTime++;
         lstSeconds = seconds;
-        if (sysLifeTime >= 3599999)
+        if (sysLifeTime >= 3599999) // stop at 9999 hours
             sysLifeTime = 3599999;
     } else {
         return;
@@ -69,27 +69,47 @@ void Update_EEP_LifeTime(void) {
 #endif
 }
 
-void ParseLifeTime(unsigned char *hourString, unsigned char *minuteString) {
-    uint32_t minute;
-    uint32_t hour;
+char *parseLifeTime(void) {
+    static char lifetime[6]; // ex, "9999H" or "99M"
+    uint32_t hours = sysLifeTime / 360;
+    uint32_t num;
+    uint8_t pos = 0;
 
-    hour = sysLifeTime / 360;
-    hourString[0] = '0' + (hour % 10000) / 1000;
-    hourString[1] = '0' + (hour % 1000) / 100;
-    hourString[2] = '0' + (hour % 100) / 10;
-    hourString[3] = '0' + (hour % 10);
+    memset(lifetime, ' ', sizeof(lifetime)-1);
+    lifetime[sizeof(lifetime)-1] = '\0';
 
-    if (hourString[0] == '0') {
-        hourString[0] = ' ';
-        if (hourString[1] == '0') {
-            hourString[1] = ' ';
-            if (hourString[2] == '0') {
-                hourString[2] = ' ';
+    if (hours == 0) { // display minutes
+    
+        uint8_t minutes = (sysLifeTime % 360) / 6;
+        num = (minutes % 60) / 10;
+        if (num > 0) {
+            lifetime[pos++] = '0' + num;
+        }
+        lifetime[pos] = '0' + (minutes % 10);
+        lifetime[pos+1] = 'M';
+
+    } else { // display hours
+
+        uint32_t num = hours;
+        uint8_t digits = 0;
+        while ( num != 0) {
+            digits++;
+            num /= 10;
+        }
+
+        // defensive check
+        if (digits > (sizeof(lifetime) - 2)) {
+            lifetime[0] = 'E';
+
+        } else {
+            uint8_t pos = digits-1;
+            while (hours != 0) {
+                lifetime[pos--] = '0' + (hours % 10);
+                hours /= 10;
             }
+            lifetime[digits] = 'H';
         }
     }
 
-    minute = (sysLifeTime % 360) / 6;
-    minuteString[0] = '0' + (minute % 60) / 10;
-    minuteString[1] = '0' + (minute % 10);
+    return lifetime;
 }

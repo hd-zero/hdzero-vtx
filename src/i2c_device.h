@@ -22,7 +22,7 @@ void Init_TC3587(uint8_t fmt);
 uint8_t pi4io_get(uint8_t reg);
 void pi4io_set(uint8_t reg, uint8_t val);
 void init_camera_switch(void);
-void select_camera(uint8_t camera_id, uint8_t shared_i2c);
+void select_camera(uint8_t camera_id, uint8_t sync_config);
 void manual_select_camera(void);
 
 extern uint8_t USE_MAX7315;
