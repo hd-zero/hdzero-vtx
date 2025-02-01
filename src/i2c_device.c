@@ -150,10 +150,13 @@ void select_camera(uint8_t camera_id, uint8_t sync_config) {
 }
 
 void init_camera_switch() {
-    pi4io_set(0x03, 0x77); // P3 and P7 are inputs
-    pi4io_set(0x07, 0xFF); // Set outputs to follow the output port register.
+    //pi4io_set(0x01, 0xFF); // reset
+    pi4io_set(0x11, 0xFF); // Disable interrupts on inputs
+    pi4io_get(0x013);      // de-assert the interrrupt 
+    pi4io_set(0x03, 0x77); // Set P3 and P7 as inputs
+    pi4io_set(0x07, 0x00); // Set outputs to follow the output port register
+    select_camera(1, 1);   // camera 1 is default, synchronised config
     g_manual_camera_sel = 0;
-    select_camera(1, 1); // camera 1 is default, synchronised config
 }
 
 // Check if manual camera selection is enabled and switch if required
