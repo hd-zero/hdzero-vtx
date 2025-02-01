@@ -134,7 +134,7 @@ void select_camera(uint8_t camera_id, uint8_t sync_config) {
     switch (camera_id) {
     case 1:
     default:
-        command = 0x40;
+        command = 0x10;
         if (!sync_config) {
             command |= 0x04;
         }
@@ -150,7 +150,8 @@ void select_camera(uint8_t camera_id, uint8_t sync_config) {
 }
 
 void init_camera_switch() {
-    pi4io_set(0x03, 0x77); // P7 and P3 are inputs
+    pi4io_set(0x03, 0x77); // P3 and P7 are inputs
+    pi4io_set(0x07, 0xFF); // Set outputs to follow the output port register.
     g_manual_camera_sel = 0;
     select_camera(1, 1); // camera 1 is default, synchronised config
 }
@@ -159,9 +160,9 @@ void init_camera_switch() {
 // (called from loop)
 void manual_select_camera(void) {
     uint8_t command = pi4io_get(0x0F);
-    g_manual_camera_sel = (command & 0x80);
+    g_manual_camera_sel = (command & 0x08);
     if (g_manual_camera_sel) {
-        uint8_t camera_id = ((command & 0x08) >> 3) + 1;
+        uint8_t camera_id = ((command & 0x80) >> 7) + 1;
         if (camera_id != g_camera_id) {
             g_camera_id = camera_id;
             select_camera(camera_id, 1);
