@@ -18,6 +18,7 @@
 // #define HDZERO_FREESTYLE_V2
 // #define HDZERO_ECO
 // #define HDZERO_AIO5
+// #define HDZERO_AIO15
 
 /* define VTX ID start */
 #if defined HDZERO_WHOOP
@@ -40,6 +41,8 @@
 #define VTX_ID 0x5c
 #elif defined HDZERO_AIO5
 #define VTX_ID 0x5d
+#elif defined HDZERO_AIO15
+#define VTX_ID 0x5e
 #else
 #define VTX_ID 0x00
 #endif
@@ -65,6 +68,8 @@
 #define VTX_NAME "HDZ ECO"
 #elif defined HDZERO_AIO5
 #define VTX_NAME "HDZ AIO5"
+#elif defined HDZERO_AIO15
+#define VTX_NAME "HDZ AIO15"
 #else
 #define VTX_NAME "  "
 #endif

@@ -555,12 +555,12 @@ void TempDetect() {
             temp_new = I2C_Read8(ADDR_TEMPADC, 0);
             if (temp_new >= 0x7D) // MAX +125
                 temp_new = 0x7D;
-                // temp_new >>= 5; //LM75AD
+            // temp_new >>= 5; //LM75AD
 
 #ifdef HDZERO_ECO
             if (temp_new > 10)
                 temp_new -= 10;
-#elif defined HDZERO_AIO5
+#elif defined HDZERO_AIO5 || defined HDZERO_AIO15
             if (temp_new > 15)
                 temp_new -= 15;
 #endif
