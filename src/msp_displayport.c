@@ -65,10 +65,6 @@ uint8_t cms_state = CMS_OSD;
 
 uint8_t msp_tx_cnt = 0xff;
 
-uint8_t msp_rcv = 0;
-uint16_t tick_8hz = 0;
-uint16_t msp_rcv_tick_8hz = 0;
-
 uint8_t mspVtxLock = 0;
 uint8_t init_table_supported = 0;
 uint8_t init_table_done = 0;
@@ -794,40 +790,40 @@ uint8_t msp_send_header_v2(uint16_t len, uint16_t msg) {
     return crc;
 }
 
- // Send commands to the FC.
- // Ensure VARIANT is processed first, followed by CONFIG, then the others.
+ // Send requests to the FC.
 void msp_cmd_tx()
 {      
     uint8_t const msp_cmd[6] = {
         MSP_FC_VARIANT,
-        MSP_BOXIDS,
         MSP_GET_VTX_CONFIG,
         MSP_GET_OSD_CANVAS,
         MSP_STATUS,
-        MSP_RC
+        // Only required when not armed
+        MSP_RC,
+        MSP_BOXIDS
     };
 
     uint8_t idx;
     static uint8_t start = 0, end = 0;
 
-    if ((fc_lock & FC_STARTUP_LOCK) == 0) {
-        // Process startup in strict order: VARIANT; BOXID; VTX_CONFIG; then the others
-        // Note BTFL requires CONFIG requests or the FC will not send VTX changes.
-            if (fc_lock & FC_VARIANT_LOCK) {
-            start = 1; end = 1; // BOXID only
-            if (fc_lock & FC_BOXIDS_LOCK) {
-                start = 2; end = 2; // Config Only
-                if (fc_lock & FC_VTX_CONFIG_LOCK) {
-                    end = 5; // the rest
-                    if (msp_cmp_fc_variant("INAV")) {
-                        start = 4; // VTX_CONFIG/OSD_CANVAS not required for iNav
-                    }
-                    fc_lock |= FC_STARTUP_LOCK;
+    if ((fc_lock & FC_STARTUP_LOCK) == 0) { 
+        // Variant first
+        if (fc_lock & FC_VARIANT_LOCK) {
+            // ... then initial VTX config
+            start = 1; end = 1;
+            if (fc_lock & FC_VTX_CONFIG_LOCK) {
+                end = 3; // ... and then the rest
+                if (msp_cmp_fc_variant("INAV")) {
+                    start = 3; // VTX_CONFIG/OSD_CANVAS not required for iNav
                 }
+                fc_lock |= FC_STARTUP_LOCK;
             }
         }
     }
 
+    // MSP_RC and MSP_BOXIDS messages are only required when not armed, and BOXIDS less frequently
+    end = (g_IS_ARMED) ? 3 : (timer_2hz) ? 5 : 4;
+    
     for (idx = start; idx <= end; idx++) {
         msp_send_command(0, MSP_HEADER_V1);
         msp_tx(0x00);       // len
@@ -1036,8 +1032,6 @@ void parse_variant() {
 void parse_boxids(uint8_t msgLen) {
     uint8_t idx, permanentId = 0xff;
 
-    fc_lock |= FC_BOXIDS_LOCK;
-
     if (msp_cmp_fc_variant("BTFL")) {
         permanentId = BOXCAMERA1_BTFL;
     }
@@ -1056,8 +1050,6 @@ void parse_boxids(uint8_t msgLen) {
 
 void parse_rc() {
     uint16_t roll, pitch, yaw, throttle;
-
-    fc_lock |= FC_RC_LOCK;
 
     roll = (msp_rx_buf[1] << 8) | msp_rx_buf[0];
     pitch = (msp_rx_buf[3] << 8) | msp_rx_buf[2];
