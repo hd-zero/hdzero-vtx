@@ -50,6 +50,8 @@ uint8_t fc_lp_rx = 0;
 uint8_t g_IS_ARMED = 0;
 uint8_t g_IS_PARALYZE = 0;
 
+uint8_t g_arm_page = 0xff;
+uint8_t g_arm_mask;
 uint8_t g_boxCamera1_page = 0xff;
 uint8_t g_boxCamera1_mask;
 uint8_t g_camera_id = 0;
@@ -427,6 +429,10 @@ uint8_t msp_read_one_frame() {
                     break;
                 case MSP_GET_VTX_CONFIG:
                     parseMspVtx_V2();
+                    break;
+                case MSP2_INAV_STATUS:
+                    parseiNavMspStatus();
+                    break;
                 default:
                     break;
                 }
@@ -752,22 +758,21 @@ void insert_tx_buf(uint8_t len) {
     insert_tx_byte(crc1);
 }
 
-void msp_send_command(uint8_t dl, uint8_t version) {
+void msp_send_type(uint8_t dl, uint8_t version, uint8_t header_type) {
     if (dl) {
         WAIT(20);
     }
     msp_tx(MSP_HEADER_FRAMER);
     msp_tx(version);
-    msp_tx(MSP_HEADER_COMMAND);
+    msp_tx(header_type);
+}
+
+void msp_send_command(uint8_t dl, uint8_t version) {
+   msp_send_type(dl, version, MSP_HEADER_COMMAND);
 }
 
 void msp_send_response(uint8_t dl, uint8_t version) {
-    if (dl) {
-        WAIT(20);
-    }
-    msp_tx(MSP_HEADER_FRAMER);
-    msp_tx(version);
-    msp_tx(MSP_HEADER_RESPONSE);
+    msp_send_type(dl, version, MSP_HEADER_RESPONSE);
 }
 
 uint8_t msp_send_header_v2(uint16_t len, uint16_t msg) {
@@ -790,45 +795,45 @@ uint8_t msp_send_header_v2(uint16_t len, uint16_t msg) {
     return crc;
 }
 
+void msp_send_cmd_tx(uint8_t request) {
+    msp_send_command(0, MSP_HEADER_V1);
+    msp_tx(0x00);    // len
+    msp_tx(request); // function
+    msp_tx(request); // crc
+}
+
+void msp_send_cmd_tx_v2(uint16_t request) {
+    msp_send_command(0, MSP_HEADER_V2);
+    msp_tx(msp_send_header_v2(0, request));
+}
+
  // Send requests to the FC.
 void msp_cmd_tx()
-{      
-    uint8_t const msp_cmd[6] = {
-        MSP_FC_VARIANT,
-        MSP_GET_VTX_CONFIG,
-        MSP_GET_OSD_CANVAS,
-        MSP_STATUS,
-        // Only required when not armed
-        MSP_RC,
-        MSP_BOXIDS
-    };
-
-    uint8_t idx;
-    static uint8_t start = 0, end = 0;
-
-    if ((fc_lock & FC_STARTUP_LOCK) == 0) { 
-        // Variant first
-        if (fc_lock & FC_VARIANT_LOCK) {
-            // ... then initial VTX config
-            start = 1; end = 1;
-            if (fc_lock & FC_VTX_CONFIG_LOCK) {
-                end = 3; // ... and then the rest
-                if (msp_cmp_fc_variant("INAV")) {
-                    start = 3; // VTX_CONFIG/OSD_CANVAS not required for iNav
-                }
-                fc_lock |= FC_STARTUP_LOCK;
-            }
+{
+    if ((fc_lock & FC_STARTUP_LOCK) == 0) {
+        if ((fc_lock & FC_VARIANT_LOCK) == 0) {
+            msp_send_cmd_tx(MSP_FC_VARIANT);
         }
-    }
-
-    // MSP_RC and MSP_BOXIDS messages are only required when not armed, and BOXIDS less frequently
-    end = (g_IS_ARMED) ? 3 : (timer_2hz) ? 5 : 4;
-    
-    for (idx = start; idx <= end; idx++) {
-        msp_send_command(0, MSP_HEADER_V1);
-        msp_tx(0x00);       // len
-        msp_tx(msp_cmd[idx]); // function
-        msp_tx(msp_cmd[idx]); // crc
+        else if ((fc_lock & FC_VTX_CONFIG_LOCK) == 0) {
+            msp_send_cmd_tx(MSP_GET_VTX_CONFIG);
+        } else {
+            fc_lock |= FC_STARTUP_LOCK;
+        }
+    } else { // VTX initialised ok
+        if (msp_cmp_fc_variant("BTFL")) {
+            msp_send_cmd_tx(MSP_GET_VTX_CONFIG);
+            msp_send_cmd_tx(MSP_GET_OSD_CANVAS);
+            msp_send_cmd_tx(MSP_STATUS);
+        } else if (msp_cmp_fc_variant("INAV")) {
+            msp_send_cmd_tx_v2(MSP2_INAV_STATUS);
+        }
+        
+        if (!g_IS_ARMED) {
+            if (timer_2hz) { // in case box ids move (say during configuration)
+                msp_send_cmd_tx(MSP_BOXIDS);
+            }
+            msp_send_cmd_tx(MSP_RC);
+        }
     }
 }
 
@@ -1003,12 +1008,22 @@ void camera_switch(uint8_t camera_sel) {
 }
 void parse_status() {
 
-    fc_lock |= FC_STATUS_LOCK;
+    // Both Betaflight and iNav truncate the boxids in the status message to the first 32 (4 bytes).
+    // With Betaflight, the remaining boxids are in the message starting at byte 16.
+    // Byte 15 is the length of this additional data (max 128 bits or 16 bytes)
+    // For iNav, see MSP2_INAV_STATUS.
 
-    g_IS_ARMED = (msp_rx_buf[6] & 0x01);
+    uint8_t offset;
+    uint8_t isBTFL = msp_cmp_fc_variant("BTFL");
+
+    if (g_arm_page != 0xff) {
+        offset = (isBTFL && g_arm_page > 3)  ? 12 : 6;
+        g_IS_ARMED = msp_rx_buf[offset+g_arm_page] & g_arm_mask;
+    }
 
     if (g_boxCamera1_page != 0xff) {
-        camera_switch(msp_rx_buf[g_boxCamera1_page] & g_boxCamera1_mask);
+        offset = (isBTFL && g_boxCamera1_page > 3)  ? 12 : 6;
+        camera_switch(msp_rx_buf[offset+g_boxCamera1_page] & g_boxCamera1_mask);
     }
 
 #if (0)
@@ -1030,20 +1045,26 @@ void parse_variant() {
 }
 
 void parse_boxids(uint8_t msgLen) {
-    uint8_t idx, permanentId = 0xff;
+    uint8_t idx, armId = 0xff, boxId = 0xff;
 
     if (msp_cmp_fc_variant("BTFL")) {
-        permanentId = BOXCAMERA1_BTFL;
+        armId = BOXARM_BTFL;
+        boxId = BOXCAMERA1_BTFL;
     }
     else if (msp_cmp_fc_variant("INAV")) {
-        permanentId = BOXCAMERA1_INAV;
+        armId = BOXARM_INAV;
+        boxId = BOXCAMERA1_INAV;
     }
 
     for (idx = 0; idx < msgLen; idx++) {
-        if (msp_rx_buf[idx] == permanentId) {
-            g_boxCamera1_page = 6 + idx / 8;
+        if (msp_rx_buf[idx] == armId) {
+            g_arm_page = idx / 8;
+            g_arm_mask = 1 << (idx % 8);
+        }
+
+        if (msp_rx_buf[idx] == boxId) {
+            g_boxCamera1_page = idx / 8;
             g_boxCamera1_mask = 1 << (idx % 8);
-            break;
         }
     }
 }
@@ -1264,6 +1285,25 @@ void parse_vtx_config(void) {
 void parseMspVtx_V2(void) {
     if (fc_lock & FC_VTX_CONFIG_LOCK) {
         parse_vtx_params(1);
+    }
+}
+
+// 0   u16 Cycle time
+// 2   u16 i2c error count
+// 4   u16 sensor status
+// 6   u16 average system load percent
+// 8   u8  battery and config profiles
+// 9   u32 arming flags
+// 13  buf box mode flags
+// ??  u8 config mixer profile
+
+void parseiNavMspStatus(void) {
+
+    if (g_arm_page != 0xff) {
+        g_IS_ARMED = msp_rx_buf[13+g_arm_page] & g_arm_mask;
+    }
+    if (g_boxCamera1_page != 0xff) {
+        camera_switch(msp_rx_buf[13+g_boxCamera1_page] & g_boxCamera1_mask);
     }
 }
 
