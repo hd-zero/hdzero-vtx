@@ -438,7 +438,7 @@ void camera_menu_draw_value(void) {
     osd_buf[0][osd_menu_offset + 28] = '1' + camera_profile_menu;
 
     for (i = CAM_STATUS_BRIGHTNESS; i <= CAM_STATUS_VDO_FMT; i++) {
-        if (camera_attribute[i - 1][CAM_SETTING_ITEM_ENBALE] == 0)
+        if (camera_attribute[i - 1][CAM_SETTING_ITEM_ENABLE] == 0)
             strcpy(&osd_buf[i][osd_menu_offset + 27], "-");
         else {
             switch (i) {
@@ -637,7 +637,7 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
     case CAM_STATUS_BRIGHTNESS:
     case CAM_STATUS_WBRED:
     case CAM_STATUS_WBBLUE:
-        if (!camera_attribute[item][CAM_SETTING_ITEM_ENBALE])
+        if (!camera_attribute[item][CAM_SETTING_ITEM_ENABLE])
             return;
 #if (0)
         // if wb mode if auto, do not modify wbred/wbblue
@@ -682,7 +682,7 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
     case CAM_STATUS_NIGHT_MODE:
     case CAM_STATUS_LED_MODE:
     case CAM_STATUS_VDO_FMT:
-        if (!camera_attribute[item][CAM_SETTING_ITEM_ENBALE])
+        if (!camera_attribute[item][CAM_SETTING_ITEM_ENABLE])
             return;
 
         if (op == BTN_RIGHT) {

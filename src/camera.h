@@ -53,7 +53,7 @@ typedef enum {
 } video_format_e;
 
 typedef enum {
-    CAM_SETTING_ITEM_ENBALE,
+    CAM_SETTING_ITEM_ENABLE,
     CAM_SETTING_ITEM_MIN,
     CAM_SETTING_ITEM_MAX,
     CAM_SETTING_ITEM_DEFAULT,
@@ -91,13 +91,14 @@ typedef enum {
     CAM_SELECT_EXIT,
 } camera_select_e;
 
-void camera_init();
+void camera_init(void);
+void camera_select(void);
 uint8_t camera_status_update(uint8_t op);
 void camera_menu_init(void);
 void camera_select_menu_init(void);
 void camera_select_menu_cursor_update(uint8_t index);
-void camera_select_menu_ratio_upate();
-void camera_menu_mode_exit_note();
+void camera_select_menu_ratio_upate(void);
+void camera_menu_mode_exit_note(void);
 
 extern uint8_t camRatio;
 extern uint8_t video_format;

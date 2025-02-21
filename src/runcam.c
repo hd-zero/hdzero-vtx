@@ -188,7 +188,7 @@ void runcam_setting_profile_reset(uint8_t *setting_profile) {
 uint8_t runcam_setting_profile_check(uint8_t *setting_profile) {
     uint8_t i;
     for (i = 0; i < CAMERA_SETTING_NUM; i++) {
-        if (camera_attribute[i][CAM_SETTING_ITEM_ENBALE]) {
+        if (camera_attribute[i][CAM_SETTING_ITEM_ENABLE]) {
             if (setting_profile[i] < camera_attribute[i][CAM_SETTING_ITEM_MIN])
                 return 1;
             if (setting_profile[i] > camera_attribute[i][CAM_SETTING_ITEM_MAX])
