@@ -54,9 +54,10 @@ uint8_t g_arm_page = 0xff;
 uint8_t g_arm_mask;
 uint8_t g_boxCamera1_page = 0xff;
 uint8_t g_boxCamera1_mask;
-uint8_t g_camera_id = 0;
-uint8_t g_manual_camera_sel = 0;
-uint8_t g_camera_mode_lock = 0;
+
+extern uint8_t g_camera_switch;
+extern uint8_t g_manual_camera_sel;
+extern uint8_t g_camera_id;
 
 uint8_t pit_mode_cfg_done = 0;
 uint8_t lp_mode_cfg_done = 0;
@@ -1000,12 +1001,23 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
         msp_eeprom_write();
 }
 void camera_switch(uint8_t camera_sel) {
-    uint8_t camera_id = camera_sel ? 2 : 1;
-    if (!g_manual_camera_sel && camera_id != g_camera_id) {
-        g_camera_id = camera_id;
-        select_camera(g_camera_id, 1);
+    if (g_camera_switch) {
+        if (cms_state == CMS_OSD || cms_state == CMS_ENTER_VTX_MENU) {
+            uint8_t camera_id = camera_sel ? 2 : 1;
+            if (!g_manual_camera_sel && camera_id != g_camera_id) {
+                g_camera_id = camera_id;
+                select_camera(g_camera_id, 0);
+                camera_init();
+                //camera_setting_reg_menu_update();
+                //if (camera_set(camera_setting_reg_menu, 0, 0)) {
+                //    runcam_reset_isp();
+                //    camera_mode_detect(0);    
+                //}
+            }
+        }
     }
 }
+
 void parse_status() {
 
     // Both Betaflight and iNav truncate the boxids in the status message to the first 32 (4 bytes).
@@ -1767,7 +1779,6 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
             if (camera_type == CAMERA_TYPE_UNKNOWN ||
                 camera_type == CAMERA_TYPE_OUTDATED) {
                 camera_select_menu_init();
-                g_camera_mode_lock = 1;
                 camera_selected = 0;
                 cms_state = CMS_SELECT_CAM;
             } else {
@@ -1793,13 +1804,13 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
             } else if (VirtualBtn == BTN_LEFT) {
                 if (camera_selected == CAM_SELECT_RATIO) {
                     camRatio = 1 - camRatio;
-                    camera_select_menu_ratio_upate();
+                    camera_select_menu_ratio_update();
                     I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_CAM_RATIO, camRatio);
                 }
             } else if (VirtualBtn == BTN_RIGHT) {
                 if (camera_selected == CAM_SELECT_RATIO) {
                     camRatio = 1 - camRatio;
-                    camera_select_menu_ratio_upate();
+                    camera_select_menu_ratio_update();
                     I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_CAM_RATIO, camRatio);
                 } else {
                     camera_is_3v3 = (camera_selected == CAM_SELECT_RUNCAM_ECO);

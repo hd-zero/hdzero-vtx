@@ -7,8 +7,9 @@
 #include "i2c.h"
 #include "print.h"
 
-extern uint8_t g_camera_id;
-extern uint8_t g_manual_camera_sel;
+uint8_t g_camera_switch;
+uint8_t g_camera_id;
+uint8_t g_manual_camera_sel;
 
 /////////////////////////////////////////////////////////////////
 // MAX7315
@@ -128,47 +129,71 @@ void pi4io_set(uint8_t reg, uint8_t val) {
     I2C_Write8(ADDR_PI4IO, reg, val);
 }
 
+uint8_t is_camera_switch_present(void) {
+    uint8_t deviceId = pi4io_get(0x01);
+    return ((deviceId & 0XE0)== 0xA0); 
+}
+
+// 7 0
+// 6 Camera selection (0=CAM1 1=CAM2)
+// 5 RED
+// 4 GREEN
+
+// 3 0
+// 2 CAM1 I2C (active low)
+// 1 0
+// 0 CAM2 I2C (active low)
+
 // Select camera 1 or camera 2 and whether the i2c is shared
 void select_camera(uint8_t camera_id, uint8_t sync_config) {
     uint8_t command;
+
     switch (camera_id) {
     case 1:
     default:
-        command = 0x10;
+        command = 0x10;         // CAM 1, GREEN LED, BOTH I2C connected
         if (!sync_config) {
-            command |= 0x04;
+            command |= 0x01;    // CAM 2 I2C OFF
         }
-        break;    
+        break;
     case 2:
-        command = 0x60;
+        command = 0x60 ;        // CAM 2, RED LED, BOTH I2C connected
         if (!sync_config) {
-            command |= 0x01;
+            command |= 0x04;    // CAM 1 I2C OFF
         }
         break;
     }
     pi4io_set(0x05, command);
+    WAIT(200); // wait for camera power up (?)
 }
 
-void init_camera_switch() {
-    //pi4io_set(0x01, 0xFF); // reset
-    pi4io_set(0x11, 0xFF); // Disable interrupts on inputs
-    pi4io_get(0x013);      // de-assert the interrrupt 
-    pi4io_set(0x03, 0x77); // Set P3 and P7 as inputs
-    pi4io_set(0x07, 0x00); // Set outputs to follow the output port register
-    select_camera(1, 1);   // camera 1 is default, synchronised config
-    g_manual_camera_sel = 0;
+void camera_switch_init() {
+    g_camera_id = 1;
+    g_camera_switch = is_camera_switch_present();
+    if (g_camera_switch) {
+        //pi4io_set(0x01, 0xFF); // reset
+        pi4io_set(0x0B, 0xFF); // Disable pullup/pulldown resistors
+        pi4io_set(0x11, 0xFF); // Disable interrupts on inputs
+        pi4io_get(0x13);       // De-assert the interrrupt 
+        pi4io_set(0x03, 0x77); // Set P3 and P7 as inputs
+        pi4io_set(0x07, 0x00); // Set outputs to follow the output port register
+        g_manual_camera_sel = 0;
+    }
 }
 
 // Check if manual camera selection is enabled and switch if required
 // (called from loop)
 void manual_select_camera(void) {
-    uint8_t command = pi4io_get(0x0F);
-    g_manual_camera_sel = (command & 0x08);
-    if (g_manual_camera_sel) {
-        uint8_t camera_id = ((command & 0x80) >> 7) + 1;
-        if (camera_id != g_camera_id) {
-            g_camera_id = camera_id;
-            select_camera(camera_id, 1);
+    if (g_camera_switch) {
+        uint8_t command = pi4io_get(0x0F);
+        g_manual_camera_sel = (command & 0x08);
+        if (g_manual_camera_sel) {
+            uint8_t camera_id = ((command & 0x80) >> 7) + 1;
+            if (camera_id != g_camera_id) {
+                g_camera_id = camera_id;
+                select_camera(camera_id, 0);
+                camera_init();
+            }
         }
     }
 }

@@ -21,7 +21,8 @@ void Init_TC3587(uint8_t fmt);
 
 uint8_t pi4io_get(uint8_t reg);
 void pi4io_set(uint8_t reg, uint8_t val);
-void init_camera_switch(void);
+uint8_t is_camera_switch_present(void);
+void camera_switch_init(void);
 void select_camera(uint8_t camera_id, uint8_t sync_config);
 void manual_select_camera(void);
 

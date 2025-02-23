@@ -514,12 +514,12 @@ void Init_HW() {
 #ifdef RESET_CONFIG
     reset_config();
 #endif
-
-    init_camera_switch();
     
     GetVtxParameter();
     Get_EEP_LifeTime();
-    camera_init();
+    camera_switch_init();
+    camera_detect();
+
 #ifdef _RF_CALIB
     RF_POWER = 0; // max power
     RF_FREQ = 0;  // ch1

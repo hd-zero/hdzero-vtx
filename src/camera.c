@@ -27,6 +27,9 @@ uint8_t reset_isp_need = 0;
 
 uint8_t camera_is_3v3 = 0;
 
+extern uint8_t g_camera_id;
+extern uint8_t g_camera_switch;
+
 void camera_type_detect(void) {
     camera_type = CAMERA_TYPE_UNKNOWN;
 
@@ -303,10 +306,16 @@ void camera_setting_profile_check(uint8_t profile) {
     }
 }
 void camera_profile_read(void) {
-    camera_profile_eep = camera_reg_read_eep(EEP_ADDR_CAM_PROFILE);
+    if (g_camera_switch) {
+        camera_profile_eep = g_camera_id-1;
+    } else {
+        camera_profile_eep = camera_reg_read_eep(EEP_ADDR_CAM_PROFILE);
+    }
 }
 void camera_profile_write(void) {
-    camera_reg_write_eep(EEP_ADDR_CAM_PROFILE, camera_profile_eep);
+    if (!g_camera_switch) {
+        camera_reg_write_eep(EEP_ADDR_CAM_PROFILE, camera_profile_eep);
+    }
 }
 void camera_profile_reset(void) {
     camera_profile_eep = 0;
@@ -372,8 +381,12 @@ uint8_t camera_set(uint8_t *camera_setting_reg, uint8_t save, uint8_t init) {
     return ret;
 }
 
-void camera_init(void) {
+void camera_detect(void) {
     camera_type_detect();
+    camera_init();
+}
+
+void camera_init(void) {
     camera_setting_read();
     camera_setting_reg_menu_update();
     reset_isp_need = camera_set(camera_setting_reg_menu, 0, 1);
@@ -597,18 +610,20 @@ void camera_menu_item_toggle(uint8_t op) {
 }
 
 void camera_profile_menu_toggle(uint8_t op) {
-    if (op == BTN_RIGHT) {
-        camera_profile_menu++;
-        if (camera_profile_menu == CAMERA_PROFILE_NUM)
-            camera_profile_menu = 0;
-        camera_setting_reg_menu_update();
-        reset_isp_need |= camera_set(camera_setting_reg_menu, 0, 0);
-    } else if (op == BTN_LEFT) {
-        camera_profile_menu--;
-        if (camera_profile_menu > CAMERA_PROFILE_NUM)
-            camera_profile_menu = CAMERA_PROFILE_NUM - 1;
-        camera_setting_reg_menu_update();
-        reset_isp_need |= camera_set(camera_setting_reg_menu, 0, 0);
+    if (!g_camera_switch) {
+        if (op == BTN_RIGHT) {
+            camera_profile_menu++;
+            if (camera_profile_menu == CAMERA_PROFILE_NUM)
+                camera_profile_menu = 0;
+            camera_setting_reg_menu_update();
+            reset_isp_need |= camera_set(camera_setting_reg_menu, 0, 0);
+        } else if (op == BTN_LEFT) {
+            camera_profile_menu--;
+            if (camera_profile_menu > CAMERA_PROFILE_NUM)
+                camera_profile_menu = CAMERA_PROFILE_NUM - 1;
+            camera_setting_reg_menu_update();
+            reset_isp_need |= camera_set(camera_setting_reg_menu, 0, 0);
+        }
     }
 }
 
@@ -892,7 +907,7 @@ void camera_select_menu_init(void) {
         osd_buf_p = osd_buf[i] + osd_menu_offset;
         strcpy(osd_buf_p, cam_select_menu_string[i]);
     }
-    camera_select_menu_ratio_upate();
+    camera_select_menu_ratio_update();
 }
 
 void camera_select_menu_cursor_update(uint8_t index) {
@@ -905,7 +920,7 @@ void camera_select_menu_cursor_update(uint8_t index) {
     }
 }
 
-void camera_select_menu_ratio_upate() {
+void camera_select_menu_ratio_update() {
     if (camRatio == 1)
         strcpy(osd_buf[2] + osd_menu_offset + 28, "<4:3> ");
     else
@@ -913,6 +928,6 @@ void camera_select_menu_ratio_upate() {
 }
 
 void camera_menu_mode_exit_note() {
-    const char note_string[] = "LEFT MOVE THROTTLE TO EXIT CAMERA MENU";
+    const char note_string[] = "MOVE THROTTLE LEFT TO EXIT CAMERA MENU";
     strcpy(osd_buf[15] + 5, note_string);
 }
