@@ -165,7 +165,8 @@ void select_camera(uint8_t camera_id, uint8_t sync_config) {
             break;
         }
         pi4io_set(0x05, command);
-        //WAIT(200); // wait for camera power up (?)
+        camera_switch_profile();
+        //WAIT(200); // wait for camera power up
     }
 }
 
@@ -181,6 +182,8 @@ void camera_switch_init() {
         pi4io_set(0x03, 0x77); // Set P3 and P7 as inputs
         pi4io_set(0x07, 0x00); // Set outputs to follow the output port register
         g_manual_camera_sel = 0;
+    } else {
+        g_camera_id = 1;
     }
 }
 
@@ -195,7 +198,6 @@ void manual_select_camera(void) {
             if (camera_id != g_camera_id) {
                 g_camera_id = camera_id;
                 select_camera(camera_id, 0);
-                camera_init();
             }
         }
     }

@@ -388,6 +388,12 @@ uint8_t camera_set(uint8_t *camera_setting_reg, uint8_t save, uint8_t init) {
     return ret;
 }
 
+void camera_switch_profile(void) {
+    camera_setting_read();
+    camera_setting_reg_menu_update();
+    camera_set(camera_setting_reg_menu, 0, 0);
+}
+
 void camera_init(void) {
     camera_type_detect();
     camera_setting_read();

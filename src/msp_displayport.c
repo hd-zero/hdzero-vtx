@@ -1007,7 +1007,6 @@ void camera_switch(uint8_t camera_sel) {
             if (!g_manual_camera_sel && camera_id != g_camera_id) {
                 g_camera_id = camera_id;
                 select_camera(g_camera_id, 0);
-                camera_init();
             }
         }
     }
