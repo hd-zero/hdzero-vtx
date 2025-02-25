@@ -517,8 +517,9 @@ void Init_HW() {
     
     GetVtxParameter();
     Get_EEP_LifeTime();
+    
     camera_switch_init();
-    camera_detect();
+    camera_init();
 
 #ifdef _RF_CALIB
     RF_POWER = 0; // max power

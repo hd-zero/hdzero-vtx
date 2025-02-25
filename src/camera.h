@@ -91,7 +91,6 @@ typedef enum {
     CAM_SELECT_EXIT,
 } camera_select_e;
 
-void camera_detect(void);
 void camera_init(void);
 uint8_t camera_status_update(uint8_t op);
 void camera_menu_init(void);

@@ -130,8 +130,7 @@ void pi4io_set(uint8_t reg, uint8_t val) {
 }
 
 uint8_t is_camera_switch_present(void) {
-    uint8_t deviceId = pi4io_get(0x01);
-    return ((deviceId & 0XE0)== 0xA0); 
+    return ((pi4io_get(0x01) & 0xE0) == 0xA0);
 }
 
 // 7 0
@@ -146,30 +145,34 @@ uint8_t is_camera_switch_present(void) {
 
 // Select camera 1 or camera 2 and whether the i2c is shared
 void select_camera(uint8_t camera_id, uint8_t sync_config) {
-    uint8_t command;
+    if (is_camera_switch_present())
+    {
+        uint8_t command;
 
-    switch (camera_id) {
-    case 1:
-    default:
-        command = 0x10;         // CAM 1, GREEN LED, BOTH I2C connected
-        if (!sync_config) {
-            command |= 0x01;    // CAM 2 I2C OFF
+        switch (camera_id) {
+        case 1:
+        default:
+            command = 0x10;         // CAM 1, GREEN LED, BOTH I2C connected
+            if (!sync_config) {
+                command |= 0x01;    // CAM 2 I2C OFF
+            }
+            break;
+        case 2:
+            command = 0x60 ;        // CAM 2, RED LED, BOTH I2C connected
+            if (!sync_config) {
+                command |= 0x04;    // CAM 1 I2C OFF
+            }
+            break;
         }
-        break;
-    case 2:
-        command = 0x60 ;        // CAM 2, RED LED, BOTH I2C connected
-        if (!sync_config) {
-            command |= 0x04;    // CAM 1 I2C OFF
-        }
-        break;
+        pi4io_set(0x05, command);
+        //WAIT(200); // wait for camera power up (?)
     }
-    pi4io_set(0x05, command);
-    WAIT(200); // wait for camera power up (?)
 }
 
 void camera_switch_init() {
-    g_camera_id = 1;
+    g_camera_id = 0;
     g_camera_switch = is_camera_switch_present();
+
     if (g_camera_switch) {
         //pi4io_set(0x01, 0xFF); // reset
         pi4io_set(0x0B, 0xFF); // Disable pullup/pulldown resistors

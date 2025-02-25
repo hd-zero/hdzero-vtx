@@ -1008,11 +1008,6 @@ void camera_switch(uint8_t camera_sel) {
                 g_camera_id = camera_id;
                 select_camera(g_camera_id, 0);
                 camera_init();
-                //camera_setting_reg_menu_update();
-                //if (camera_set(camera_setting_reg_menu, 0, 0)) {
-                //    runcam_reset_isp();
-                //    camera_mode_detect(0);    
-                //}
             }
         }
     }

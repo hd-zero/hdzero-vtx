@@ -388,24 +388,17 @@ uint8_t camera_set(uint8_t *camera_setting_reg, uint8_t save, uint8_t init) {
     return ret;
 }
 
-void camera_detect(void) {
-    camera_type_detect();
-    camera_init();
-}
-
 void camera_init(void) {
+    camera_type_detect();
     camera_setting_read();
     camera_setting_reg_menu_update();
     reset_isp_need = camera_set(camera_setting_reg_menu, 0, 1);
-
     if (reset_isp_need) {
         if (camera_mfr == CAMERA_MFR_RUNCAM) {
             runcam_reset_isp();
         }
     }
-
     camera_mode_detect(1);
-
     camera_button_init();
 }
 
