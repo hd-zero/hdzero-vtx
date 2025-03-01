@@ -50,10 +50,10 @@ uint8_t fc_lp_rx = 0;
 uint8_t g_IS_ARMED = 0;
 uint8_t g_IS_PARALYZE = 0;
 
-uint8_t g_arm_page = 0xff;
-uint8_t g_arm_mask;
-uint8_t g_boxCamera1_page = 0xff;
-uint8_t g_boxCamera1_mask;
+uint8_t g_arm_page;
+uint8_t g_arm_mask = 0;
+uint8_t g_boxCamera1_page;
+uint8_t g_boxCamera1_mask = 0;
 
 extern uint8_t g_camera_switch;
 extern uint8_t g_manual_camera_sel;
@@ -821,16 +821,23 @@ void msp_cmd_tx()
             msp_send_cmd_tx(MSP_GET_VTX_CONFIG);
         } else {
             fc_lock |= FC_STARTUP_LOCK;
+
+            // Known variants that support BOXIDs
+            if (!msp_cmp_fc_variant("INAV") && !msp_cmp_fc_variant("BTFL") && !msp_cmp_fc_variant("EMUF")) {
+                g_arm_page = 0; // Assume arm is the first bit of the first byte in the status message.
+                g_arm_mask = 1;
+            }
         }
     } else { // VTX initialised ok
-        if (msp_cmp_fc_variant("BTFL")) {
+        if (msp_cmp_fc_variant("INAV")) {
+            msp_send_cmd_tx_v2(MSP2_INAV_STATUS);
+        } else { //  BTFL and other BF variants
             msp_send_cmd_tx(MSP_GET_VTX_CONFIG);
             msp_send_cmd_tx(MSP_GET_OSD_CANVAS);
             msp_send_cmd_tx(MSP_STATUS);
-        } else if (msp_cmp_fc_variant("INAV")) {
-            msp_send_cmd_tx_v2(MSP2_INAV_STATUS);
         }
         
+        // These messages are not required when armed.
         if (!g_IS_ARMED) {
             if (timer_2hz) { // in case box ids move (say during configuration)
                 msp_send_cmd_tx(MSP_BOXIDS);
@@ -1024,12 +1031,12 @@ void parse_status() {
     uint8_t offset;
     uint8_t isBTFL = msp_cmp_fc_variant("BTFL");
 
-    if (g_arm_page != 0xff) {
+    if (g_arm_mask) {
         offset = (isBTFL && g_arm_page > 3)  ? 12 : 6;
         g_IS_ARMED = msp_rx_buf[offset+g_arm_page] & g_arm_mask;
     }
 
-    if (g_boxCamera1_page != 0xff) {
+    if (g_boxCamera1_mask) {
         offset = (isBTFL && g_boxCamera1_page > 3)  ? 12 : 6;
         camera_switch(msp_rx_buf[offset+g_boxCamera1_page] & g_boxCamera1_mask);
     }
@@ -1053,24 +1060,25 @@ void parse_variant() {
 }
 
 void parse_boxids(uint8_t msgLen) {
-    uint8_t idx, armId = 0xff, boxId = 0xff;
+    uint8_t idx, armBox = 0xff, cameraBox = 0xff;
 
-    if (msp_cmp_fc_variant("BTFL")) {
-        armId = BOXARM_BTFL;
-        boxId = BOXCAMERA1_BTFL;
-    }
-    else if (msp_cmp_fc_variant("INAV")) {
-        armId = BOXARM_INAV;
-        boxId = BOXCAMERA1_INAV;
+    if (msp_cmp_fc_variant("INAV")) {
+        armBox = BOXARM_INAV;
+        cameraBox = BOXCAMERA1_INAV;
+    } else if (msp_cmp_fc_variant("BTFL") || msp_cmp_fc_variant("EMUF")) {
+        armBox = BOXARM_BTFL;
+        cameraBox = BOXCAMERA1_BTFL;
+    } else { // default arm is box 0
+        armBox = 0;
     }
 
-    for (idx = 0; idx < msgLen; idx++) {
-        if (msp_rx_buf[idx] == armId) {
+    g_arm_mask = g_boxCamera1_mask = 0;
+
+    for (idx = 0; idx < msgLen && (!g_arm_mask || !g_boxCamera1_mask) ; idx++) {
+        if (msp_rx_buf[idx] == armBox) {
             g_arm_page = idx / 8;
             g_arm_mask = 1 << (idx % 8);
-        }
-
-        if (msp_rx_buf[idx] == boxId) {
+        } else if (msp_rx_buf[idx] == cameraBox) {
             g_boxCamera1_page = idx / 8;
             g_boxCamera1_mask = 1 << (idx % 8);
         }
@@ -1307,10 +1315,10 @@ void parseMspVtx_V2(void) {
 
 void parseiNavMspStatus(void) {
 
-    if (g_arm_page != 0xff) {
+    if (g_arm_mask) {
         g_IS_ARMED = msp_rx_buf[13+g_arm_page] & g_arm_mask;
     }
-    if (g_boxCamera1_page != 0xff) {
+    if (g_boxCamera1_mask) {
         camera_switch(msp_rx_buf[13+g_boxCamera1_page] & g_boxCamera1_mask);
     }
 }

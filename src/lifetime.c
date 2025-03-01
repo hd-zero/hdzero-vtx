@@ -70,25 +70,22 @@ void Update_EEP_LifeTime(void) {
 }
 
 char *parseLifeTime(void) {
-    static char lifetime[6]; // ex, "9999H" or "99M"
+    static char lifetime[7]; // ex, "9999HR" or "59MIN"
     uint32_t hours = sysLifeTime / 360;
     uint32_t num;
     uint8_t pos = 0;
 
-    memset(lifetime, ' ', sizeof(lifetime)-1);
-    lifetime[sizeof(lifetime)-1] = '\0';
-
-    if (hours == 0) { // display minutes
+    if (hours == 0) { // display minutes for the first hour
     
         uint8_t minutes = (sysLifeTime % 360) / 6;
-        num = (minutes % 60) / 10;
+        num = (minutes % 60) / 10; // update every 10 minutes
         if (num > 0) {
             lifetime[pos++] = '0' + num;
         }
         lifetime[pos] = '0' + (minutes % 10);
-        lifetime[pos+1] = 'M';
+        memcpy(lifetime+pos+1, "MIN", 4);
 
-    } else { // display hours
+    } else { // then just display hours
 
         uint32_t num = hours;
         uint8_t digits = 0;
@@ -98,8 +95,8 @@ char *parseLifeTime(void) {
         }
 
         // defensive check
-        if (digits > (sizeof(lifetime) - 2)) {
-            lifetime[0] = 'E';
+        if (digits > (sizeof(lifetime) - 3)) {
+            memcpy(lifetime, "ERROR", 6);
 
         } else {
             uint8_t pos = digits-1;
@@ -107,7 +104,7 @@ char *parseLifeTime(void) {
                 lifetime[pos--] = '0' + (hours % 10);
                 hours /= 10;
             }
-            lifetime[digits] = 'H';
+            memcpy(lifetime+digits, "HR", 3);
         }
     }
 
