@@ -1979,7 +1979,7 @@ void update_vtx_menu_param(uint8_t state) {
     const char *treamRaceString[] = {"  OFF", "MODE1", "MODE2"};
     const char *shortcutString[] = {"OPT_A", "OPT_B"};
     const char *cameraTypeString[] = {"UNKNOWN", "RESERVED", "OUTDATED", "MICRO_V1", "MICRO_V2", "NANO_90", "MICRO_V3" };
-    const char *cameraSwitchString[] = {"NONE", "2-CAMERA", "3-CAMERA"};
+    const char *cameraSwitchString[] = {"NONE", "DUAL", "TREBLE"};
 
     // cursor
     state += 2;
