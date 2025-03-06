@@ -54,6 +54,10 @@ uint8_t g_arm_page;
 uint8_t g_arm_mask = 0;
 uint8_t g_boxCamera1_page;
 uint8_t g_boxCamera1_mask = 0;
+uint8_t g_boxCamera2_page;
+uint8_t g_boxCamera2_mask = 0;
+uint8_t g_boxCamera3_page;
+uint8_t g_boxCamera3_mask = 0;
 
 extern uint8_t g_camera_switch;
 extern uint8_t g_manual_camera_sel;
@@ -497,7 +501,7 @@ uint8_t get_tx_data_5680() // prepare data to VRX
     tx_buf[1] = DP_HEADER1;
     tx_buf[2] = 0xff;
     // len
-    tx_buf[3] = 16;
+    tx_buf[3] = 15;
 
     // video format
     if (video_format == VDO_FMT_720P50)
@@ -572,13 +576,11 @@ uint8_t get_tx_data_5680() // prepare data to VRX
 
     tx_buf[15] = (camRatio == 0) ? 0x55 : 0xaa;
 
-    tx_buf[16] = VTX_VERSION_MAJOR;
+    tx_buf[16] = g_camera_id;
     tx_buf[17] = VTX_VERSION_MINOR;
     tx_buf[18] = VTX_VERSION_PATCH_LEVEL;
 
-    tx_buf[19] = g_camera_id;
-
-    return 21;
+    return 20;
 }
 
 uint8_t get_tx_data_osd(uint8_t index) // prepare osd+data to VTX
@@ -1009,17 +1011,19 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     if (save)
         msp_eeprom_write();
 }
-void camera_switch(uint8_t camera_sel) {
+uint8_t camera_switch(uint8_t camera_id) {
     if (g_camera_switch) {
         if (cms_state == CMS_OSD || cms_state == CMS_VTX_MENU) {
-            uint8_t camera_id = camera_sel ? 2 : 1;
             if (!g_manual_camera_sel && camera_id != g_camera_id) {
                 g_camera_id = camera_id;
-                select_camera(g_camera_id, 0);
+                select_camera(camera_id);
             }
         }
     }
+    return camera_id;
 }
+
+
 
 void parse_status() {
 
@@ -1028,7 +1032,7 @@ void parse_status() {
     // Byte 15 is the length of this additional data (max 128 bits or 16 bytes)
     // For iNav, see MSP2_INAV_STATUS.
 
-    uint8_t offset;
+    uint8_t offset, camDone = 0;
     uint8_t isBTFL = msp_cmp_fc_variant("BTFL");
 
     if (g_arm_mask) {
@@ -1036,9 +1040,27 @@ void parse_status() {
         g_IS_ARMED = msp_rx_buf[offset+g_arm_page] & g_arm_mask;
     }
 
+    // Allow for up to three cameras, priority 1/2/3
+
     if (g_boxCamera1_mask) {
         offset = (isBTFL && g_boxCamera1_page > 3)  ? 12 : 6;
-        camera_switch(msp_rx_buf[offset+g_boxCamera1_page] & g_boxCamera1_mask);
+        if (msp_rx_buf[offset+g_boxCamera1_page] & g_boxCamera1_mask) {
+            camDone = camera_switch(1);
+        }
+    }
+   
+    if (!camDone && g_boxCamera2_mask) {
+        offset = (isBTFL && g_boxCamera2_page > 3)  ? 12 : 6;
+        if (msp_rx_buf[offset+g_boxCamera2_page] & g_boxCamera2_mask) {
+            camDone = camera_switch(2);
+        }
+    }
+
+    if (!camDone && g_boxCamera3_mask) {
+        offset = (isBTFL && g_boxCamera3_page > 3)  ? 12 : 6;
+        if (msp_rx_buf[offset+g_boxCamera3_page] & g_boxCamera3_mask) {
+            camera_switch(3);
+        }
     }
 
 #if (0)
@@ -1060,27 +1082,42 @@ void parse_variant() {
 }
 
 void parse_boxids(uint8_t msgLen) {
-    uint8_t idx, armBox = 0xff, cameraBox = 0xff;
+    uint8_t idx, armBox = 0xff, cameraBox1 = 0xff, cameraBox2 = 0xff, cameraBox3 = 0xff;
+    uint8_t boxCount;
 
     if (msp_cmp_fc_variant("INAV")) {
         armBox = BOXARM_INAV;
-        cameraBox = BOXCAMERA1_INAV;
+        cameraBox1 = BOXCAMERA1_INAV;
+        cameraBox2 = BOXCAMERA2_INAV;
+        cameraBox3 = BOXCAMERA3_INAV;
     } else if (msp_cmp_fc_variant("BTFL") || msp_cmp_fc_variant("EMUF")) {
         armBox = BOXARM_BTFL;
-        cameraBox = BOXCAMERA1_BTFL;
-    } else { // default arm is box 0
+        cameraBox1 = BOXCAMERA1_BTFL;
+        cameraBox2 = BOXCAMERA2_BTFL;
+        cameraBox3 = BOXCAMERA3_BTFL;
+    } else { // default arm is box 0 and no camera switch control
         armBox = 0;
     }
 
-    g_arm_mask = g_boxCamera1_mask = 0;
+    g_arm_mask = g_boxCamera1_mask = g_boxCamera2_mask = g_boxCamera3_mask = 0;
 
-    for (idx = 0; idx < msgLen && (!g_arm_mask || !g_boxCamera1_mask) ; idx++) {
+    for (idx = 0, boxCount = 0; idx < msgLen && boxCount < 4 ; idx++) {
         if (msp_rx_buf[idx] == armBox) {
             g_arm_page = idx / 8;
             g_arm_mask = 1 << (idx % 8);
-        } else if (msp_rx_buf[idx] == cameraBox) {
+            boxCount++;
+        } else if (msp_rx_buf[idx] == cameraBox1) {
             g_boxCamera1_page = idx / 8;
             g_boxCamera1_mask = 1 << (idx % 8);
+            boxCount++;
+        } else if (msp_rx_buf[idx] == cameraBox2) {
+            g_boxCamera2_page = idx / 8;
+            g_boxCamera2_mask = 1 << (idx % 8);
+            boxCount++;
+        } else if (msp_rx_buf[idx] == cameraBox3) {
+            g_boxCamera3_page = idx / 8;
+            g_boxCamera3_mask = 1 << (idx % 8);
+            boxCount++;
         }
     }
 }
@@ -1314,12 +1351,29 @@ void parseMspVtx_V2(void) {
 // ??  u8 config mixer profile
 
 void parseiNavMspStatus(void) {
+    uint8_t camDone = 0;
 
     if (g_arm_mask) {
         g_IS_ARMED = msp_rx_buf[13+g_arm_page] & g_arm_mask;
     }
+
+    // Allow up to three cameras, priority 1/2/3
     if (g_boxCamera1_mask) {
-        camera_switch(msp_rx_buf[13+g_boxCamera1_page] & g_boxCamera1_mask);
+        if (msp_rx_buf[13+g_boxCamera1_page] & g_boxCamera1_mask) {
+            camDone = camera_switch(1);
+        }
+    }
+    
+    if (!camDone && g_boxCamera2_mask) {
+        if (msp_rx_buf[13+g_boxCamera2_page] & g_boxCamera2_mask) {
+            camDone = camera_switch(2);
+        } 
+    }
+    
+    if (!camDone && g_boxCamera3_mask) {
+        if (msp_rx_buf[13+g_boxCamera3_page] & g_boxCamera3_mask) {
+            camera_switch(3);
+        }
     }
 }
 
@@ -1903,12 +1957,13 @@ void vtx_menu_init() {
     strcpy(osd_buf[9] + osd_menu_offset + 2, " EXIT  ");
     strcpy(osd_buf[10] + osd_menu_offset + 2, " SAVE&EXIT");
     strcpy(osd_buf[11] + osd_menu_offset + 2, "------INFO------");
-    strcpy(osd_buf[12] + osd_menu_offset + 2, " CAMERA");
-    strcpy(osd_buf[13] + osd_menu_offset + 2, " VTX");
-    strcpy(osd_buf[14] + osd_menu_offset + 2, " VER");
-    strcpy(osd_buf[15] + osd_menu_offset + 2, " LIFETIME");
+    strcpy(osd_buf[12] + osd_menu_offset + 2, " SWITCH");
+    strcpy(osd_buf[13] + osd_menu_offset + 2, " CAMERA");
+    strcpy(osd_buf[14] + osd_menu_offset + 2, " VTX");
+    strcpy(osd_buf[15] + osd_menu_offset + 2, " VER");
+    strcpy(osd_buf[16] + osd_menu_offset + 2, " LIFETIME");
 #ifdef USE_TEMPERATURE_SENSOR
-    strcpy(osd_buf[16] + osd_menu_offset + 2, " TEMPERATURE");
+    strcpy(osd_buf[17] + osd_menu_offset + 2, " TEMPERATURE");
 #endif
 
     for (i = 2; i < 9; i++) {
@@ -1917,8 +1972,8 @@ void vtx_menu_init() {
     }
 
     // draw variant & version
-    strcpy(osd_buf[13] + osd_menu_offset + 13, VTX_NAME);
-    strcpy(osd_buf[14] + osd_menu_offset + 13, VTX_VERSION_STRING);
+    strcpy(osd_buf[14] + osd_menu_offset + 13, VTX_NAME);
+    strcpy(osd_buf[15] + osd_menu_offset + 13, VTX_VERSION_STRING);
 
     vtx_channel = RF_FREQ;
     vtx_power = RF_POWER;
@@ -1938,6 +1993,7 @@ void update_vtx_menu_param(uint8_t state) {
     const char *treamRaceString[] = {"  OFF", "MODE1", "MODE2"};
     const char *shortcutString[] = {"OPT_A", "OPT_B"};
     const char *cameraTypeString[] = {"UNKNOWN", "RESERVED", "OUTDATED", "MICRO_V1", "MICRO_V2", "NANO_90", "MICRO_V3" };
+    const char *cameraSwitchString[] = {"NONE", "2-CAMERA", "3-CAMERA"};
 
     // cursor
     state += 2;
@@ -1987,17 +2043,20 @@ void update_vtx_menu_param(uint8_t state) {
 
     strcpy(osd_buf[8] + osd_menu_offset + 20, shortcutString[vtx_shortcut]);
 
-    // camera selection
-    osd_buf[12][osd_menu_offset + 10] = '0' + g_camera_id;
-    osd_buf[12][osd_menu_offset + 11] = (g_manual_camera_sel) ? 'M' : ' '; 
-    strcpy(osd_buf[12] + osd_menu_offset + 13, cameraTypeString[camera_type]);
+    // camera switch info
+    strcpy(osd_buf[12] + osd_menu_offset + 13, cameraSwitchString[g_camera_switch]);
 
-    strcpy(osd_buf[15] + osd_menu_offset + 13, parseLifeTime());
+    // camera selection
+    osd_buf[13][osd_menu_offset + 10] = '0' + g_camera_id;
+    osd_buf[13][osd_menu_offset + 11] = (g_manual_camera_sel) ? 'M' : ' '; 
+    strcpy(osd_buf[13] + osd_menu_offset + 13, cameraTypeString[camera_type]);
+
+    strcpy(osd_buf[16] + osd_menu_offset + 13, parseLifeTime());
 
 #ifdef USE_TEMPERATURE_SENSOR
-    osd_buf[16][osd_menu_offset + 16] = (temperature >> 2) / 100 + '0';
-    osd_buf[16][osd_menu_offset + 17] = ((temperature >> 2) % 100) / 10 + '0';
-    osd_buf[16][osd_menu_offset + 18] = ((temperature >> 2) % 10) + '0';
+    osd_buf[17][osd_menu_offset + 16] = (temperature >> 2) / 100 + '0';
+    osd_buf[17][osd_menu_offset + 17] = ((temperature >> 2) % 100) / 10 + '0';
+    osd_buf[17][osd_menu_offset + 18] = ((temperature >> 2) % 10) + '0';
 #endif
 }
 

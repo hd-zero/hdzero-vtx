@@ -11,7 +11,14 @@
 #define ADDR_EEPROM  0x50
 #define ADDR_TEMPADC 0x48
 #define ADDR_RUNCAM  0x21
-#define ADDR_PI4IO   0x43 // camera switch
+#define ADDR_PI4IO   0x43 // 2 camera switch
+#define ADDR_PCA9557 0x18 // 3 camera switch
+
+typedef enum {
+    SWITCH_TYPE_NONE,
+    SWITCH_TYPE_PI4IO,          // 2 camera switch
+    SWITCH_TYPE_PCA9557,        // 3 camera switch
+} switch_type_e;
 
 void set_segment(uint32_t val);
 #ifdef USE_TC3587_LED
@@ -21,9 +28,8 @@ void Init_TC3587(uint8_t fmt);
 
 uint8_t pi4io_get(uint8_t reg);
 void pi4io_set(uint8_t reg, uint8_t val);
-uint8_t is_camera_switch_present(void);
 void camera_switch_init(void);
-void select_camera(uint8_t camera_id, uint8_t sync_config);
+void select_camera(uint8_t camera_id);
 void manual_select_camera(void);
 
 extern uint8_t USE_MAX7315;
