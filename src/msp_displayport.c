@@ -56,8 +56,6 @@ uint8_t g_boxCamera1_page;
 uint8_t g_boxCamera1_mask = 0;
 uint8_t g_boxCamera2_page;
 uint8_t g_boxCamera2_mask = 0;
-uint8_t g_boxCamera3_page;
-uint8_t g_boxCamera3_mask = 0;
 
 extern uint8_t g_camera_switch;
 extern uint8_t g_manual_camera_sel;
@@ -1023,8 +1021,6 @@ uint8_t camera_switch(uint8_t camera_id) {
     return camera_id;
 }
 
-
-
 void parse_status() {
 
     // Both Betaflight and iNav truncate the boxids in the status message to the first 32 (4 bytes).
@@ -1032,7 +1028,7 @@ void parse_status() {
     // Byte 15 is the length of this additional data (max 128 bits or 16 bytes)
     // For iNav, see MSP2_INAV_STATUS.
 
-    uint8_t offset, camDone = 0;
+    uint8_t offset, camSelected = 0;
     uint8_t isBTFL = msp_cmp_fc_variant("BTFL");
 
     if (g_arm_mask) {
@@ -1040,28 +1036,25 @@ void parse_status() {
         g_IS_ARMED = msp_rx_buf[offset+g_arm_page] & g_arm_mask;
     }
 
-    // Allow for up to three cameras, priority 1/2/3
-
     if (g_boxCamera1_mask) {
         offset = (isBTFL && g_boxCamera1_page > 3)  ? 12 : 6;
         if (msp_rx_buf[offset+g_boxCamera1_page] & g_boxCamera1_mask) {
-            camDone = camera_switch(1);
+            camSelected = camera_switch(2);
         }
     }
    
-    if (!camDone && g_boxCamera2_mask) {
+    if (!camSelected && g_boxCamera2_mask) {
         offset = (isBTFL && g_boxCamera2_page > 3)  ? 12 : 6;
         if (msp_rx_buf[offset+g_boxCamera2_page] & g_boxCamera2_mask) {
-            camDone = camera_switch(2);
+            if (g_camera_switch == SWITCH_TYPE_PCA9557) {
+                camSelected = camera_switch(3);
+            }
         }
     }
 
-    if (!camDone && g_boxCamera3_mask) {
-        offset = (isBTFL && g_boxCamera3_page > 3)  ? 12 : 6;
-        if (msp_rx_buf[offset+g_boxCamera3_page] & g_boxCamera3_mask) {
-            camera_switch(3);
-        }
-    }
+    if (!camSelected) {
+        camera_switch(1);
+    } 
 
 #if (0)
     g_IS_PARALYZE = (msp_rx_buf[9] & 0x80);
@@ -1082,24 +1075,22 @@ void parse_variant() {
 }
 
 void parse_boxids(uint8_t msgLen) {
-    uint8_t idx, armBox = 0xff, cameraBox1 = 0xff, cameraBox2 = 0xff, cameraBox3 = 0xff;
+    uint8_t idx, armBox = 0xff, cameraBox1 = 0xff, cameraBox2 = 0xff;
     uint8_t boxCount;
 
     if (msp_cmp_fc_variant("INAV")) {
         armBox = BOXARM_INAV;
         cameraBox1 = BOXCAMERA1_INAV;
         cameraBox2 = BOXCAMERA2_INAV;
-        cameraBox3 = BOXCAMERA3_INAV;
     } else if (msp_cmp_fc_variant("BTFL") || msp_cmp_fc_variant("EMUF")) {
         armBox = BOXARM_BTFL;
         cameraBox1 = BOXCAMERA1_BTFL;
         cameraBox2 = BOXCAMERA2_BTFL;
-        cameraBox3 = BOXCAMERA3_BTFL;
     } else { // default arm is box 0 and no camera switch control
         armBox = 0;
     }
 
-    g_arm_mask = g_boxCamera1_mask = g_boxCamera2_mask = g_boxCamera3_mask = 0;
+    g_arm_mask = g_boxCamera1_mask = g_boxCamera2_mask = 0;
 
     for (idx = 0, boxCount = 0; idx < msgLen && boxCount < 4 ; idx++) {
         if (msp_rx_buf[idx] == armBox) {
@@ -1113,10 +1104,6 @@ void parse_boxids(uint8_t msgLen) {
         } else if (msp_rx_buf[idx] == cameraBox2) {
             g_boxCamera2_page = idx / 8;
             g_boxCamera2_mask = 1 << (idx % 8);
-            boxCount++;
-        } else if (msp_rx_buf[idx] == cameraBox3) {
-            g_boxCamera3_page = idx / 8;
-            g_boxCamera3_mask = 1 << (idx % 8);
             boxCount++;
         }
     }
@@ -1351,29 +1338,28 @@ void parseMspVtx_V2(void) {
 // ??  u8 config mixer profile
 
 void parseiNavMspStatus(void) {
-    uint8_t camDone = 0;
+    uint8_t camSelected = 0;
 
     if (g_arm_mask) {
         g_IS_ARMED = msp_rx_buf[13+g_arm_page] & g_arm_mask;
     }
 
-    // Allow up to three cameras, priority 1/2/3
     if (g_boxCamera1_mask) {
         if (msp_rx_buf[13+g_boxCamera1_page] & g_boxCamera1_mask) {
-            camDone = camera_switch(1);
+            camSelected = camera_switch(2);
         }
     }
     
-    if (!camDone && g_boxCamera2_mask) {
+    if (!camSelected && g_boxCamera2_mask) {
         if (msp_rx_buf[13+g_boxCamera2_page] & g_boxCamera2_mask) {
-            camDone = camera_switch(2);
+            if (g_camera_switch == SWITCH_TYPE_PCA9557) {
+                camSelected = camera_switch(3);
+            }
         } 
     }
-    
-    if (!camDone && g_boxCamera3_mask) {
-        if (msp_rx_buf[13+g_boxCamera3_page] & g_boxCamera3_mask) {
-            camera_switch(3);
-        }
+
+    if (!camSelected) {
+        camera_switch(1);
     }
 }
 

@@ -37,12 +37,10 @@ typedef enum {
     BOXARM_BTFL = 0, // for completeness    
     BOXCAMERA1_BTFL = 32, // 0x20
     BOXCAMERA2_BTFL = 33, // 0x21
-    BOXCAMERA3_BTFL = 34, // 0x22
 
     BOXARM_INAV = 0,
     BOXCAMERA1_INAV = 39, // 0x27
     BOXCAMERA2_INAV = 40, // 0x28
-    BOXCAMERA3_INAV = 41, // 0x29
 
 } box_permanent_ids;
 
