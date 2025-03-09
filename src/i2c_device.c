@@ -140,28 +140,16 @@ void pca9557_set(uint8_t reg, uint8_t val) {
 }
 
 uint8_t get_camera_switch_type(void) {
-    uint8_t camera_switch = 0;
-    if ((pi4io_get(0x01) & 0xE0) == 0xA0) {
+    uint8_t camera_switch = SWITCH_TYPE_NONE;
+
+    if ((pi4io_get(0x01) & 0xE0) == 0xA0) { // device ID register
         camera_switch = SWITCH_TYPE_PI4IO;
-    } else {
-        pca9557_set(0x03, 0xEA);
-        if ((pca9557_get(0x03)) == 0xEA) {
-            camera_switch = SWITCH_TYPE_PCA9557;
-        }
-    } 
+    } else if (pca9557_get(0x02) == 0xF0) { // polarity inversion register defaults to 0xF0
+        camera_switch = SWITCH_TYPE_PCA9557;
+    }
 
     return camera_switch;
 }
-
-// 7 0
-// 6 Camera selection (0=CAM1 1=CAM2)
-// 5 RED
-// 4 GREEN
-
-// 3 0
-// 2 CAM1 I2C (active low)
-// 1 0
-// 0 CAM2 I2C (active low)
 
 void select_camera(uint8_t camera_id) {
     if (g_camera_switch)
@@ -169,13 +157,13 @@ void select_camera(uint8_t camera_id) {
         uint8_t command = 0;
         switch (camera_id) {
             case 1:
-                command = (g_camera_switch == SWITCH_TYPE_PI4IO) ? 0x11 : 0x1B;
+                command = (g_camera_switch == SWITCH_TYPE_PI4IO) ? 0x11 : 0x0D;
                 break;
             case 2:
                 command = (g_camera_switch == SWITCH_TYPE_PI4IO) ? 0x64 : 0x16;
                 break;
             case 3:
-                command = (g_camera_switch == SWITCH_TYPE_PI4IO) ? 0x00 : 0x0D;
+                command = (g_camera_switch == SWITCH_TYPE_PI4IO) ? 0x00 : 0x1B;
                 break;
             default:
                 break; // do nothing
@@ -187,9 +175,10 @@ void select_camera(uint8_t camera_id) {
             }
             else {
                 pca9557_set(0x01, command);
+                WAIT(200); // wait for camera power up 
             }
+
             camera_switch_profile();
-            WAIT(200); // wait for camera power up 
         }
     }
 }
@@ -205,10 +194,10 @@ void camera_switch_init() {
         pi4io_get(0x13);       // De-assert the interrrupt 
         pi4io_set(0x03, 0x77); // Set P3 and P7 as inputs
         pi4io_set(0x07, 0x00); // Set outputs to follow the output port register
-        select_camera(g_camera_id);
     } else if (g_camera_switch == SWITCH_TYPE_PCA9557) {
         pca9557_set(0x03, 0x00); // all outputs
     }
+    select_camera(g_camera_id);
 }
 
 // Check if manual camera selection is enabled and switch if required
