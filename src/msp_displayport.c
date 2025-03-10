@@ -574,7 +574,7 @@ uint8_t get_tx_data_5680() // prepare data to VRX
 
     tx_buf[15] = (camRatio == 0) ? 0x55 : 0xaa;
 
-    tx_buf[16] = g_camera_id;
+    tx_buf[16] = VTX_VERSION_MAJOR; // Send g_camera_id in the future to allow the VRX to resync on a camera change
     tx_buf[17] = VTX_VERSION_MINOR;
     tx_buf[18] = VTX_VERSION_PATCH_LEVEL;
 
