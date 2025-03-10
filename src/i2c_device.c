@@ -157,13 +157,13 @@ void select_camera(uint8_t camera_id) {
         uint8_t command = 0;
         switch (camera_id) {
             case 1:
-                command = (g_camera_switch == SWITCH_TYPE_PI4IO) ? 0x11 : 0x0D;
+                command = (g_camera_switch == SWITCH_TYPE_PI4IO) ? 0x11 : 0x1B;
                 break;
             case 2:
                 command = (g_camera_switch == SWITCH_TYPE_PI4IO) ? 0x64 : 0x16;
                 break;
             case 3:
-                command = (g_camera_switch == SWITCH_TYPE_PI4IO) ? 0x00 : 0x1B;
+                command = (g_camera_switch == SWITCH_TYPE_PI4IO) ? 0x00 : 0x0D;
                 break;
             default:
                 break; // do nothing
