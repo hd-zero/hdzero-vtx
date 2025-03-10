@@ -235,7 +235,7 @@ void camera_mode_detect(uint8_t init) {
 
         if (cycles == 0) {
             Set_720P60(0);
-            WriteReg(0, 0x50, 0x01);
+            //WriteReg(0, 0x50, 0x01); // Do not output colorbar
             video_format = VDO_FMT_720P60;
             I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
             camera_type = CAMERA_TYPE_RESERVED;
