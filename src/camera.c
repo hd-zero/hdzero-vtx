@@ -367,7 +367,7 @@ void camera_setting_reg_menu_update(void) {
 void camera_setting_reg_eep_update(void) {
     uint8_t i;
     for (i = 0; i < CAMERA_SETTING_NUM; i++) {
-        if (i == (CAM_STATUS_VDO_FMT-1) && g_camera_switch) {
+        if (g_camera_switch && i == (CAM_STATUS_VDO_FMT-1)) {
             // Sync all cameras on the camera switch to the same video setting if changed
             uint8_t value = camera_setting_reg_menu[i];
             camera_setting_reg_eep[0][i] = value;
@@ -384,7 +384,7 @@ void camera_setting_reg_eep_update(void) {
 uint8_t camera_set(uint8_t *camera_setting_reg, uint8_t save, uint8_t init) {
     uint8_t ret = 0;
     if (camera_mfr == CAMERA_MFR_RUNCAM) {
-        ret = runcam_set(camera_setting_reg);
+        ret = runcam_set(camera_setting_reg, g_camera_id);
         if (save || (init & ret))
             runcam_save();
     }

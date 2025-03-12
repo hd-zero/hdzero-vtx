@@ -1012,8 +1012,7 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
 uint8_t camera_switch(uint8_t camera_id) {
     if (g_camera_switch) {
         if (cms_state == CMS_OSD || cms_state == CMS_VTX_MENU) {
-            if (!g_manual_camera_sel && camera_id != g_camera_id) {
-                g_camera_id = camera_id;
+            if (!g_manual_camera_sel) {
                 select_camera(camera_id);
             }
         }
