@@ -8,7 +8,8 @@
 #include "print.h"
 
 uint8_t g_camera_switch = SWITCH_TYPE_NONE;
-uint8_t g_camera_id = 1;
+uint8_t g_camera_id = 0;
+uint8_t g_max_camera = 0;
 uint8_t g_manual_camera_sel = 0;
 
 /////////////////////////////////////////////////////////////////
@@ -154,37 +155,33 @@ uint8_t get_camera_switch_type(void) {
 void select_camera(uint8_t camera_id) {
     if (g_camera_switch)
     {
-        // Check cameera id is within range, else default to 1
-        uint8_t camera = (camera_id > 3) ? 1 : camera_id;
+        // Check camera id is within range, else default to 1
+        uint8_t camera = (camera_id == 0 || camera_id > g_max_camera) ? 1 : camera_id;
         if (g_camera_id != camera) {
             g_camera_id = camera;
 
-            uint8_t command = 0;
+            uint8_t command;
             switch (g_camera_id) {
                 case 1:
+                default:
                     command = (g_camera_switch == SWITCH_TYPE_PI4IO) ? 0x11 : 0x1B;
                     break;
                 case 2:
                     command = (g_camera_switch == SWITCH_TYPE_PI4IO) ? 0x64 : 0x16;
                     break;
                 case 3:
-                    command = (g_camera_switch == SWITCH_TYPE_PI4IO) ? 0x00 : 0x0D;
+                    command = (g_camera_switch == SWITCH_TYPE_PI4IO) ? 0x11 : 0x0D;
                     break;
-                default:
-                    break; // do nothing
             }
 
-            if (command) {
-                if (g_camera_switch == SWITCH_TYPE_PI4IO) {
-                    pi4io_set(0x05, command);
-                }
-                else {
-                    pca9557_set(0x01, command);
-                    WAIT(200); // wait for camera power up 
-                }
-
-                camera_switch_profile();
+            if (g_camera_switch == SWITCH_TYPE_PI4IO) {
+                pi4io_set(0x05, command);
             }
+            else { // SWITCH_TYPE_PCA9557
+                pca9557_set(0x01, command);
+                WAIT(200); // wait for camera power up 
+            }
+            camera_switch_profile();
         }
     }
 }
@@ -192,17 +189,21 @@ void select_camera(uint8_t camera_id) {
 void camera_switch_init() {
     g_camera_switch = get_camera_switch_type();
     if (g_camera_switch == SWITCH_TYPE_PI4IO) {
-//      pi4io_set(0x01, 0xFF);      // reset
+        //pi4io_set(0x01, 0xFF);      // reset
         pi4io_set(0x0B, 0xFF);      // Disable pullup/pulldown resistors
         pi4io_set(0x11, 0xFF);      // Disable interrupts on inputs
         pi4io_get(0x13);            // De-assert the interrrupt 
         pi4io_set(0x03, 0x77);      // Set P3 and P7 as inputs
         pi4io_set(0x07, 0x00);      // Set outputs to follow the output port register
         pi4io_set(0x05, 0x11);      // camera 1 default
+        g_max_camera = PI4IO_CAMS;
     } else if (g_camera_switch == SWITCH_TYPE_PCA9557) {
+        g_max_camera = PCA9557_CAMS;
         pca9557_set(0x03, 0x00);    // all outputs
         pca9557_set(0x01, 0x1B);    // camera 1 default
         WAIT(200);                  // wait for camera power up 
+    } else {
+        g_camera_id = 1;
     }
 }
 
