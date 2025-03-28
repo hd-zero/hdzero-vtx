@@ -330,20 +330,28 @@ void runcam_wb(uint8_t wbMode, uint8_t wbRed, uint8_t wbBlue) {
     }
 }
 
-void runcam_hv_flip(uint8_t val) {
-    if (camera_type != CAMERA_TYPE_RUNCAM_MICRO_V2 && camera_type != CAMERA_TYPE_RUNCAM_NANO_90 && camera_type != CAMERA_TYPE_RUNCAM_MICRO_V3)
-        return;
-
-    camera_setting_reg_set[8] = val;
-
-    if (val == 0) // no flip
-        RUNCAM_Read_Write(camera_device, 0x000040, 0x0022ffa9);
-    else if (val == 1) // hv flip
-        RUNCAM_Read_Write(camera_device, 0x000040, 0x002effa9);
-    else if (val == 2) // v flip
-        RUNCAM_Read_Write(camera_device, 0x000040, 0x0026ffa9);
-    else if (val == 3) // h flip
-        RUNCAM_Read_Write(camera_device, 0x000040, 0x002affa9);
+uint8_t runcam_hv_flip(uint8_t val) {
+    uint8_t ret = 0;
+    if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 || camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3 || camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
+        camera_setting_reg_set[8] = val;
+        switch (val) {
+        case 0: // no flip
+            ret = RUNCAM_Read_Write(camera_device, 0x000040, 0x0022ffa9);
+            break;
+        case 1: // hv flip
+            ret = RUNCAM_Read_Write(camera_device, 0x000040, 0x002effa9);
+            break;
+        case 2: // v flip
+            ret = RUNCAM_Read_Write(camera_device, 0x000040, 0x0026ffa9);
+            break;
+        case 3: // h flip
+            ret = RUNCAM_Read_Write(camera_device, 0x000040, 0x002affa9);
+            break;
+        default:
+            break;
+        }
+    }
+    return ret;
 }
 
 void runcam_night_mode(uint8_t val) {
@@ -354,24 +362,24 @@ void runcam_night_mode(uint8_t val) {
     if (camera_type != CAMERA_TYPE_RUNCAM_MICRO_V2 && camera_type != CAMERA_TYPE_RUNCAM_NANO_90 && camera_type != CAMERA_TYPE_RUNCAM_MICRO_V3)
         return;
 
-    camera_setting_reg_set[9] = val;
+        camera_setting_reg_set[9] = val;
 
-    if (val == 0) { // Max gain off
-        RUNCAM_Read_Write(camera_device, 0x000070, 0x10000040);
-        if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
-            RUNCAM_Read_Write(camera_device, 0x000718, 0x30003000);
-            RUNCAM_Read_Write(camera_device, 0x00071c, 0x32003200);
-            RUNCAM_Read_Write(camera_device, 0x000720, 0x34003400);
-        } else {
-            RUNCAM_Read_Write(camera_device, 0x000718, 0x30002900);
-            RUNCAM_Read_Write(camera_device, 0x00071c, 0x32003100);
-            RUNCAM_Read_Write(camera_device, 0x000720, 0x34003300);
-        }
-    } else if (val == 1) { // Max gain on
-        RUNCAM_Read_Write(camera_device, 0x000070, 0x10000040);
-        RUNCAM_Read_Write(camera_device, 0x000718, 0x28002700);
-        RUNCAM_Read_Write(camera_device, 0x00071c, 0x29002800);
-        RUNCAM_Read_Write(camera_device, 0x000720, 0x29002900);
+        if (val == 0) { // Max gain off
+            RUNCAM_Read_Write(camera_device, 0x000070, 0x10000040);
+            if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
+                RUNCAM_Read_Write(camera_device, 0x000718, 0x30003000);
+                RUNCAM_Read_Write(camera_device, 0x00071c, 0x32003200);
+                RUNCAM_Read_Write(camera_device, 0x000720, 0x34003400);
+            } else {
+                RUNCAM_Read_Write(camera_device, 0x000718, 0x30002900);
+                RUNCAM_Read_Write(camera_device, 0x00071c, 0x32003100);
+                RUNCAM_Read_Write(camera_device, 0x000720, 0x34003300);
+            }
+        } else if (val == 1) { // Max gain on
+            RUNCAM_Read_Write(camera_device, 0x000070, 0x10000040);
+            RUNCAM_Read_Write(camera_device, 0x000718, 0x28002700);
+            RUNCAM_Read_Write(camera_device, 0x00071c, 0x29002800);
+            RUNCAM_Read_Write(camera_device, 0x000720, 0x29002900);
     }
 }
 
@@ -511,50 +519,43 @@ void runcam_reset_isp(void) {
     RUNCAM_Write(camera_device, 0x000694, 0x00000130);
 }
 
-uint8_t runcam_set(uint8_t *setting_profile, uint8_t camera_id) {
-    static uint8_t initialised[3] = {0,0,0}; // up to 3 cameras
+uint8_t runcam_set(uint8_t *setting_profile, uint8_t init) {
     uint8_t ret = 0;
-    uint8_t cam_idx = (camera_id > 3) ? 0 : camera_id-1;
-    uint8_t init_done = initialised[cam_idx];
 
-    if (!init_done || runcam_setting_update_need(setting_profile, 0, 0) || runcam_setting_update_need(setting_profile, 10, 10)) {
+    if (init || runcam_setting_update_need(setting_profile, 0, 0) || runcam_setting_update_need(setting_profile, 10, 10)) {
         runcam_brightness(setting_profile[0], setting_profile[10]); // include led_mode
     }
 
-    if (!init_done || runcam_setting_update_need(setting_profile, 1, 1)) {
+    if (init || runcam_setting_update_need(setting_profile, 1, 1)) {
         runcam_sharpness(setting_profile[1]);
     }
 
-    if (!init_done || runcam_setting_update_need(setting_profile, 2, 2)) {
+    if (init || runcam_setting_update_need(setting_profile, 2, 2)) {
         runcam_contrast(setting_profile[2]);
     }
 
-    if (!init_done || runcam_setting_update_need(setting_profile, 3, 3)) {
+    if (init || runcam_setting_update_need(setting_profile, 3, 3)) {
         runcam_saturation(setting_profile[3]);
     }
 
-    if (!init_done || runcam_setting_update_need(setting_profile, 4, 4)) {
+    if (init || runcam_setting_update_need(setting_profile, 4, 4)) {
         runcam_shutter(setting_profile[4]);
     }
 
-    if (!init_done || runcam_setting_update_need(setting_profile, 5, 7)) {
+    if (init || runcam_setting_update_need(setting_profile, 5, 7)) {
         runcam_wb(setting_profile[5], setting_profile[6], setting_profile[7]);
     }
 
-    if (!init_done || runcam_setting_update_need(setting_profile, 8, 8)) {
-        runcam_hv_flip(setting_profile[8]);
+    if (init || runcam_setting_update_need(setting_profile, 8, 8)) {
+        ret |= runcam_hv_flip(setting_profile[8]);
     }
 
-    if (!init_done || runcam_setting_update_need(setting_profile, 9, 9)) {
+    if (init || runcam_setting_update_need(setting_profile, 9, 9)) {
         runcam_night_mode(setting_profile[9]);
     }
 
-    if (!init_done || runcam_setting_update_need(setting_profile, 11, 11)) {
-        ret = runcam_video_format(setting_profile[11]);
-    }
-
-    if (!init_done) {
-        initialised[cam_idx] = 1;
+    if (init || runcam_setting_update_need(setting_profile, 11, 11)) {
+        ret |= runcam_video_format(setting_profile[11]);
     }
 
     return ret;
