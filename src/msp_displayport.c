@@ -207,7 +207,7 @@ void msp_task() {
         else
             msp_cmd_tx();
 
-        if (seconds - fc_lst_rcv_sec > 2) {
+        if (seconds - fc_lst_rcv_sec > 5) {
             if (TEAM_RACE == 0x01)
                 vtx_paralized();
         }
@@ -993,10 +993,9 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     crc ^= 0x08; // channel count
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
     if (powerLock) {
-        msp_tx(3);  // power locked to 25/200/0mW
+        msp_tx(3); // power locked to 25/200/0mW
         crc ^= (3);
-    }
-    else
+    } else
 #endif
     {
         msp_tx(POWER_MAX + 2); // power count (including 0mW)
@@ -1129,7 +1128,7 @@ uint8_t msp_vtx_set_channel(uint8_t const channel) {
         DM6300_SetChannel(channel);
     return 1;
 }
- 
+
 void msp_set_osd_canvas(void) {
     uint8_t crc = 0;
     if (msp_cmp_fc_variant("BTFL")) {
@@ -1180,8 +1179,8 @@ void parse_vtx_params(uint8_t isMSP_V2) {
 
     fc_pwr_rx = msp_rx_buf[3];
     if (fc_pwr_rx == 0) {
-        fc_pwr_rx = POWER_MAX+2; // 0mW
-    } else if (fc_pwr_rx > (POWER_MAX+2)) {
+        fc_pwr_rx = POWER_MAX + 2; // 0mW
+    } else if (fc_pwr_rx > (POWER_MAX + 2)) {
         fc_pwr_rx = 1; // min power if invalid
     }
 
@@ -1283,7 +1282,7 @@ void parse_vtx_params(uint8_t isMSP_V2) {
                 temp_err = 1;
             }
         } else if (nxt_pwr <= POWER_MAX) {
-                RF_POWER = nxt_pwr;
+            RF_POWER = nxt_pwr;
 
             if (PIT_MODE)
                 nxt_pwr = POWER_MAX + 1;
@@ -1313,9 +1312,9 @@ void parse_vtx_params(uint8_t isMSP_V2) {
 
     if (needSaveEEP) {
         Setting_Save();
-    }       
+    }
 }
- 
+
 void parse_vtx_config(void) {
     fc_lock |= FC_VTX_CONFIG_LOCK;
     parse_vtx_params(0);
@@ -2153,12 +2152,12 @@ void set_vtx_param() {
             }
         } else if (heat_protect) {
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
-            WriteReg(0, 0x8F, 0x00); // dm6300 reset low
-            WriteReg(0, 0x8F, 0x01); // dm6300 reset high
-            DM6300_Init(RF_FREQ, RF_BW); // Set bandwidth
-            DM6300_SetChannel(RF_FREQ);  // Set band/channel
+            WriteReg(0, 0x8F, 0x00);        // dm6300 reset low
+            WriteReg(0, 0x8F, 0x01);        // dm6300 reset high
+            DM6300_Init(RF_FREQ, RF_BW);    // Set bandwidth
+            DM6300_SetChannel(RF_FREQ);     // Set band/channel
             DM6300_SetPower(0, RF_FREQ, 0); // Set low power (25mW)
-            WriteReg(0, 0x8F, 0x11); // enable 5680 video engine
+            WriteReg(0, 0x8F, 0x11);        // enable 5680 video engine
 #else
             DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
             cur_pwr = RF_POWER;
