@@ -23,12 +23,15 @@ uint8_t camera_profile_menu;
 uint8_t video_format = VDO_FMT_720P60;
 uint8_t camRatio = 0; // 0->16:9   1->4:3
 uint8_t camMenuStatus = CAM_STATUS_IDLE;
-uint8_t reset_isp_need = 0;
+uint8_t isp_reset_reqd = 0;
 
 uint8_t camera_is_3v3 = 0;
 
+extern uint8_t g_camera_id;
+extern uint8_t g_camera_switch;
+
 void camera_type_detect(void) {
-    camera_type = CAMERA_TYPE_UNKNOW;
+    camera_type = CAMERA_TYPE_UNKNOWN;
 
     runcam_type_detect();
     if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 ||
@@ -67,12 +70,10 @@ void camera_ratio_detect(void) {
 
 #ifdef USE_TP9950
 void camera_mode_detect(uint8_t init) {
-
+    UNUSED(init);
     uint32_t frame = 0;
     uint32_t agc_en = 0;
     uint8_t id = 0;
-
-    init = 0;
 
 #ifdef USE_TC3587_RSTB
     TC3587_RSTB = 0;
@@ -232,7 +233,7 @@ void camera_mode_detect(uint8_t init) {
 
         if (cycles == 0) {
             Set_720P60(0);
-            // WriteReg(0, 0x50, 0x01);
+            // WriteReg(0, 0x50, 0x01); // Do not output colorbar
             video_format = VDO_FMT_720P60;
             I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
             camera_type = CAMERA_TYPE_RESERVED;
@@ -303,10 +304,16 @@ void camera_setting_profile_check(uint8_t profile) {
     }
 }
 void camera_profile_read(void) {
-    camera_profile_eep = camera_reg_read_eep(EEP_ADDR_CAM_PROFILE);
+    if (g_camera_switch) {
+        camera_profile_eep = g_camera_id-1;
+    } else {
+        camera_profile_eep = camera_reg_read_eep(EEP_ADDR_CAM_PROFILE);
+    }
 }
 void camera_profile_write(void) {
-    camera_reg_write_eep(EEP_ADDR_CAM_PROFILE, camera_profile_eep);
+    if (!g_camera_switch) {
+        camera_reg_write_eep(EEP_ADDR_CAM_PROFILE, camera_profile_eep);
+    }
 }
 void camera_profile_reset(void) {
     camera_profile_eep = 0;
@@ -322,7 +329,7 @@ void camera_setting_read(void) {
     uint8_t camera_type_last;
     uint8_t i;
 
-    if (camera_type == CAMERA_TYPE_UNKNOW ||
+    if (camera_type == CAMERA_TYPE_UNKNOWN ||
         camera_type == CAMERA_TYPE_OUTDATED ||
         camera_type == CAMERA_TYPE_RESERVED)
         return;
@@ -357,14 +364,25 @@ void camera_setting_reg_menu_update(void) {
 
 void camera_setting_reg_eep_update(void) {
     uint8_t i;
-    for (i = 0; i < CAMERA_SETTING_NUM; i++)
-        camera_setting_reg_eep[camera_profile_menu][i] = camera_setting_reg_menu[i];
+    for (i = 0; i < CAMERA_SETTING_NUM; i++) {
+        if (g_camera_switch && i == (CAM_STATUS_VDO_FMT-1)) {
+            // Sync all cameras on the camera switch to the same video setting if changed
+            uint8_t value = camera_setting_reg_menu[i];
+            camera_setting_reg_eep[0][i] = value;
+            camera_setting_reg_eep[1][i] = value;
+            if (g_camera_switch == SWITCH_TYPE_PCA9557) {
+                camera_setting_reg_eep[2][i] = value;
+            }
+        } else {
+            camera_setting_reg_eep[camera_profile_menu][i] = camera_setting_reg_menu[i];
+        }
+    }
 }
 
 uint8_t camera_set(uint8_t *camera_setting_reg, uint8_t save, uint8_t init) {
     uint8_t ret = 0;
     if (camera_mfr == CAMERA_MFR_RUNCAM) {
-        ret = runcam_set(camera_setting_reg);
+        ret = runcam_set(camera_setting_reg, init);
         if (save || (init & ret))
             runcam_save();
     }
@@ -372,20 +390,29 @@ uint8_t camera_set(uint8_t *camera_setting_reg, uint8_t save, uint8_t init) {
     return ret;
 }
 
+void camera_switch_profile(void) {
+    camera_setting_read();
+    camera_setting_reg_menu_update();
+    isp_reset_reqd = camera_set(camera_setting_reg_menu, 0, 1);
+    if (isp_reset_reqd) {
+        if (camera_mfr == CAMERA_MFR_RUNCAM) {
+            runcam_reset_isp();
+            camera_mode_detect(0);
+        }
+    }
+}
+
 void camera_init(void) {
     camera_type_detect();
     camera_setting_read();
     camera_setting_reg_menu_update();
-    reset_isp_need = camera_set(camera_setting_reg_menu, 0, 1);
-
-    if (reset_isp_need) {
+    isp_reset_reqd = camera_set(camera_setting_reg_menu, 0, 1);
+    if (isp_reset_reqd) {
         if (camera_mfr == CAMERA_MFR_RUNCAM) {
             runcam_reset_isp();
         }
     }
-
     camera_mode_detect(1);
-
     camera_button_init();
 }
 
@@ -438,7 +465,7 @@ void camera_menu_draw_value(void) {
     osd_buf[0][osd_menu_offset + 28] = '1' + camera_profile_menu;
 
     for (i = CAM_STATUS_BRIGHTNESS; i <= CAM_STATUS_VDO_FMT; i++) {
-        if (camera_attribute[i - 1][CAM_SETTING_ITEM_ENBALE] == 0)
+        if (camera_attribute[i - 1][CAM_SETTING_ITEM_ENABLE] == 0)
             strcpy(&osd_buf[i][osd_menu_offset + 27], "-");
         else {
             switch (i) {
@@ -597,18 +624,20 @@ void camera_menu_item_toggle(uint8_t op) {
 }
 
 void camera_profile_menu_toggle(uint8_t op) {
-    if (op == BTN_RIGHT) {
-        camera_profile_menu++;
-        if (camera_profile_menu == CAMERA_PROFILE_NUM)
-            camera_profile_menu = 0;
-        camera_setting_reg_menu_update();
-        reset_isp_need |= camera_set(camera_setting_reg_menu, 0, 0);
-    } else if (op == BTN_LEFT) {
-        camera_profile_menu--;
-        if (camera_profile_menu > CAMERA_PROFILE_NUM)
-            camera_profile_menu = CAMERA_PROFILE_NUM - 1;
-        camera_setting_reg_menu_update();
-        reset_isp_need |= camera_set(camera_setting_reg_menu, 0, 0);
+    if (!g_camera_switch) {
+        if (op == BTN_RIGHT) {
+            camera_profile_menu++;
+            if (camera_profile_menu == CAMERA_PROFILE_NUM)
+                camera_profile_menu = 0;
+            camera_setting_reg_menu_update();
+            isp_reset_reqd |= camera_set(camera_setting_reg_menu, 0, 0);
+        } else if (op == BTN_LEFT) {
+            camera_profile_menu--;
+            if (camera_profile_menu > CAMERA_PROFILE_NUM)
+                camera_profile_menu = CAMERA_PROFILE_NUM - 1;
+            camera_setting_reg_menu_update();
+            isp_reset_reqd |= camera_set(camera_setting_reg_menu, 0, 0);
+        }
     }
 }
 
@@ -637,7 +666,7 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
     case CAM_STATUS_BRIGHTNESS:
     case CAM_STATUS_WBRED:
     case CAM_STATUS_WBBLUE:
-        if (!camera_attribute[item][CAM_SETTING_ITEM_ENBALE])
+        if (!camera_attribute[item][CAM_SETTING_ITEM_ENABLE])
             return;
 #if (0)
         // if wb mode if auto, do not modify wbred/wbblue
@@ -682,7 +711,7 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
     case CAM_STATUS_NIGHT_MODE:
     case CAM_STATUS_LED_MODE:
     case CAM_STATUS_VDO_FMT:
-        if (!camera_attribute[item][CAM_SETTING_ITEM_ENBALE])
+        if (!camera_attribute[item][CAM_SETTING_ITEM_ENABLE])
             return;
 
         if (op == BTN_RIGHT) {
@@ -691,7 +720,7 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
                 camera_setting_reg_menu[item] = camera_attribute[item][CAM_SETTING_ITEM_MIN];
 
             if (camMenuStatus != CAM_STATUS_VDO_FMT) { // vdo format will be configured when exit camera menu
-                camera_set(camera_setting_reg_menu, 0, 0);
+                isp_reset_reqd |= camera_set(camera_setting_reg_menu, 0, 0);
             }
         } else if (op == BTN_LEFT) {
             camera_setting_reg_menu[item]--;
@@ -702,7 +731,7 @@ void camera_setting_reg_menu_toggle(uint8_t op, uint8_t last_op) {
                 camera_setting_reg_menu[item] = camera_attribute[item][CAM_SETTING_ITEM_MAX];
 
             if (camMenuStatus != CAM_STATUS_VDO_FMT) { // vdo format will be configured when exit camera menu
-                camera_set(camera_setting_reg_menu, 0, 0);
+                isp_reset_reqd |= camera_set(camera_setting_reg_menu, 0, 0);
             }
         }
         break;
@@ -723,7 +752,7 @@ uint8_t camera_status_update(uint8_t op) {
     if (op >= BTN_INVALID)
         return ret;
 
-    if (camera_type == CAMERA_TYPE_UNKNOW ||
+    if (camera_type == CAMERA_TYPE_UNKNOWN ||
         camera_type == CAMERA_TYPE_OUTDATED) {
         camera_button_op(op);
         return ret;
@@ -732,7 +761,7 @@ uint8_t camera_status_update(uint8_t op) {
     switch (camMenuStatus) {
     case CAM_STATUS_IDLE:
         if (op == BTN_MID) {
-            reset_isp_need = 0;
+            isp_reset_reqd = 0;
             camera_menu_long_press(op, last_op, 1);
 
             camMenuStatus = CAM_STATUS_PROFILE;
@@ -812,11 +841,11 @@ uint8_t camera_status_update(uint8_t op) {
                 camMenuStatus = CAM_STATUS_REPOWER;
             } else {
                 camera_profile_write();
-                reset_isp_need |= camera_set(camera_setting_reg_menu, 1, 0);
+                isp_reset_reqd |= camera_set(camera_setting_reg_menu, 1, 0);
                 camera_setting_reg_eep_update();
                 camera_setting_profile_write(0xff);
 
-                if (reset_isp_need) {
+                if (isp_reset_reqd) {
                     if (camera_mfr == CAMERA_MFR_RUNCAM) {
                         runcam_reset_isp();
                         camera_mode_detect(0);
@@ -831,10 +860,10 @@ uint8_t camera_status_update(uint8_t op) {
     case CAM_STATUS_REPOWER:
         if (op == BTN_RIGHT) {
             camera_profile_write();
-            reset_isp_need |= camera_set(camera_setting_reg_menu, 1, 0);
+            isp_reset_reqd |= camera_set(camera_setting_reg_menu, 1, 0);
             camera_setting_reg_eep_update();
             camera_setting_profile_write(0xff);
-            if (reset_isp_need) {
+            if (isp_reset_reqd) {
                 if (camera_mfr == CAMERA_MFR_RUNCAM) {
                     runcam_reset_isp();
                     camera_mode_detect(0);
@@ -892,7 +921,7 @@ void camera_select_menu_init(void) {
         osd_buf_p = osd_buf[i] + osd_menu_offset;
         strcpy(osd_buf_p, cam_select_menu_string[i]);
     }
-    camera_select_menu_ratio_upate();
+    camera_select_menu_ratio_update();
 }
 
 void camera_select_menu_cursor_update(uint8_t index) {
@@ -905,7 +934,7 @@ void camera_select_menu_cursor_update(uint8_t index) {
     }
 }
 
-void camera_select_menu_ratio_upate() {
+void camera_select_menu_ratio_update() {
     if (camRatio == 1)
         strcpy(osd_buf[2] + osd_menu_offset + 28, "<4:3> ");
     else
@@ -913,6 +942,6 @@ void camera_select_menu_ratio_upate() {
 }
 
 void camera_menu_mode_exit_note() {
-    const char note_string[] = "LEFT MOVE THROTTLE TO EXIT CAMERA MENU";
+    const char note_string[] = "MOVE THROTTLE LEFT TO EXIT CAMERA MENU";
     strcpy(osd_buf[15] + 5, note_string);
 }

@@ -193,4 +193,8 @@
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
+#if !defined(UNUSED)
+#define UNUSED(x) ((void)(x))    /* To avoid gcc/g++ warnings */
+#endif /* UNUSED */
+
 #endif /* __COMMON_H_ */

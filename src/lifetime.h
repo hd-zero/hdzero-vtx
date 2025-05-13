@@ -9,6 +9,6 @@
 
 void Get_EEP_LifeTime(void);
 void Update_EEP_LifeTime(void);
-void ParseLifeTime(unsigned char *hourString, unsigned char *minuteString);
+char *parseLifeTime(void);
 
 #endif /* __LIFETIME_H_ */

@@ -18,6 +18,7 @@
 #define MSP_SET_VTX_CONFIG 0x59 // 89  // in message
 #define MSP_STATUS         0x65 // 101 //out message
 #define MSP_RC             0x69 // 105 //out message
+#define MSP_BOXIDS         0x77 // 119 //out message
 #define MSP_DISPLAYPORT    0xB6 // 182 // in message
 #define MSP_SET_OSD_CANVAS 0xBC // 188 // in message
 #define MSP_GET_OSD_CANVAS 0xBD // 188 //out message
@@ -27,10 +28,9 @@
 
 #define FC_OSD_LOCK            0x01
 #define FC_VARIANT_LOCK        0x02
-#define FC_RC_LOCK             0x04
-#define FC_VTX_CONFIG_LOCK     0x08
-#define FC_STATUS_LOCK         0x10
-#define FC_INIT_VTX_TABLE_LOCK 0x80
+#define FC_VTX_CONFIG_LOCK     0x04
+#define FC_STARTUP_LOCK        0x08
+#define FC_INIT_VTX_TABLE_LOCK 0x10
 
 #define OSD_CANVAS_SD_HMAX  30
 #define OSD_CANVAS_SD_VMAX  16
@@ -70,5 +70,8 @@
 #define MSP_VTX_GET_FW_VERSION  0x0386 // Query VTX for firmware version
 #define MSP_VTX_GET_TEMPERATURE 0x0387 // Query VTX for temperature in celcius
 #define MSP_VTX_GET_HW_FAULTS   0x0388 // Query VTX for hardware errors
+
+// outgoing packets
+#define MSP2_INAV_STATUS        0x2000 // iNav specific STATUS that overcomes MSP_V1 shrtcomings.
 
 #endif /* __MSP_PROTO_H_ */
