@@ -7,10 +7,11 @@
 
 #define CAM_PROFILE_NUM 4
 
-#define RUNCAM_MICRO_V1 0x42
-#define RUNCAM_MICRO_V2 0x44
-#define RUNCAM_NANO_90  0x46
-#define RUNCAM_MICRO_V3 0x48
+#define RUNCAM_MICRO_V1   0x42
+#define RUNCAM_MICRO_V2   0x44
+#define RUNCAM_NANO_90    0x46
+#define RUNCAM_MICRO_V3   0x48
+#define RUNCAM_NANO_90_V2 0x4C
 
 #define CAMERA_SETTING_NUM 16
 #define CAMERA_PROFILE_NUM 3
@@ -38,6 +39,7 @@ typedef enum {
     CAMERA_TYPE_RUNCAM_MICRO_V2, // include hzd nano v2 / hdz nano lite
     CAMERA_TYPE_RUNCAM_NANO_90,
     CAMERA_TYPE_RUNCAM_MICRO_V3,
+    CAMERA_TYPE_RUNCAM_NANO_90_V2,
 } camera_type_e;
 
 typedef enum {

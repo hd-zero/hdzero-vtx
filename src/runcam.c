@@ -176,6 +176,12 @@ void runcam_type_detect(void) {
                     camera_attribute[i][j] = runcam_micro_v3_attribute[i][j];
             }
         }
+
+        rdat = RUNCAM_Read(RUNCAM_NANO_90_V2, 0x50);
+        if (rdat != 0x00000000 && rdat != 0xffffffff) {
+            camera_type = CAMERA_TYPE_RUNCAM_NANO_90_V2;
+            camera_device = RUNCAM_NANO_90_V2;
+        }
     }
 }
 
@@ -362,24 +368,24 @@ void runcam_night_mode(uint8_t val) {
     if (camera_type != CAMERA_TYPE_RUNCAM_MICRO_V2 && camera_type != CAMERA_TYPE_RUNCAM_NANO_90 && camera_type != CAMERA_TYPE_RUNCAM_MICRO_V3)
         return;
 
-        camera_setting_reg_set[9] = val;
+    camera_setting_reg_set[9] = val;
 
-        if (val == 0) { // Max gain off
-            RUNCAM_Read_Write(camera_device, 0x000070, 0x10000040);
-            if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
-                RUNCAM_Read_Write(camera_device, 0x000718, 0x30003000);
-                RUNCAM_Read_Write(camera_device, 0x00071c, 0x32003200);
-                RUNCAM_Read_Write(camera_device, 0x000720, 0x34003400);
-            } else {
-                RUNCAM_Read_Write(camera_device, 0x000718, 0x30002900);
-                RUNCAM_Read_Write(camera_device, 0x00071c, 0x32003100);
-                RUNCAM_Read_Write(camera_device, 0x000720, 0x34003300);
-            }
-        } else if (val == 1) { // Max gain on
-            RUNCAM_Read_Write(camera_device, 0x000070, 0x10000040);
-            RUNCAM_Read_Write(camera_device, 0x000718, 0x28002700);
-            RUNCAM_Read_Write(camera_device, 0x00071c, 0x29002800);
-            RUNCAM_Read_Write(camera_device, 0x000720, 0x29002900);
+    if (val == 0) { // Max gain off
+        RUNCAM_Read_Write(camera_device, 0x000070, 0x10000040);
+        if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
+            RUNCAM_Read_Write(camera_device, 0x000718, 0x30003000);
+            RUNCAM_Read_Write(camera_device, 0x00071c, 0x32003200);
+            RUNCAM_Read_Write(camera_device, 0x000720, 0x34003400);
+        } else {
+            RUNCAM_Read_Write(camera_device, 0x000718, 0x30002900);
+            RUNCAM_Read_Write(camera_device, 0x00071c, 0x32003100);
+            RUNCAM_Read_Write(camera_device, 0x000720, 0x34003300);
+        }
+    } else if (val == 1) { // Max gain on
+        RUNCAM_Read_Write(camera_device, 0x000070, 0x10000040);
+        RUNCAM_Read_Write(camera_device, 0x000718, 0x28002700);
+        RUNCAM_Read_Write(camera_device, 0x00071c, 0x29002800);
+        RUNCAM_Read_Write(camera_device, 0x000720, 0x29002900);
     }
 }
 

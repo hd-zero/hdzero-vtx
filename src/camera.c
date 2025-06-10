@@ -37,7 +37,8 @@ void camera_type_detect(void) {
     if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 ||
         camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 ||
         camera_type == CAMERA_TYPE_RUNCAM_NANO_90 ||
-        camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
+        camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3 ||
+        camera_type == CAMERA_TYPE_RUNCAM_NANO_90_V2) {
         camera_mfr = CAMERA_MFR_RUNCAM;
         return;
     }
@@ -53,6 +54,7 @@ void camera_ratio_detect(void) {
         camRatio = (camera_setting_reg_set[11] == 0);
         break;
     case CAMERA_TYPE_RUNCAM_NANO_90:
+    case CAMERA_TYPE_RUNCAM_NANO_90_V2:
         camRatio = 1;
         break;
 #ifdef USE_TP9950
@@ -170,7 +172,12 @@ void camera_mode_detect(uint8_t init) {
     // init tc3587 and detect fps
     WriteReg(0, 0x8F, 0x91);
 
-    if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
+    if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90_V2) {
+        Init_TC3587(1);
+        Set_540P90(0);
+        video_format = VDO_FMT_540P90;
+        I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
+    } else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
         Init_TC3587(1);
         if (camera_setting_reg_set[11] == 0) {
             Set_540P90(0);
@@ -305,7 +312,7 @@ void camera_setting_profile_check(uint8_t profile) {
 }
 void camera_profile_read(void) {
     if (g_camera_switch) {
-        camera_profile_eep = g_camera_id-1;
+        camera_profile_eep = g_camera_id - 1;
     } else {
         camera_profile_eep = camera_reg_read_eep(EEP_ADDR_CAM_PROFILE);
     }
@@ -331,7 +338,8 @@ void camera_setting_read(void) {
 
     if (camera_type == CAMERA_TYPE_UNKNOWN ||
         camera_type == CAMERA_TYPE_OUTDATED ||
-        camera_type == CAMERA_TYPE_RESERVED)
+        camera_type == CAMERA_TYPE_RESERVED ||
+        camera_type == CAMERA_TYPE_RUNCAM_NANO_90_V2)
         return;
 
     camera_type_last = camera_reg_read_eep(EEP_ADDR_CAM_TYPE);
@@ -365,7 +373,7 @@ void camera_setting_reg_menu_update(void) {
 void camera_setting_reg_eep_update(void) {
     uint8_t i;
     for (i = 0; i < CAMERA_SETTING_NUM; i++) {
-        if (g_camera_switch && i == (CAM_STATUS_VDO_FMT-1)) {
+        if (g_camera_switch && i == (CAM_STATUS_VDO_FMT - 1)) {
             // Sync all cameras on the camera switch to the same video setting if changed
             uint8_t value = camera_setting_reg_menu[i];
             camera_setting_reg_eep[0][i] = value;
@@ -381,6 +389,10 @@ void camera_setting_reg_eep_update(void) {
 
 uint8_t camera_set(uint8_t *camera_setting_reg, uint8_t save, uint8_t init) {
     uint8_t ret = 0;
+
+    if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90_V2)
+        return ret;
+
     if (camera_mfr == CAMERA_MFR_RUNCAM) {
         ret = runcam_set(camera_setting_reg, init);
         if (save || (init & ret))
