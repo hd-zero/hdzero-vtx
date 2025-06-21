@@ -132,6 +132,37 @@ const uint8_t runcam_micro_v3_attribute[CAMERA_SETTING_NUM][4] = {
     {0, 0x00, 0x00, 0x00},
     {0, 0x00, 0x00, 0x00},
 };
+const uint8_t runcam_nano90_v2_attribute[CAMERA_SETTING_NUM][4] = {
+    // brightness
+    {0, 0x40, 0xC0, 0x80},
+    // sharpness
+    {0, 0x00, 0x02, 0x01},
+    // contrast
+    {0, 0x00, 0x02, 0x01},
+    // saturation
+    {0, 0x00, 0x06, 0x05},
+    // shutter speed
+    {0, 0x00, 0x20, 0x00},
+    // wb mode
+    {0, 0x00, 0x01, 0x00},
+    // wb red
+    {0, 0x00, 0xff, 0xc7},
+    // wb blue
+    {0, 0x00, 0xff, 0xca},
+    // hv flip
+    {0, 0x00, 0x03, 0x00},
+    // night mode
+    {0, 0x00, 0x01, 0x01},
+    // led mode
+    {0, 0x00, 0x01, 0x00},
+    // video fmt
+    {0, 0x00, 0x03, 0x02},
+
+    {0, 0x00, 0x00, 0x00},
+    {0, 0x00, 0x00, 0x00},
+    {0, 0x00, 0x00, 0x00},
+    {0, 0x00, 0x00, 0x00},
+};
 
 void runcam_type_detect(void) {
     uint8_t i, j;
@@ -175,12 +206,18 @@ void runcam_type_detect(void) {
                 for (j = 0; j < 4; j++)
                     camera_attribute[i][j] = runcam_micro_v3_attribute[i][j];
             }
+            return;
         }
 
         rdat = RUNCAM_Read(RUNCAM_NANO_90_V2, 0x50);
         if (rdat != 0x00000000 && rdat != 0xffffffff) {
             camera_type = CAMERA_TYPE_RUNCAM_NANO_90_V2;
             camera_device = RUNCAM_NANO_90_V2;
+            for (i = 0; i < CAMERA_SETTING_NUM; i++) {
+                for (j = 0; j < 4; j++)
+                    camera_attribute[i][j] = runcam_nano90_v2_attribute[i][j];
+            }
+            return;
         }
     }
 }
@@ -517,6 +554,8 @@ uint8_t runcam_setting_update_need(uint8_t *setting_p, uint8_t start, uint8_t st
 }
 
 void runcam_save(void) {
+    if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90_V2)
+        return;
     RUNCAM_Write(camera_device, 0x000694, 0x00000310);
     RUNCAM_Write(camera_device, 0x000694, 0x00000311);
 }

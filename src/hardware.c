@@ -514,10 +514,10 @@ void Init_HW() {
 #ifdef RESET_CONFIG
     reset_config();
 #endif
-    
+
     GetVtxParameter();
     Get_EEP_LifeTime();
-    
+
     camera_switch_init();
     camera_init();
 
@@ -558,7 +558,7 @@ void TempDetect() {
             temp_new = I2C_Read8(ADDR_TEMPADC, 0);
             if (temp_new >= 0x7D) // MAX +125
                 temp_new = 0x7D;
-                // temp_new >>= 5; //LM75AD
+            // temp_new >>= 5; //LM75AD
 
 #ifdef HDZERO_ECO
             if (temp_new > 10)
@@ -1008,6 +1008,7 @@ void video_detect(void) {
             camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 ||
             camera_type == CAMERA_TYPE_RUNCAM_NANO_90 ||
             camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3 ||
+            camera_type == CAMERA_TYPE_RUNCAM_NANO_90_V2 ||
             camera_type == CAMERA_TYPE_RESERVED) {
             i = 0;
             video_type_id = 0;
