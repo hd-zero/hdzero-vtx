@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 usage = """python sdcc_map.py <filename.map>
- * Parses an sdcc linker .map file and outputs symbol, section, module 
+ * Parses an sdcc linker .map file and outputs symbol, section, module
    information in .csv format
  * Requires python 3.8+
 """
@@ -10,6 +10,7 @@ import sys,os
 import re
 from types import SimpleNamespace
 
+
 class Symbol:
     def __init__(self, name, address, module, section):
         self.name = name
@@ -17,6 +18,7 @@ class Symbol:
         self.module = module
         self.section = section
         self.size = -1
+
 
 class Module:
     def __init__(self, name):
@@ -31,6 +33,7 @@ class Module:
         self.size = 0
         for (n,s) in self.symbols.items():
             self.size += s.size
+
 
 class Section:
     def __init__(self, name, address, size, attributes):
@@ -58,9 +61,6 @@ class Section:
             sectionEnd = sectionEnd - symbol.size
 
 
-
-
-
 class MapFile:
     def __init__(self):
         self.sections = []
@@ -73,22 +73,22 @@ class MapFile:
     def getModule(self, name):
         if name in self.modules:
             return self.modules[name]
-        
+
         module = self.modules[name] = Module(name)
         return module
 
     def fromFile(self, filename):
         currentSection = None
-        sectionHeaderRegex = re.compile("(?P<name>.*?)\s+(?P<address>.*?)\s+(?P<sizeHex>.*?)\s=\s+(?P<sizeBytes>\d+)\.\sbytes\s\((\w+),(\w+),(?P<type>\w+)\)")
-        symbolReg = re.compile("(?P<type>C|D):\s+(?P<address>.*?)\s+(?P<name>\w+)\s+(?P<module>\w+|.*)")
-        
+        sectionHeaderRegex = re.compile(r"(?P<name>.*?)\s+(?P<address>.*?)\s+(?P<sizeHex>.*?)\s=\s+(?P<sizeBytes>\d+)\.\sbytes\s\((\w+),(\w+),(?P<type>\w+)\)")
+        symbolReg = re.compile(r"(?P<type>C|D):\s+(?P<address>.*?)\s+(?P<name>\w+)\s+(?P<module>\w+|.*)")
+
         mapfile = open(filename, "r")
         skip = 0
         while line := mapfile.readline():
             # SECTION DATA
             if len(line) > 0 and line[0] == '\x0c':
                 # skip header
-                for skip in range(4): 
+                for skip in range(4):
                     mapfile.readline()
 
                 line = mapfile.readline()
@@ -97,12 +97,12 @@ class MapFile:
                     continue
 
                 secHead = SimpleNamespace(**match.groupdict())
-                
+
                 # print("Section Header: {secHead.name}")
 
                 existing = [x for x in self.sections if x.name == secHead.name]
                 if len(existing) >= 1:
-                    
+
                     # print(F"found existing section: {secHead.name}@{existing[0]}")
 
                     found = existing[0]
@@ -123,7 +123,7 @@ class MapFile:
 
                     # print(F"Found symbol: {symbol.name}")
                     currentSection.symbols.append(symbol)
-                
+
 
     def process(self):
         for section in self.sections:
@@ -138,17 +138,17 @@ class MapFile:
     def symbolsCsv(self) -> str:
         out = ""
         out += "Bytes, Symbol, Module, Address, Section, SectionType\n"
-        
-        
+
+
         for symbol in self.symbols:
             out += F'{symbol.size}, {symbol.name}, {symbol.module.name}, {hex(symbol.address)}, {symbol.section.name}, {symbol.section.attributes}\n'
 
         return out
-    
+
     def sectionsCsv(self) -> str:
         out = ""
         out += "Bytes, Section, Address, SectionType\n"
-        
+
         for s in self.sections:
             out += F'{s.size}, {s.name}, {hex(s.address)}, {s.attributes}\n'
 
@@ -157,20 +157,22 @@ class MapFile:
     def modulesCsv(self) -> str:
         out = ""
         out += "Bytes, Module, Symbols\n"
-                
+
         for m in sorted(self.modules.values(), key=lambda x: x.size, reverse=True):
             out += F'{m.size}, {m.name}, {len(m.symbols.keys())}\n'
 
         return out
+
 
 def writeFile(filename, name, ext, data):
     file = open(f"{os.path.abspath(filename)}.{name}.{ext}", "w")
     file.write(data)
     file.close()
 
+
 def main(infile):
-    
-    if not os.path.isfile(infile):  
+
+    if not os.path.isfile(infile):
         print("Unreadable file '%s'." % infile)
         return 1
 
@@ -183,6 +185,7 @@ def main(infile):
     writeFile(infile, "modules", "csv", map.modulesCsv())
 
     return 0
+
 
 if __name__=="__main__":
     if len(sys.argv)>=2:
