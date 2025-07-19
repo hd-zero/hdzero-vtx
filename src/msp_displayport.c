@@ -1106,8 +1106,8 @@ void parse_boxids(uint8_t msgLen) {
     }
 }
 
+uint16_t roll, pitch, yaw, throttle;
 void parse_rc() {
-    uint16_t roll, pitch, yaw, throttle;
 
     roll = (msp_rx_buf[1] << 8) | msp_rx_buf[0];
     pitch = (msp_rx_buf[3] << 8) | msp_rx_buf[2];
@@ -1383,6 +1383,57 @@ uint8_t parse_displayport(uint8_t len) {
                 osd_ready = 0;
                 state_osd = MSP_OSD_LOC;
             } else if (msp_rx_buf[0] == SUBCMD_DRAW) {
+#if (1) // debug print
+                mark_loc(0, 0);
+                osd_buf[0][0] = 'F';
+                osd_buf[0][1] = 'C';
+                osd_buf[0][2] = ':';
+                osd_buf[0][3] = fc_variant[0];
+                osd_buf[0][4] = fc_variant[1];
+                osd_buf[0][5] = fc_variant[2];
+                osd_buf[0][6] = fc_variant[3];
+                osd_buf[0][7] = fc_lock / 100 + '0';
+                osd_buf[0][8] = (fc_lock / 10) % 10 + '0';
+                osd_buf[0][9] = fc_lock % 10 + '0';
+
+                mark_loc(1, 0);
+                osd_buf[1][0] = 'A';
+                osd_buf[1][1] = 'R';
+                osd_buf[1][2] = 'M';
+                osd_buf[1][3] = ':';
+                osd_buf[1][4] = (g_IS_ARMED) ? 'Y' : 'N';
+
+                mark_loc(2, 0);
+                osd_buf[2][0] = 'T';
+                osd_buf[2][1] = ':';
+                osd_buf[2][2] = (throttle / 1000) + '0';
+                osd_buf[2][3] = ((throttle / 100) % 10) + '0';
+                osd_buf[2][4] = ((throttle / 10) % 10) + '0';
+                osd_buf[2][5] = (throttle % 10) + '0';
+
+                mark_loc(3, 0);
+                osd_buf[3][0] = 'R';
+                osd_buf[3][1] = ':';
+                osd_buf[3][2] = (roll / 1000) + '0';
+                osd_buf[3][3] = ((roll / 100) % 10) + '0';
+                osd_buf[3][4] = ((roll / 10) % 10) + '0';
+                osd_buf[3][5] = (roll % 10) + '0';
+                mark_loc(4, 0);
+                osd_buf[4][0] = 'E';
+                osd_buf[4][1] = ':';
+                osd_buf[4][2] = (pitch / 1000) + '0';
+                osd_buf[4][3] = ((pitch / 100) % 10) + '0';
+                osd_buf[4][4] = ((pitch / 10) % 10) + '0';
+                osd_buf[4][5] = (pitch % 10) + '0';
+                mark_loc(5, 0);
+                osd_buf[5][0] = 'A';
+                osd_buf[5][1] = ':';
+                osd_buf[5][2] = (yaw / 1000) + '0';
+                osd_buf[5][3] = ((yaw / 100) % 10) + '0';
+                osd_buf[5][4] = ((yaw / 10) % 10) + '0';
+                osd_buf[5][5] = (yaw % 10) + '0';
+
+#endif
                 osd_ready = 1;
                 if (!(fc_lock & FC_OSD_LOCK)) {
                     Flicker_LED(3);
