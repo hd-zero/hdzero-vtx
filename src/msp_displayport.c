@@ -817,6 +817,11 @@ void msp_cmd_tx() {
             msp_send_cmd_tx(MSP_FC_VARIANT);
         } else if ((fc_lock & FC_VTX_CONFIG_LOCK) == 0) {
             msp_send_cmd_tx(MSP_GET_VTX_CONFIG);
+
+            msp_send_cmd_tx(MSP_STATUS);
+            if (!g_IS_ARMED) {
+                msp_send_cmd_tx(MSP_RC);
+            }
         } else {
             fc_lock |= FC_STARTUP_LOCK;
 
