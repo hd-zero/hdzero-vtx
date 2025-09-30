@@ -771,7 +771,7 @@ void msp_send_type(uint8_t dl, uint8_t version, uint8_t header_type) {
 }
 
 void msp_send_command(uint8_t dl, uint8_t version) {
-   msp_send_type(dl, version, MSP_HEADER_COMMAND);
+    msp_send_type(dl, version, MSP_HEADER_COMMAND);
 }
 
 void msp_send_response(uint8_t dl, uint8_t version) {
@@ -810,14 +810,12 @@ void msp_send_cmd_tx_v2(uint16_t request) {
     msp_tx(msp_send_header_v2(0, request));
 }
 
- // Send requests to the FC.
-void msp_cmd_tx()
-{
+// Send requests to the FC.
+void msp_cmd_tx() {
     if ((fc_lock & FC_STARTUP_LOCK) == 0) {
         if ((fc_lock & FC_VARIANT_LOCK) == 0) {
             msp_send_cmd_tx(MSP_FC_VARIANT);
-        }
-        else if ((fc_lock & FC_VTX_CONFIG_LOCK) == 0) {
+        } else if ((fc_lock & FC_VTX_CONFIG_LOCK) == 0) {
             msp_send_cmd_tx(MSP_GET_VTX_CONFIG);
         } else {
             fc_lock |= FC_STARTUP_LOCK;
@@ -836,7 +834,7 @@ void msp_cmd_tx()
             msp_send_cmd_tx(MSP_GET_OSD_CANVAS);
             msp_send_cmd_tx(MSP_STATUS);
         }
-        
+
         // These messages are not required when armed.
         if (!g_IS_ARMED) {
             if (timer_2hz) { // in case box ids move (say during configuration)
@@ -1030,21 +1028,21 @@ void parse_status() {
     uint8_t isBTFL = msp_cmp_fc_variant("BTFL");
 
     if (g_arm_mask) {
-        offset = (isBTFL && g_arm_page > 3)  ? 12 : 6;
-        g_IS_ARMED = msp_rx_buf[offset+g_arm_page] & g_arm_mask;
+        offset = (isBTFL && g_arm_page > 3) ? 12 : 6;
+        g_IS_ARMED = msp_rx_buf[offset + g_arm_page] & g_arm_mask;
     }
 
     if (g_boxCamera1_mask) {
-        offset = (isBTFL && g_boxCamera1_page > 3)  ? 12 : 6;
-        if (msp_rx_buf[offset+g_boxCamera1_page] & g_boxCamera1_mask) {
+        offset = (isBTFL && g_boxCamera1_page > 3) ? 12 : 6;
+        if (msp_rx_buf[offset + g_boxCamera1_page] & g_boxCamera1_mask) {
             camSelected = camera_switch(2);
         }
     }
-   
+
     if (!camSelected && g_boxCamera2_mask) {
-        offset = (isBTFL && g_boxCamera2_page > 3)  ? 12 : 6;
-        if (msp_rx_buf[offset+g_boxCamera2_page] & g_boxCamera2_mask) {
-            if (g_camera_switch == SWITCH_TYPE_PCA9557) {
+        offset = (isBTFL && g_boxCamera2_page > 3) ? 12 : 6;
+        if (msp_rx_buf[offset + g_boxCamera2_page] & g_boxCamera2_mask) {
+            if (g_camera_switch == SWITCH_TYPE_PCA9557 || g_camera_switch == SWITCH_TYPE_HDZCS) {
                 camSelected = camera_switch(3);
             }
         }
@@ -1052,7 +1050,7 @@ void parse_status() {
 
     if (!camSelected) {
         camera_switch(1);
-    } 
+    }
 
 #if (0)
     g_IS_PARALYZE = (msp_rx_buf[9] & 0x80);
@@ -1090,7 +1088,7 @@ void parse_boxids(uint8_t msgLen) {
 
     g_arm_mask = g_boxCamera1_mask = g_boxCamera2_mask = 0;
 
-    for (idx = 0, boxCount = 0; idx < msgLen && boxCount < 4 ; idx++) {
+    for (idx = 0, boxCount = 0; idx < msgLen && boxCount < 4; idx++) {
         if (msp_rx_buf[idx] == armBox) {
             g_arm_page = idx / 8;
             g_arm_mask = 1 << (idx % 8);
@@ -1339,21 +1337,21 @@ void parseiNavMspStatus(void) {
     uint8_t camSelected = 0;
 
     if (g_arm_mask) {
-        g_IS_ARMED = msp_rx_buf[13+g_arm_page] & g_arm_mask;
+        g_IS_ARMED = msp_rx_buf[13 + g_arm_page] & g_arm_mask;
     }
 
     if (g_boxCamera1_mask) {
-        if (msp_rx_buf[13+g_boxCamera1_page] & g_boxCamera1_mask) {
+        if (msp_rx_buf[13 + g_boxCamera1_page] & g_boxCamera1_mask) {
             camSelected = camera_switch(2);
         }
     }
-    
+
     if (!camSelected && g_boxCamera2_mask) {
-        if (msp_rx_buf[13+g_boxCamera2_page] & g_boxCamera2_mask) {
+        if (msp_rx_buf[13 + g_boxCamera2_page] & g_boxCamera2_mask) {
             if (g_camera_switch == SWITCH_TYPE_PCA9557) {
                 camSelected = camera_switch(3);
             }
-        } 
+        }
     }
 
     if (!camSelected) {
@@ -1976,8 +1974,8 @@ void update_vtx_menu_param(uint8_t state) {
     const char *pitString[] = {"  OFF", " P1MW", "  0MW"};
     const char *treamRaceString[] = {"  OFF", "MODE1", "MODE2"};
     const char *shortcutString[] = {"OPT_A", "OPT_B"};
-    const char *cameraTypeString[] = {"UNKNOWN", "RESERVED", "OUTDATED", "MICRO_V1", "MICRO_V2", "NANO_90", "MICRO_V3" };
-    const char *cameraSwitchString[] = {"NONE", "DUAL", "TREBLE"};
+    const char *cameraTypeString[] = {"UNKNOWN", "RESERVED", "OUTDATED", "MICRO_V1", "MICRO_V2", "NANO_90", "MICRO_V3"};
+    const char *cameraSwitchString[] = {"NONE", "DUAL", "TRIPLE"};
 
     // cursor
     state += 2;
@@ -2028,11 +2026,16 @@ void update_vtx_menu_param(uint8_t state) {
     strcpy(osd_buf[8] + osd_menu_offset + 20, shortcutString[vtx_shortcut]);
 
     // camera switch info
-    strcpy(osd_buf[12] + osd_menu_offset + 13, cameraSwitchString[g_camera_switch]);
+    if (g_camera_switch == SWITCH_TYPE_NONE)
+        strcpy(osd_buf[12] + osd_menu_offset + 13, cameraSwitchString[0]);
+    else if (g_camera_switch == SWITCH_TYPE_PI4IO)
+        strcpy(osd_buf[12] + osd_menu_offset + 13, cameraSwitchString[1]);
+    else if (g_camera_switch == SWITCH_TYPE_PCA9557 || g_camera_switch == SWITCH_TYPE_HDZCS)
+        strcpy(osd_buf[12] + osd_menu_offset + 13, cameraSwitchString[2]);
 
     // camera selection
     osd_buf[13][osd_menu_offset + 10] = '0' + g_camera_id;
-    osd_buf[13][osd_menu_offset + 11] = (g_manual_camera_sel) ? 'M' : ' '; 
+    osd_buf[13][osd_menu_offset + 11] = (g_manual_camera_sel) ? 'M' : ' ';
     strcpy(osd_buf[13] + osd_menu_offset + 13, cameraTypeString[camera_type]);
 
     strcpy(osd_buf[16] + osd_menu_offset + 13, parseLifeTime());

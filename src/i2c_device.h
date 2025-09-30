@@ -13,16 +13,19 @@
 #define ADDR_RUNCAM  0x21
 #define ADDR_PI4IO   0x43 // 2 camera switch
 #define ADDR_PCA9557 0x18 // 3 camera switch
+#define ADDR_HDZCS   0x60
 
 typedef enum {
     SWITCH_TYPE_NONE,
     SWITCH_TYPE_PI4IO,
-    SWITCH_TYPE_PCA9557
+    SWITCH_TYPE_PCA9557,
+    SWITCH_TYPE_HDZCS,
 } switch_type_e;
 
 typedef enum {
     PI4IO_CAMS = 2,
-    PCA9557_CAMS = 3
+    PCA9557_CAMS = 3,
+    HDZCS_CAMS = 3,
 } switch_cams_e;
 
 void set_segment(uint32_t val);
