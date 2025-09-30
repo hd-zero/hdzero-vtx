@@ -2212,6 +2212,15 @@ uint8_t bfChannel_to_channel(uint8_t const channel) {
     return INVALID_CHANNEL;
 }
 
+void resync_vrx_vtmg() {
+    uint8_t i, len;
+    len = get_tx_data_5680();
+    for (i = 0; i < 8; i++) {
+        insert_tx_buf(len);
+        WAIT(50);
+    }
+}
+
 #ifdef INIT_VTX_TABLE
 #define FACTORY_BAND 0 // BF requires band to be CUSTOM with VTX_MSP
 
@@ -2353,4 +2362,5 @@ uint8_t bfChannel_to_channel(uint8_t const channel) {
     return INVALID_CHANNEL;
 }
 
+void resync_vrx_vtmg() {}
 #endif

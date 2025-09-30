@@ -305,7 +305,7 @@ void camera_setting_profile_check(uint8_t profile) {
 }
 void camera_profile_read(void) {
     if (g_camera_switch) {
-        camera_profile_eep = g_camera_id-1;
+        camera_profile_eep = g_camera_id - 1;
     } else {
         camera_profile_eep = camera_reg_read_eep(EEP_ADDR_CAM_PROFILE);
     }
@@ -365,7 +365,7 @@ void camera_setting_reg_menu_update(void) {
 void camera_setting_reg_eep_update(void) {
     uint8_t i;
     for (i = 0; i < CAMERA_SETTING_NUM; i++) {
-        if (g_camera_switch && i == (CAM_STATUS_VDO_FMT-1)) {
+        if (g_camera_switch && i == (CAM_STATUS_VDO_FMT - 1)) {
             // Sync all cameras on the camera switch to the same video setting if changed
             uint8_t value = camera_setting_reg_menu[i];
             camera_setting_reg_eep[0][i] = value;
@@ -414,6 +414,13 @@ void camera_init(void) {
     }
     camera_mode_detect(1);
     camera_button_init();
+}
+
+void camera_reinit(void) {
+    camera_type_detect();
+    camera_setting_read();
+    camera_setting_reg_menu_update();
+    camera_mode_detect(1);
 }
 
 void camera_button_op(uint8_t op) {

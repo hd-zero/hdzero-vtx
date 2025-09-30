@@ -5,12 +5,14 @@
 #include "global.h"
 #include "hardware.h"
 #include "i2c.h"
+#include "msp_displayport.h"
 #include "print.h"
 
 uint8_t g_camera_switch = SWITCH_TYPE_NONE;
 uint8_t g_camera_id = 0;
 uint8_t g_max_camera = 0;
 uint8_t g_manual_camera_sel = 0;
+static uint8_t camera_list[3] = {255, 254, 253};
 
 /////////////////////////////////////////////////////////////////
 // MAX7315
@@ -165,6 +167,7 @@ uint8_t get_camera_switch_type(void) {
 }
 
 void select_camera(uint8_t camera_id) {
+    static uint8_t camera_last = 0x00;
     if (g_camera_switch) {
         // Check camera id is within range, else default to 1
         uint8_t camera = (camera_id == 0 || camera_id > g_max_camera) ? 1 : camera_id;
@@ -193,8 +196,18 @@ void select_camera(uint8_t camera_id) {
             } else if (g_camera_switch == SWITCH_TYPE_HDZCS) {
                 hdzcs_set(0x00, g_camera_id);
             }
-            camera_init();
-            // camera_switch_profile();
+
+            if (camera_last != camera_list[g_camera_id]) {
+                if (camera_list[g_camera_id] < CAMERA_TYPE_NUM) { // camera has inited
+                    camera_reinit();
+                } else {
+                    camera_init();
+                    camera_list[g_camera_id] = camera_type;
+                }
+                camera_last = camera_type;
+            }
+
+            resync_vrx_vtmg();
         }
     }
 }
