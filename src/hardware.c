@@ -514,10 +514,10 @@ void Init_HW() {
 #ifdef RESET_CONFIG
     reset_config();
 #endif
-    
+
     GetVtxParameter();
     Get_EEP_LifeTime();
-    
+
     camera_switch_init();
     camera_init();
 
@@ -1023,14 +1023,20 @@ void video_detect(void) {
         }
 
         cameraLost = (ReadReg(0, 0x02) >> 4) & 1;
+#ifdef USE_TP9950
         if (camera_type == CAMERA_TYPE_OUTDATED) {
             cameraLost |= (I2C_Read8(ADDR_TP9950, 0x01) != 0x7E);
             return;
         }
+#endif
+        if (camera_type == CAMERA_TYPE_HDZCS_CVBS) {
+            return;
+        }
 
-        if (sec == 3) {
-            sec = 0;
-            if (cameraLost) { // video loss
+        if (cameraLost) {
+            sec++;
+            if (sec == 3) { // video loss
+                sec = 0;
                 if (video_format == VDO_FMT_720P50) {
                     Set_720P60(IS_RX);
                     video_format = VDO_FMT_720P60;
@@ -1039,6 +1045,8 @@ void video_detect(void) {
                     video_format = VDO_FMT_720P50;
                 }
             }
+        } else {
+            sec = 0;
         }
     }
 }

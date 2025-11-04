@@ -33,13 +33,18 @@ extern uint8_t g_camera_switch;
 void camera_type_detect(void) {
     camera_type = CAMERA_TYPE_UNKNOWN;
 
-    runcam_type_detect();
-    if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 ||
-        camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 ||
-        camera_type == CAMERA_TYPE_RUNCAM_NANO_90 ||
-        camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
-        camera_mfr = CAMERA_MFR_RUNCAM;
-        return;
+    if (g_camera_switch == SWITCH_TYPE_HDZCS && g_camera_id == 3) {
+        camera_type = CAMERA_TYPE_HDZCS_CVBS;
+        camera_mfr = CAMERA_MFR_HDZERO;
+    } else {
+        runcam_type_detect();
+        if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 ||
+            camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 ||
+            camera_type == CAMERA_TYPE_RUNCAM_NANO_90 ||
+            camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
+            camera_mfr = CAMERA_MFR_RUNCAM;
+            return;
+        }
     }
 }
 
@@ -62,6 +67,9 @@ void camera_ratio_detect(void) {
             camRatio = 1;
         break;
 #endif
+    case CAMERA_TYPE_HDZCS_CVBS:
+        camRatio = 1;
+        break;
     default:
         camRatio = 0;
         break;
@@ -169,8 +177,12 @@ void camera_mode_detect(uint8_t init) {
 
     // init tc3587 and detect fps
     WriteReg(0, 0x8F, 0x91);
-
-    if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
+    if (camera_type == CAMERA_TYPE_HDZCS_CVBS) {
+        Init_TC3587(0);
+        Set_720P60(IS_RX);
+        video_format = VDO_FMT_720P60;
+        I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
+    } else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
         Init_TC3587(1);
         if (camera_setting_reg_set[11] == 0) {
             Set_540P90(0);
@@ -331,7 +343,8 @@ void camera_setting_read(void) {
 
     if (camera_type == CAMERA_TYPE_UNKNOWN ||
         camera_type == CAMERA_TYPE_OUTDATED ||
-        camera_type == CAMERA_TYPE_RESERVED)
+        camera_type == CAMERA_TYPE_RESERVED ||
+        camera_type == CAMERA_TYPE_HDZCS_CVBS)
         return;
 
     camera_type_last = camera_reg_read_eep(EEP_ADDR_CAM_TYPE);
