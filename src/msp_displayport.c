@@ -817,6 +817,11 @@ void msp_cmd_tx() {
             msp_send_cmd_tx(MSP_FC_VARIANT);
         } else if ((fc_lock & FC_VTX_CONFIG_LOCK) == 0) {
             msp_send_cmd_tx(MSP_GET_VTX_CONFIG);
+
+            msp_send_cmd_tx(MSP_STATUS);
+            if (!g_IS_ARMED) {
+                msp_send_cmd_tx(MSP_RC);
+            }
         } else {
             fc_lock |= FC_STARTUP_LOCK;
 
@@ -1052,6 +1057,7 @@ void parse_status() {
         camera_switch(1);
     }
 
+    g_IS_ARMED = (msp_rx_buf[6] & 0x01);
 #if (0)
     g_IS_PARALYZE = (msp_rx_buf[9] & 0x80);
 
@@ -1112,6 +1118,9 @@ void parse_rc() {
     pitch = (msp_rx_buf[3] << 8) | msp_rx_buf[2];
     yaw = (msp_rx_buf[5] << 8) | msp_rx_buf[4];
     throttle = (msp_rx_buf[7] << 8) | msp_rx_buf[6];
+
+    if (msp_cmp_fc_variant("ARDU"))
+        pitch = 3000 - pitch;
 
     update_cms_menu(roll, pitch, yaw, throttle);
 }
@@ -1314,11 +1323,17 @@ void parse_vtx_params(uint8_t isMSP_V2) {
 }
 
 void parse_vtx_config(void) {
+    if (!msp_cmp_fc_variant("BTFL") && !msp_cmp_fc_variant("EMUF") && !msp_cmp_fc_variant("QUIC") && !msp_cmp_fc_variant("INAV")) {
+        return;
+    }
     fc_lock |= FC_VTX_CONFIG_LOCK;
     parse_vtx_params(0);
 }
 
 void parseMspVtx_V2(void) {
+    if (!msp_cmp_fc_variant("BTFL") && !msp_cmp_fc_variant("EMUF") && !msp_cmp_fc_variant("QUIC") && !msp_cmp_fc_variant("INAV")) {
+        return;
+    }
     if (fc_lock & FC_VTX_CONFIG_LOCK) {
         parse_vtx_params(1);
     }
@@ -1544,6 +1559,8 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
             vtx_lp = LP_MODE;
             PIT_MODE = PIT_0MW;
             vtx_pit = PIT_0MW;
+            vtx_offset = OFFSET_25MW;
+            vtx_team_race = TEAM_RACE;
             vtx_shortcut = SHORTCUT;
             if (!SA_lock) {
                 save_vtx_param();
