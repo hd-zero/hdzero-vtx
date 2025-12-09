@@ -197,12 +197,12 @@ void select_camera(uint8_t camera_id) {
                 hdzcs_set(0x00, g_camera_id);
             }
 
-            if (camera_last != camera_list[g_camera_id]) {
-                if (camera_list[g_camera_id] < CAMERA_TYPE_NUM) { // camera has inited
+            if (camera_last != camera_list[g_camera_id - 1]) {
+                if (camera_list[g_camera_id - 1] < CAMERA_TYPE_NUM) { // camera has inited
                     camera_reinit();
                 } else {
                     camera_init();
-                    camera_list[g_camera_id] = camera_type;
+                    camera_list[g_camera_id - 1] = camera_type;
                 }
                 camera_last = camera_type;
             }
@@ -243,6 +243,29 @@ void manual_select_camera(void) {
         if (g_manual_camera_sel) {
             uint8_t camera_id = ((command & 0x80) >> 7) + 1;
             select_camera(camera_id);
+        }
+    } else if (g_camera_switch == SWITCH_TYPE_HDZCS) {
+        uint8_t command = hdzcs_get(0x01);
+        switch (command) {
+        case 0:
+            g_manual_camera_sel = 3; // manual analog camera
+            break;
+        case 1:
+            g_manual_camera_sel = 2; // manual mipi camera 2
+            break;
+        case 2:
+            g_manual_camera_sel = 1; // manual mipi camera 1
+            break;
+        case 3:
+            g_manual_camera_sel = 0;
+            break; // assign by FC
+        default:
+            g_manual_camera_sel = 0;
+            break;
+        }
+
+        if (g_manual_camera_sel) {
+            select_camera(g_manual_camera_sel);
         }
     }
 }

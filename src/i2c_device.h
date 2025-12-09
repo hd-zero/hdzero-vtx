@@ -36,6 +36,7 @@ void Init_TC3587(uint8_t fmt);
 
 uint8_t pi4io_get(uint8_t reg);
 void pi4io_set(uint8_t reg, uint8_t val);
+uint8_t hdzcs_get(uint8_t reg);
 void camera_switch_init(void);
 void select_camera(uint8_t camera_id);
 void manual_select_camera(void);
