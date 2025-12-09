@@ -1029,10 +1029,14 @@ void video_detect(void) {
             return;
         }
 #endif
+        if (camera_type == CAMERA_TYPE_HDZCS_CVBS) {
+            return;
+        }
 
-        if (sec == 3) {
-            sec = 0;
-            if (cameraLost) { // video loss
+        if (cameraLost) {
+            sec++;
+            if (sec == 3) { // video loss
+                sec = 0;
                 if (video_format == VDO_FMT_720P50) {
                     Set_720P60(IS_RX);
                     video_format = VDO_FMT_720P60;
@@ -1041,6 +1045,8 @@ void video_detect(void) {
                     video_format = VDO_FMT_720P50;
                 }
             }
+        } else {
+            sec = 0;
         }
     }
 }

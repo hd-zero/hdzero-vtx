@@ -568,13 +568,13 @@ uint8_t get_tx_data_5680() // prepare data to VRX
 
     tx_buf[12] = 0x00; // deprecated
 
-    tx_buf[13] = VTX_ID;
+    tx_buf[13] = g_camera_id; // Send g_camera_id in the future to allow the VRX to resync on a camera change
 
     tx_buf[14] = fc_lock & 0x03;
 
     tx_buf[15] = (camRatio == 0) ? 0x55 : 0xaa;
 
-    tx_buf[16] = VTX_VERSION_MAJOR; // Send g_camera_id in the future to allow the VRX to resync on a camera change
+    tx_buf[16] = VTX_VERSION_MAJOR;
     tx_buf[17] = VTX_VERSION_MINOR;
     tx_buf[18] = VTX_VERSION_PATCH_LEVEL;
 
@@ -1047,7 +1047,7 @@ void parse_status() {
     if (!camSelected && g_boxCamera2_mask) {
         offset = (isBTFL && g_boxCamera2_page > 3) ? 12 : 6;
         if (msp_rx_buf[offset + g_boxCamera2_page] & g_boxCamera2_mask) {
-            if (g_camera_switch == SWITCH_TYPE_PCA9557) {
+            if (g_camera_switch == SWITCH_TYPE_PCA9557 || g_camera_switch == SWITCH_TYPE_HDZCS) {
                 camSelected = camera_switch(3);
             }
         }
@@ -1991,8 +1991,8 @@ void update_vtx_menu_param(uint8_t state) {
     const char *pitString[] = {"  OFF", " P1MW", "  0MW"};
     const char *treamRaceString[] = {"  OFF", "MODE1", "MODE2"};
     const char *shortcutString[] = {"OPT_A", "OPT_B"};
-    const char *cameraTypeString[] = {"UNKNOWN", "RESERVED", "OUTDATED", "MICRO_V1", "MICRO_V2", "NANO_90", "MICRO_V3"};
-    const char *cameraSwitchString[] = {"NONE", "DUAL", "TREBLE"};
+    const char *cameraTypeString[] = {"UNKNOWN ", "RESERVED", "OUTDATED", "MICRO_V1", "MICRO_V2", "NANO_90 ", "MICRO_V3", "CVBS    "};
+    const char *cameraSwitchString[] = {"NONE", "DUAL", "TRIPLE"};
 
     // cursor
     state += 2;
@@ -2043,7 +2043,12 @@ void update_vtx_menu_param(uint8_t state) {
     strcpy(osd_buf[8] + osd_menu_offset + 20, shortcutString[vtx_shortcut]);
 
     // camera switch info
-    strcpy(osd_buf[12] + osd_menu_offset + 13, cameraSwitchString[g_camera_switch]);
+    if (g_camera_switch == SWITCH_TYPE_NONE)
+        strcpy(osd_buf[12] + osd_menu_offset + 13, cameraSwitchString[0]);
+    else if (g_camera_switch == SWITCH_TYPE_PI4IO)
+        strcpy(osd_buf[12] + osd_menu_offset + 13, cameraSwitchString[1]);
+    else if (g_camera_switch == SWITCH_TYPE_PCA9557 || g_camera_switch == SWITCH_TYPE_HDZCS)
+        strcpy(osd_buf[12] + osd_menu_offset + 13, cameraSwitchString[2]);
 
     // camera selection
     osd_buf[13][osd_menu_offset + 10] = '0' + g_camera_id;
@@ -2224,6 +2229,15 @@ uint8_t bfChannel_to_channel(uint8_t const channel) {
     return INVALID_CHANNEL;
 }
 
+void resync_vrx_vtmg() {
+    uint8_t i, len;
+    len = get_tx_data_5680();
+    for (i = 0; i < 8; i++) {
+        insert_tx_buf(len);
+        WAIT(50);
+    }
+}
+
 #ifdef INIT_VTX_TABLE
 #define FACTORY_BAND 0 // BF requires band to be CUSTOM with VTX_MSP
 
@@ -2365,4 +2379,5 @@ uint8_t bfChannel_to_channel(uint8_t const channel) {
     return INVALID_CHANNEL;
 }
 
+void resync_vrx_vtmg() {}
 #endif

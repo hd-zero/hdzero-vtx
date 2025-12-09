@@ -34,7 +34,7 @@ typedef enum {
 } vtxPtiType_e;
 
 typedef enum {
-    BOXARM_BTFL = 0, // for completeness    
+    BOXARM_BTFL = 0,      // for completeness
     BOXCAMERA1_BTFL = 32, // 0x20
     BOXCAMERA2_BTFL = 33, // 0x21
 
@@ -126,12 +126,12 @@ typedef enum {
 
 typedef enum {
     VTXDEV_UNSUPPORTED = 0, // reserved for MSP
-    VTXDEV_RTC6705     = 1,
+    VTXDEV_RTC6705 = 1,
     // 2 reserved
-    VTXDEV_SMARTAUDIO  = 3,
-    VTXDEV_TRAMP       = 4,
-    VTXDEV_MSP         = 5,
-    VTXDEV_UNKNOWN     = 0xFF,
+    VTXDEV_SMARTAUDIO = 3,
+    VTXDEV_TRAMP = 4,
+    VTXDEV_MSP = 5,
+    VTXDEV_UNKNOWN = 0xFF,
 } vtxDevType_e;
 
 typedef enum {
@@ -174,6 +174,8 @@ void msp_set_vtx_config(uint8_t power, uint8_t save);
 void set_vtx_param();
 uint8_t channel_to_bfChannel(uint8_t const channel);
 uint8_t bfChannel_to_channel(uint8_t const channel);
+void resync_vrx_vtmg();
+
 #ifdef INIT_VTX_TABLE
 void InitVtxTable();
 #endif

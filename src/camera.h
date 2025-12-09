@@ -28,6 +28,7 @@ typedef enum {
     CAMERA_MFR_UNKNOW,
     CAMERA_MFR_FOXEER,
     CAMERA_MFR_RUNCAM,
+    CAMERA_MFR_HDZERO,
 } camera_manufacture_e;
 
 typedef enum {
@@ -38,6 +39,8 @@ typedef enum {
     CAMERA_TYPE_RUNCAM_MICRO_V2, // include hzd nano v2 / hdz nano lite
     CAMERA_TYPE_RUNCAM_NANO_90,
     CAMERA_TYPE_RUNCAM_MICRO_V3,
+    CAMERA_TYPE_HDZCS_CVBS,
+    CAMERA_TYPE_NUM,
 } camera_type_e;
 
 typedef enum {
@@ -92,6 +95,7 @@ typedef enum {
 } camera_select_e;
 
 void camera_init(void);
+void camera_reinit(void);
 void camera_switch_profile(void);
 uint8_t camera_status_update(uint8_t op);
 void camera_menu_init(void);
