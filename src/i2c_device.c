@@ -194,7 +194,14 @@ void select_camera(uint8_t camera_id) {
                 pca9557_set(0x01, command);
                 WAIT(200); // wait for camera power up
             } else if (g_camera_switch == SWITCH_TYPE_HDZCS) {
-                hdzcs_set(0x00, g_camera_id);
+                uint8_t index = 0;
+                if (g_camera_id == 1)
+                    index = 2;
+                else if (g_camera_id == 2)
+                    index = 3;
+                else
+                    index = 1;
+                hdzcs_set(0x00, index);
             }
 
             if (camera_last != camera_list[g_camera_id - 1]) {
@@ -248,13 +255,13 @@ void manual_select_camera(void) {
         uint8_t command = hdzcs_get(0x01);
         switch (command) {
         case 0:
-            g_manual_camera_sel = 3; // manual analog camera
+            g_manual_camera_sel = 1; // manual analog camera
             break;
         case 1:
-            g_manual_camera_sel = 2; // manual mipi camera 2
+            g_manual_camera_sel = 3; // manual mipi camera 2
             break;
         case 2:
-            g_manual_camera_sel = 1; // manual mipi camera 1
+            g_manual_camera_sel = 2; // manual mipi camera 1
             break;
         case 3:
             g_manual_camera_sel = 0;
