@@ -2204,15 +2204,18 @@ uint8_t channel_to_bfChannel(uint8_t const channel) {
 
     if (channel < 8)
         return channel + 32; // R1...R8
-    if (channel == 8)
+    else if (channel == 8)
         return 16; // E1
-    if (channel == 9)
+    else if (channel == 9)
         return 24; // F1
-    if (channel == 10)
+    else if (channel == 10)
         return 25; // F2
-    if (channel == 11)
+    else if (channel == 11)
         return 27; // F4
-    return INVALID_CHANNEL;
+    else if (channel < 20)
+        return channel - 12 + 40; // L1...L8
+    else
+        return INVALID_CHANNEL;
 }
 
 uint8_t bfChannel_to_channel(uint8_t const channel) {
@@ -2226,6 +2229,8 @@ uint8_t bfChannel_to_channel(uint8_t const channel) {
         return 11;
     else if (channel >= 32 && channel < 40)
         return channel - 32;
+    else if (channel >= 40 && channel < 48)
+        return channel - 40 + 12;
     return INVALID_CHANNEL;
 }
 
