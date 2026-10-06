@@ -32,6 +32,8 @@ uint8_t resolution = SD_3016;
 uint8_t resolution_last = HD_5018;
 
 uint8_t msp_rx_buf[64]; // from FC responding status|variant|rc commands
+/* Latest mechanical RPM for motors 0..3 (MSP_MOTOR_TELEMETRY). Quad only. */
+uint32_t motor_rpm[MOTOR_RPM_COUNT] = {0, 0, 0, 0};
 
 uint8_t vtx_channel;
 uint8_t vtx_power;
@@ -287,6 +289,8 @@ uint8_t msp_read_one_frame() {
                 cur_cmd = CUR_VTX_CONFIG;
             } else if (rx == MSP_GET_OSD_CANVAS) {
                 cur_cmd = CUR_GET_OSD_CANVAS;
+            } else if (rx == MSP_MOTOR_TELEMETRY) {
+                cur_cmd = CUR_MOTOR_TELEMETRY;
             } else
                 cur_cmd = CUR_OTHERS;
 
@@ -329,6 +333,9 @@ uint8_t msp_read_one_frame() {
                     break;
                 case CUR_GET_OSD_CANVAS:
                     parse_get_osd_canvas();
+                    break;
+                case CUR_MOTOR_TELEMETRY:
+                    parse_motor_telemetry(ptr);
                     break;
                 case CUR_DISPLAYPORT:
                     ret = parse_displayport(osd_len);
@@ -498,8 +505,7 @@ uint8_t get_tx_data_5680() // prepare data to VRX
     tx_buf[0] = DP_HEADER0;
     tx_buf[1] = DP_HEADER1;
     tx_buf[2] = 0xff;
-    // len
-    tx_buf[3] = 15;
+    /* length written after payload (legacy 15 + optional 6-byte RPM) */
 
     // video format
     if (video_format == VDO_FMT_720P50)
@@ -578,7 +584,29 @@ uint8_t get_tx_data_5680() // prepare data to VRX
     tx_buf[17] = VTX_VERSION_MINOR;
     tx_buf[18] = VTX_VERSION_PATCH_LEVEL;
 
-    return 20;
+    /* Four 12-bit RPMs packed into 6 bytes: q = min((rpm+16)>>5, 4095). */
+    {
+        uint8_t i;
+        uint16_t q[MOTOR_RPM_COUNT];
+
+        for (i = 0; i < MOTOR_RPM_COUNT; i++) {
+            uint32_t qi = (motor_rpm[i] + 16) >> 5;
+            if (qi > MOTOR_RPM_Q_MAX)
+                qi = MOTOR_RPM_Q_MAX;
+            q[i] = (uint16_t)qi;
+        }
+
+        tx_buf[19] = (uint8_t)(q[0] & 0xff);
+        tx_buf[20] = (uint8_t)(((q[0] >> 8) & 0x0f) | ((q[1] & 0x0f) << 4));
+        tx_buf[21] = (uint8_t)((q[1] >> 4) & 0xff);
+        tx_buf[22] = (uint8_t)(q[2] & 0xff);
+        tx_buf[23] = (uint8_t)(((q[2] >> 8) & 0x0f) | ((q[3] & 0x0f) << 4));
+        tx_buf[24] = (uint8_t)((q[3] >> 4) & 0xff);
+    }
+
+    tx_buf[3] = MOTOR_RPM_SERVICE_LEN;
+    /* insert_tx_buf sends (ret-1) payload bytes then 2 CRC bytes */
+    return (uint8_t)(4 + MOTOR_RPM_SERVICE_LEN + 1);
 }
 
 uint8_t get_tx_data_osd(uint8_t index) // prepare osd+data to VTX
@@ -838,6 +866,10 @@ void msp_cmd_tx() {
             msp_send_cmd_tx(MSP_GET_VTX_CONFIG);
             msp_send_cmd_tx(MSP_GET_OSD_CANVAS);
             msp_send_cmd_tx(MSP_STATUS);
+            /* Motor RPM for synthetic audio (Betaflight only). */
+            if (msp_cmp_fc_variant("BTFL")) {
+                msp_send_cmd_tx(MSP_MOTOR_TELEMETRY);
+            }
         }
 
         // These messages are not required when armed.
@@ -1074,6 +1106,29 @@ void parse_variant() {
 
     for (i = 0; i < 4; i++)
         fc_variant[i] = msp_rx_buf[i];
+}
+
+/*
+ * MSP_MOTOR_TELEMETRY (139): uint8 motorCount, then 13 bytes/motor.
+ * First uint32 of each record is mechanical RPM. Quad only (motors 0..3).
+ * Note: msp_rx_buf is 64 bytes; a 4-motor reply is 53 bytes and fits.
+ */
+void parse_motor_telemetry(uint8_t len) {
+    uint8_t i;
+    uint8_t base;
+
+    if (len < 53)
+        return;
+    if (msp_rx_buf[0] < MOTOR_RPM_COUNT)
+        return;
+
+    for (i = 0; i < MOTOR_RPM_COUNT; i++) {
+        base = 1 + (i * 13);
+        motor_rpm[i] = (uint32_t)msp_rx_buf[base] |
+                       ((uint32_t)msp_rx_buf[base + 1] << 8) |
+                       ((uint32_t)msp_rx_buf[base + 2] << 16) |
+                       ((uint32_t)msp_rx_buf[base + 3] << 24);
+    }
 }
 
 void parse_boxids(uint8_t msgLen) {

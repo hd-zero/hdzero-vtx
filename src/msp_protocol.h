@@ -19,6 +19,7 @@
 #define MSP_STATUS         0x65 // 101 //out message
 #define MSP_RC             0x69 // 105 //out message
 #define MSP_BOXIDS         0x77 // 119 //out message
+#define MSP_MOTOR_TELEMETRY 139 // 0x8B // out message: per-motor telemetry (RPM, ...)
 #define MSP_DISPLAYPORT    0xB6 // 182 // in message
 #define MSP_SET_OSD_CANVAS 0xBC // 188 // in message
 #define MSP_GET_OSD_CANVAS 0xBD // 188 //out message

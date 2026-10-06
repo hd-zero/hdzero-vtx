@@ -10,6 +10,13 @@
 
 #define TXBUF_SIZE 74
 
+/* 0xFF service packet: legacy 15-byte payload + optional 6-byte motor RPM tail. */
+#define MOTOR_RPM_SERVICE_LEGACY 15
+#define MOTOR_RPM_PACKED_BYTES   6
+#define MOTOR_RPM_SERVICE_LEN    (MOTOR_RPM_SERVICE_LEGACY + MOTOR_RPM_PACKED_BYTES) /* 21 */
+#define MOTOR_RPM_Q_MAX          4095
+#define MOTOR_RPM_COUNT          4
+
 typedef enum {
     BTN_UP,
     BTN_DOWN,
@@ -81,6 +88,7 @@ typedef enum {
     CUR_BOXIDS,
     CUR_VTX_CONFIG,
     CUR_GET_OSD_CANVAS,
+    CUR_MOTOR_TELEMETRY,
     CUR_OTHERS
 } cur_cmd_e;
 
@@ -165,6 +173,7 @@ void parse_vtx_params(uint8_t isMSP_V2);
 void parse_vtx_config();
 void parseMspVtx_V2();
 void parseiNavMspStatus();
+void parse_motor_telemetry(uint8_t len);
 uint8_t parse_displayport(uint8_t len);
 void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throttle);
 void vtx_menu_init();
