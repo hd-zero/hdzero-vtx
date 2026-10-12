@@ -1293,6 +1293,8 @@ void parse_vtx_params(uint8_t isMSP_V2) {
 
             if (PIT_MODE)
                 nxt_pwr = POWER_MAX + 1;
+            else if (LP_MODE)
+                nxt_pwr = 0;
 
             if (dm6300_init_done) {
                 if (cur_pwr != nxt_pwr) {
