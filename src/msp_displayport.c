@@ -1418,6 +1418,34 @@ uint8_t parse_displayport(uint8_t len) {
                     fc_init();
                 resolution_last = resolution;
                 return 0;
+            } else if (msp_rx_buf[0] == SUBCMD_SYS) {
+                row = msp_rx_buf[1];
+                col = msp_rx_buf[2];
+                if (resolution == HD_3016) {
+                    row -= 1;
+                    col -= 10;
+                }
+                uint8_t sys_elem = msp_rx_buf[3];
+                if (sys_elem == DISPLAYPORT_SYS_VTX_TEMP) {
+                    int16_t temp_c = temperature >> 2;
+                    if (temp_c < 0)
+                        temp_c = 0;
+                    if (temp_c > 999)
+                        temp_c = 999;
+                    if (temp_c >= 100) {
+                        mark_loc(row, col);
+                        write_string((uint8_t)(temp_c / 100 + '0'), row, col++, 0);
+                    }
+                    if (temp_c >= 10) {
+                        mark_loc(row, col);
+                        write_string((uint8_t)((temp_c % 100) / 10 + '0'), row, col++, 0);
+                    }
+                    mark_loc(row, col);
+                    write_string((uint8_t)(temp_c % 10 + '0'), row, col++, 0);
+                    mark_loc(row, col);
+                    write_string('C', row, col++, 0);
+                }
+                return 0;
             } else {
                 return 0;
             }

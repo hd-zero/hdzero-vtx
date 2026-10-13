@@ -91,7 +91,12 @@ typedef enum {
     SUBCMD_WRITE,
     SUBCMD_DRAW,
     SUBCMD_CONFIG,
+    SUBCMD_SYS,
 } displayport_subcmd_e;
+
+typedef enum {
+    DISPLAYPORT_SYS_VTX_TEMP = 0,
+} displayport_sys_element_e;
 
 typedef enum {
     SD_3016,
