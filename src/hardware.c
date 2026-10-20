@@ -1675,10 +1675,9 @@ void check_eeprom() {
     // Check the validity of each value
     for (i = 0; i < FREQ_NUM_INTERNAL; i++) {
         for (j = 0; j < POWER_MAX + 1; j++) {
-
-            reg[0] = I2C_Read8(ADDR_EEPROM, tab_base_address[0] + i * (POWER_MAX + 1) + j);
-            reg[1] = I2C_Read8(ADDR_EEPROM, tab_base_address[1] + i * (POWER_MAX + 1) + j);
-            reg[2] = I2C_Read8(ADDR_EEPROM, tab_base_address[2] + i * (POWER_MAX + 1) + j);
+            for (k = 0; k < 3; k++) {
+                reg[k] = I2C_Read8(ADDR_EEPROM, tab_base_address[k] + i * (POWER_MAX + 1) + j);
+            }
 
             if (reg[0] == reg[1] && reg[1] == reg[2] && reg[0] > tab_range[0] && reg[0] < tab_range[1])
                 // all partition are right
@@ -1693,9 +1692,9 @@ void check_eeprom() {
                 // partition 0 value is error
                 eep_wr(tab_base_address[0] + i * (POWER_MAX + 1) + j, reg[1]);
             } else {
-                eep_wr(tab_base_address[0] + i * (POWER_MAX + 1) + j, table_power[i][j]);
-                eep_wr(tab_base_address[1] + i * (POWER_MAX + 1) + j, table_power[i][j]);
-                eep_wr(tab_base_address[2] + i * (POWER_MAX + 1) + j, table_power[i][j]);
+                for (k = 0; k < 3; k++) {
+                    eep_wr(tab_base_address[k] + i * (POWER_MAX + 1) + j, table_power[i][j]);
+                }
             }
         }
     }
@@ -1720,22 +1719,22 @@ void check_eeprom() {
     }
 
     // Check the validity of each value
-    reg[0] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[0] + 0);
-    reg[1] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[1] + 0);
-    reg[2] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[2] + 0);
+    for (i = 0; i < 3; i++) {
+        reg[i] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[i] + 0);
+    }
     if (reg[0] == reg[1] && reg[1] == reg[2] && reg[0] == 0x00) {
         ;
     } else {
-        eep_wr(dcoc_base_address[0], 0);
-        eep_wr(dcoc_base_address[1], 0);
-        eep_wr(dcoc_base_address[2], 0);
+        for (i = 0; i < 3; i++) {
+            eep_wr(dcoc_base_address[i], 0);
+        }
         //_outstring("\r\ndcoc en err");
     }
 
     for (i = 1; i < 5; i++) {
-        reg[0] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[0] + i);
-        reg[1] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[1] + i);
-        reg[2] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[2] + i);
+        for (j = 0; j < 3; j++) {
+            reg[j] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[j] + i);
+        }
         if (reg[0] == reg[1] && reg[1] == reg[2] && reg[0] > dcoc_range[0] && reg[0] < dcoc_range[1])
             // all partition are right
             ;
@@ -1755,9 +1754,9 @@ void check_eeprom() {
             //_outstring("\r\ndcoc1:");
             //_outchar('0' + i);
         } else {
-            eep_wr(dcoc_base_address[0] + i, 128);
-            eep_wr(dcoc_base_address[1] + i, 128);
-            eep_wr(dcoc_base_address[2] + i, 128);
+            for (j = 0; j < 3; j++) {
+                eep_wr(dcoc_base_address[j] + i, 128);
+            }
             //_outstring("\r\ndcoc all:");
             //_outchar('0' + i);
         }
