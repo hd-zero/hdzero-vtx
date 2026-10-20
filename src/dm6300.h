@@ -29,6 +29,8 @@ void DM6300_init5(uint8_t sel);
 void DM6300_init6(uint8_t sel);
 void DM6300_init7(uint8_t sel);
 void DM6300_RFTest();
+void DM6300_Set_Page18();
+void DM6300_Set_Page19();
 // void DM6300_M0();
 
 extern int16_t auxadc_offset;

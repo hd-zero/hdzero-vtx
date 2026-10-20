@@ -258,9 +258,23 @@ static void DM6300_write_reg_map(uint8_t trans, const dm6300_reg_value_t *reg_ma
     }
 }
 
+static void DM6300_write_reg_map3(const dm6300_reg_value_t *reg_map, uint8_t size) {
+    DM6300_write_reg_map(3, reg_map, size);
+}
+static void DM6300_write_reg_map6(const dm6300_reg_value_t *reg_map, uint8_t size) {
+    DM6300_write_reg_map(6, reg_map, size);
+}
+
 #define REG_MAP_COUNT(regs)  sizeof(regs) / sizeof(dm6300_reg_value_t)
-#define WRITE_REG_MAP3(regs) DM6300_write_reg_map(3, regs, REG_MAP_COUNT(regs))
-#define WRITE_REG_MAP6(regs) DM6300_write_reg_map(6, regs, REG_MAP_COUNT(regs))
+#define WRITE_REG_MAP3(regs) DM6300_write_reg_map3(regs, REG_MAP_COUNT(regs))
+#define WRITE_REG_MAP6(regs) DM6300_write_reg_map6(regs, REG_MAP_COUNT(regs))
+
+void DM6300_Set_Page18() {
+    SPI_Write6(0xFF0, 0x00000018);
+}
+void DM6300_Set_Page19() {
+    SPI_Write6(0xFF0, 0x00000019);
+}
 
 dm6300_reg_value_t dm6300_set_channel_regs[] = {
     {0x2B0, 0x00077777},
@@ -307,7 +321,7 @@ void DM6300_SetChannel(uint8_t ch) {
     dm6300_set_channel_regs[23].dat = tab[1][ch];
     dm6300_set_channel_regs[24].dat = tab[2][ch];
 
-    SPI_Write6(0xFF0, 0x00000018);
+    DM6300_Set_Page18();
     WRITE_REG_MAP3(dm6300_set_channel_regs);
 }
 
@@ -340,7 +354,7 @@ void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset) {
 
     if (freq >= FREQ_NUM)
         freq = 0;
-    SPI_Write6(0xFF0, 0x00000018);
+    DM6300_Set_Page18();
 
     if (pwr == POWER_MAX + 1) {
         SPI_Write3(0x330, 0x21F);
@@ -371,7 +385,7 @@ void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset) {
 }
 
 void DM6300_SetSingleTone(uint8_t enable) {
-    SPI_Write6(0xFF0, 0x00000019);
+    DM6300_Set_Page19();
 
     if (enable) {
         SPI_Write3(0x08C, 0x18040000);
@@ -388,7 +402,7 @@ void DM6300_RFTest() {
 #if (0)
     uint16_t i;
     for (i = 0; i < 100; i++)
-        SPI_Write6(0xFF0, 0x00000018);
+        DM6300_Set_Page18();
 #endif
 }
 
@@ -396,35 +410,35 @@ void DM6300_InitAUXADC() {
     uint32_t dat;
     int16_t dat1, dat2, dat3;
 
-    SPI_Write6(0xFF0, 0x00000018);
+    DM6300_Set_Page18();
     SPI_Read3(0x254, &dat);
     dat |= 0x200;
     SPI_Write3(0x254, dat);
 
-    SPI_Write6(0xFF0, 0x00000019);
+    DM6300_Set_Page19();
     SPI_Write3(0x17C, 0x19);
 
-    SPI_Write6(0xFF0, 0x00000018);
+    DM6300_Set_Page18();
     SPI_Write3(0x2A0, 0xC05B55FE);
-    SPI_Write6(0xFF0, 0x00000019);
+    DM6300_Set_Page19();
 #ifndef HDZERO_RACE_V2
     WAIT(1);
 #endif
     SPI_Read3(0x17C, &dat);
     dat1 = ((int32_t)dat) >> 20;
 
-    SPI_Write6(0xFF0, 0x00000018);
+    DM6300_Set_Page18();
     SPI_Write3(0x2A0, 0x305B55FE);
-    SPI_Write6(0xFF0, 0x00000019);
+    DM6300_Set_Page19();
 #ifndef HDZERO_RACE_V2
     WAIT(1);
 #endif
     SPI_Read3(0x17C, &dat);
     dat2 = ((int32_t)dat) >> 20;
 
-    SPI_Write6(0xFF0, 0x00000018);
+    DM6300_Set_Page18();
     SPI_Write3(0x2A0, 0xA05B51FE);
-    SPI_Write6(0xFF0, 0x00000019);
+    DM6300_Set_Page19();
 #ifndef HDZERO_RACE_V2
     WAIT(1);
 #endif
@@ -452,12 +466,12 @@ int16_t DM6300_GetTemp() {
 
     if (init) {
         init = 0;
-        SPI_Write6(0xFF0, 0x00000018);
+        DM6300_Set_Page18();
         SPI_Write3(0x2C0, 0x00000100);
         SPI_Write3(0x2A0, 0xA04005FE);
     }
 
-    SPI_Write6(0xFF0, 0x00000019);
+    DM6300_Set_Page19();
     WAIT(1);
     SPI_Read3(0x17C, &dat);
     temp = (((int32_t)dat) >> 20) + auxadc_offset;
@@ -550,7 +564,7 @@ CODE_SEG const dm6300_reg_value_t dm6300_init2_regs_bw27[] = {
 };
 
 void DM6300_init2(BWType_e sel) {
-    SPI_Write6(0xFF0, 0x00000018);
+    DM6300_Set_Page18();
     if (sel) {
         WRITE_REG_MAP3(dm6300_init2_regs_bw17);
     } else {
@@ -601,7 +615,7 @@ void DM6300_init3(uint8_t ch) {
     dm6300_init3_regs[22].dat = tab[1][ch];
     dm6300_init3_regs[23].dat = tab[2][ch];
 
-    SPI_Write6(0xFF0, 0x00000018);
+    DM6300_Set_Page18();
     WRITE_REG_MAP3(dm6300_init3_regs);
 }
 
@@ -624,7 +638,7 @@ CODE_SEG const dm6300_reg_value_t dm6300_init4_regs[] = {
     {0x31C, 0x00000010},
 };
 void DM6300_init4() {
-    SPI_Write6(0xFF0, 0x00000018);
+    DM6300_Set_Page18();
     WRITE_REG_MAP3(dm6300_init4_regs);
 }
 
@@ -676,9 +690,9 @@ CODE_SEG const dm6300_reg_value_t dm6300_init5_regs_bm27[] = {
 };
 
 void DM6300_init5(uint8_t sel) {
-    SPI_Write6(0xFF0, 0x00000019);
+    DM6300_Set_Page19();
     SPI_Write3(0x194, 0x0001FFFF);
-    SPI_Write6(0xFF0, 0x00000018);
+    DM6300_Set_Page18();
 
     if (sel)
         WRITE_REG_MAP3(dm6300_init5_regs_bm17);
@@ -711,13 +725,13 @@ dm6300_reg_value_t dm6300_init6_regs_3[] = {
 void DM6300_init6(BWType_e sel) {
     dm6300_init6_regs_2[0].dat = sel ? 0x16318C0C : 0x1084210C;
 
-    SPI_Write6(0xff0, 0x00000019);
+    DM6300_Set_Page19();
     WRITE_REG_MAP3(dm6300_init6_regs_0);
-    SPI_Write6(0xff0, 0x00000018);
+    DM6300_Set_Page18();
     WRITE_REG_MAP3(dm6300_init6_regs_1);
-    SPI_Write6(0xff0, 0x00000019);
+    DM6300_Set_Page19();
     WRITE_REG_MAP3(dm6300_init6_regs_2);
-    SPI_Write6(0xff0, 0x00000018);
+    DM6300_Set_Page18();
     WRITE_REG_MAP3(dm6300_init6_regs_3);
 }
 
@@ -855,7 +869,7 @@ CODE_SEG const dm6300_reg_value_t dm6300_init7_regs_bw27[] = {
 };
 
 void DM6300_init7(BWType_e sel) {
-    SPI_Write6(0xff0, 0x00000018);
+    DM6300_Set_Page18();
     if (sel) {
         WRITE_REG_MAP3(dm6300_init7_regs_bw17);
     } else {
@@ -865,7 +879,7 @@ void DM6300_init7(BWType_e sel) {
 
 uint8_t DM6300_detect(void) {
     uint32_t rdat = 0;
-    SPI_Write6(0xFF0, 0x18);
+    DM6300_Set_Page18();
     SPI_Read6(0xFF0, &rdat);
     return rdat != 0x18;
 }
@@ -900,7 +914,7 @@ void DM6300_Init(uint8_t ch, BWType_e bw) {
     DM6300_EFUSE1();
 #endif
 
-    SPI_Write6(0xFF0, 0x18);
+    DM6300_Set_Page18();
     WRITE_REG_MAP3(dm6300_init_regs);
 
     SPI_Read3(0x02C, &dat);
@@ -930,7 +944,7 @@ void DM6300_Init(uint8_t ch, BWType_e bw) {
 #ifdef USE_EFUSE
     DM6300_EFUSE2();
 #endif
-    SPI_Write6(0xFF0, 0x00000018);
+    DM6300_Set_Page18();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1011,10 +1025,10 @@ void DM6300_EFUSE1() {
     memset((char *)&efuse, 0, sizeof(EFUSE_T));
 
     // EFUSE_RST = 1;
-    SPI_Write6(0xFF0, 0x00000019);
+    DM6300_Set_Page19();
     SPI_Write3(0x0E0, 0x00000001);
 
-    SPI_Write6(0xFF0, 0x00000018);
+    DM6300_Set_Page18();
 
     for (j = 28; j < 32 /*EFUSE_SIZE*/; j++) // read macro 0
     {
@@ -1103,7 +1117,7 @@ void DM6300_EFUSE1() {
     // EFUSE_CFG = 0;
     SPI_Write3(0x7D0, 0x00000000);
     // EFUSE_RST = 0;
-    SPI_Write6(0xFF0, 0x00000019);
+    DM6300_Set_Page19();
     SPI_Write3(0x0E0, 0x00000000);
 
 // application
@@ -1121,7 +1135,7 @@ void DM6300_EFUSE1() {
     SPI_Write6(0xF14, efuse.macro.m1.bandgap);
     SPI_Write6(0xF18, dat);
 
-    SPI_Write6(0xFF0, 0x00000018);
+    DM6300_Set_Page18();
 }
 
 const dm6300_reg_value_t dm6300_regs_dm6300_efuse2_1[] = {
@@ -1200,7 +1214,7 @@ void DM6300_EFUSE2() {
             if (EE_VALID) {
                 rdat = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_EN);
                 if ((rdat & 0xFF) == 0) {
-                    SPI_Write6(0xFF0, 0x00000018);
+                    DM6300_Set_Page18();
 
                     rdat = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_IH);
                     rdat <<= 8;

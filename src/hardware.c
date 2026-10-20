@@ -852,7 +852,7 @@ void PwrLMT() {
                                 p_init = 0;
                             }
 
-                            SPI_Write6(0xFF0, 0x00000018);
+                            DM6300_Set_Page18();
 
                             if (p >= table_power[RF_FREQ][3]) {
                                 p = table_power[RF_FREQ][3];
@@ -915,7 +915,7 @@ void PwrLMT() {
                                     p = table_power[RF_FREQ][3] - 0x1C;
                                     p_init = 0;
                                 }
-                                SPI_Write6(0xFF0, 0x00000018); // set page
+                                DM6300_Set_Page18(); // set page
 
                                 if (p >= table_power[RF_FREQ][3])
                                     p = table_power[RF_FREQ][3];

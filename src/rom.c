@@ -63,7 +63,7 @@ void CalibProc() {
             case 'D':
                 switch (rxbuf[1]) {
                 case '1':
-                    SPI_Write6(0xFF0, 0x00000018);
+                    DM6300_Set_Page18();
                     dcoc = dcoc_ih | 0x8080;
                     SPI_Write3(0x380, dcoc);
                     dcoc = dcoc_qh | 0x8080;
@@ -71,7 +71,7 @@ void CalibProc() {
                     break;
 
                 case '2':
-                    SPI_Write6(0xFF0, 0x00000018);
+                    DM6300_Set_Page18();
                     dcoc = dcoc_ih | 0x80C0;
                     SPI_Write3(0x380, dcoc);
                     dcoc = dcoc_qh | 0x8080;
@@ -79,7 +79,7 @@ void CalibProc() {
                     break;
 
                 case '3':
-                    SPI_Write6(0xFF0, 0x00000018);
+                    DM6300_Set_Page18();
                     dcoc = dcoc_ih | 0xC080;
                     SPI_Write3(0x380, dcoc);
                     dcoc = dcoc_qh | 0x8080;
@@ -87,7 +87,7 @@ void CalibProc() {
                     break;
 
                 case '4':
-                    SPI_Write6(0xFF0, 0x00000018);
+                    DM6300_Set_Page18();
                     dcoc = dcoc_ih | 0x8080;
                     SPI_Write3(0x380, dcoc);
                     dcoc = dcoc_qh | 0x80C0;
@@ -95,7 +95,7 @@ void CalibProc() {
                     break;
 
                 case '5':
-                    SPI_Write6(0xFF0, 0x00000018);
+                    DM6300_Set_Page18();
                     dcoc = dcoc_ih | 0x8080;
                     SPI_Write3(0x380, dcoc);
                     dcoc = dcoc_qh | 0xC080;
@@ -104,7 +104,7 @@ void CalibProc() {
 
                 case 'S':
                     // dcoc cfg
-                    SPI_Write6(0xFF0, 0x00000018);
+                    DM6300_Set_Page18();
                     dcoc = rxbuf[2];
                     dcoc <<= 8;
                     dcoc |= rxbuf[3];
