@@ -1410,6 +1410,10 @@ uint8_t parse_displayport(uint8_t len) {
     return 0;
 }
 
+#define IS_HI(x)  ((x) > 1750)
+#define IS_LO(x)  ((x) < 1250)
+#define IS_MID(x) ((!IS_HI(x)) && (!IS_LO(x)))
+
 void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throttle) {
     /*
      *                throttle(油门) +                                          pitch(俯仰) +

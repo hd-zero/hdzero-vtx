@@ -4,10 +4,6 @@
 #include "common.h"
 #include "msp_protocol.h"
 
-#define IS_HI(x)  ((x) > 1750)
-#define IS_LO(x)  ((x) < 1250)
-#define IS_MID(x) ((!IS_HI(x)) && (!IS_LO(x)))
-
 #define TXBUF_SIZE 74
 
 typedef enum {
@@ -146,7 +142,6 @@ void mark_flag(uint8_t row, uint8_t col);
 void init_txbuf();
 void fc_init();
 void mark_loc(uint8_t row, uint8_t col);
-uint8_t prepare_tx_buf();
 uint8_t get_tx_data_5680();
 uint8_t get_tx_data_osd(uint8_t index);
 void insert_tx_buf(uint8_t len);
