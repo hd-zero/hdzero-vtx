@@ -141,10 +141,7 @@ uint8_t hdzero_dynamic_osd_refresh_adapter(uint8_t t1) {
 
     // osd line unchanged
     if (crc_u16 == osd_line_crc_lst[t1]) {
-        if (tx_buf[3] == 0)
-            ret = ((refresh_cnt[t1] & 7) == 0);
-        else
-            ret = ((refresh_cnt[t1] & 3) == 0);
+        ret = ((refresh_cnt[t1] & ((tx_buf[3] == 0) ? 7 : 3)) == 0);
         refresh_cnt[t1]++;
     } else {
         refresh_cnt[t1] = 0;
@@ -207,7 +204,7 @@ void msp_task() {
         else
             msp_cmd_tx();
 
-        if (seconds - fc_lst_rcv_sec > 5) {
+        if ((seconds - fc_lst_rcv_sec) > 5) {
             if (TEAM_RACE == 0x01)
                 vtx_paralized();
         }
@@ -273,22 +270,7 @@ uint8_t msp_read_one_frame() {
 
         case MSP_CMD:
             crc ^= rx;
-            if (rx == MSP_DISPLAYPORT) {
-                cur_cmd = CUR_DISPLAYPORT;
-            } else if (rx == MSP_RC) {
-                cur_cmd = CUR_RC;
-            } else if (rx == MSP_STATUS) {
-                cur_cmd = CUR_STATUS;
-            } else if (rx == MSP_FC_VARIANT) {
-                cur_cmd = CUR_FC_VARIANT;
-            } else if (rx == MSP_BOXIDS) {
-                cur_cmd = CUR_BOXIDS;
-            } else if (rx == MSP_GET_VTX_CONFIG) {
-                cur_cmd = CUR_VTX_CONFIG;
-            } else if (rx == MSP_GET_OSD_CANVAS) {
-                cur_cmd = CUR_GET_OSD_CANVAS;
-            } else
-                cur_cmd = CUR_OTHERS;
+            cur_cmd = rx;
 
             if (length == 0)
                 state = MSP_CRC1;
@@ -312,25 +294,25 @@ uint8_t msp_read_one_frame() {
                 msp_tx_en = 1;
 
                 switch (cur_cmd) {
-                case CUR_FC_VARIANT:
+                case MSP_FC_VARIANT:
                     parse_variant();
                     break;
-                case CUR_BOXIDS:
+                case MSP_BOXIDS:
                     parse_boxids(ptr);
                     break;
-                case CUR_VTX_CONFIG:
+                case MSP_GET_VTX_CONFIG:
                     parse_vtx_config();
                     break;
-                case CUR_STATUS:
+                case MSP_STATUS:
                     parse_status();
                     break;
-                case CUR_RC:
+                case MSP_RC:
                     parse_rc();
                     break;
-                case CUR_GET_OSD_CANVAS:
+                case MSP_GET_OSD_CANVAS:
                     parse_get_osd_canvas();
                     break;
-                case CUR_DISPLAYPORT:
+                case MSP_DISPLAYPORT:
                     ret = parse_displayport(osd_len);
                     break;
                 default:
@@ -491,6 +473,17 @@ void fc_init() {
 
 uint8_t get_tx_data_5680() // prepare data to VRX
 {
+    static const uint8_t video_format_lut[] = {
+        [VDO_FMT_720P50] = 0x66,
+        [VDO_FMT_720P60] = 0x99,
+        [VDO_FMT_720P60_8bit] = 0x99,
+        [VDO_FMT_540P90] = 0xEE,
+        [VDO_FMT_540P90_CROP] = 0x44,
+        [VDO_FMT_540P60] = 0x33,
+        [VDO_FMT_960x720P60] = 0x55,
+        [VDO_FMT_1080P30] = 0x77,
+    };
+
 #ifdef USE_TEMPERATURE_SENSOR
     uint8_t temp;
 #endif
@@ -500,30 +493,11 @@ uint8_t get_tx_data_5680() // prepare data to VRX
     tx_buf[2] = 0xff;
     // len
     tx_buf[3] = 15;
-
-    // video format
-    if (video_format == VDO_FMT_720P50)
-        tx_buf[4] = 0x66;
-    else if (video_format == VDO_FMT_720P60)
+    if (video_format < (sizeof(video_format_lut) / sizeof(video_format_lut[0]))) {
+        tx_buf[4] = video_format_lut[video_format];
+    } else {
         tx_buf[4] = 0x99;
-    else if (video_format == VDO_FMT_720P60_8bit)
-        tx_buf[4] = 0x99;
-    // else if (video_format == VDO_FMT_720P60_NEW)
-    //     tx_buf[4] = 0xAA;
-    // else if (video_format == VDO_FMT_720P30)
-    //    tx_buf[4] = 0xCC;
-    else if (video_format == VDO_FMT_540P90)
-        tx_buf[4] = 0xEE;
-    else if (video_format == VDO_FMT_540P90_CROP)
-        tx_buf[4] = 0x44;
-    else if (video_format == VDO_FMT_540P60)
-        tx_buf[4] = 0x33;
-    else if (video_format == VDO_FMT_960x720P60)
-        tx_buf[4] = 0x55;
-    else if (video_format == VDO_FMT_1080P30)
-        tx_buf[4] = 0x77;
-    else
-        tx_buf[4] = 0x99;
+    }
 
     // fcType
     tx_buf[5] = fc_variant[0];
@@ -566,16 +540,11 @@ uint8_t get_tx_data_5680() // prepare data to VRX
     tx_buf[10] = 0;
 #endif
 
-    tx_buf[11] = fontType; // fontType
-
-    tx_buf[12] = 0x00; // deprecated
-
+    tx_buf[11] = fontType;    // fontType
+    tx_buf[12] = 0x00;        // deprecated
     tx_buf[13] = g_camera_id; // Send g_camera_id in the future to allow the VRX to resync on a camera change
-
     tx_buf[14] = fc_lock & 0x03;
-
     tx_buf[15] = (camRatio == 0) ? 0x55 : 0xaa;
-
     tx_buf[16] = VTX_VERSION_MAJOR;
     tx_buf[17] = VTX_VERSION_MINOR;
     tx_buf[18] = VTX_VERSION_PATCH_LEVEL;
@@ -649,41 +618,29 @@ uint8_t get_tx_data_osd(uint8_t index) // prepare osd+data to VTX
     tx_buf[0] = DP_HEADER0;
     tx_buf[1] = DP_HEADER1;
     tx_buf[2] = (resolution << 5) | index;
-#if (0)
-    if (num) {
-#else
-    if (1) {
-#endif
-        tx_buf[3] = ptr - 4; // len
 
-        // 0x20 flag
-        for (i = 0; i < len_mask; i++) {
-            tx_buf[4 + i] = mask[i];
-        }
+    tx_buf[3] = ptr - 4; // len
 
-        // location_flag
-        if (resolution == SD_3016) {
-            if (disp_mode == DISPLAY_OSD) {
-                tx_buf[8] = loc_buf[index][0];
-                tx_buf[9] = loc_buf[index][1];
-                tx_buf[10] = loc_buf[index][2];
-                tx_buf[11] = loc_buf[index][3];
-            } else {
-                tx_buf[8] = 0x00; // 0x04;
-                tx_buf[9] = 0x00;
-                tx_buf[10] = 0x00; // 0x04;
-                tx_buf[11] = 0x00;
-            }
+    // 0x20 flag
+    for (i = 0; i < len_mask; i++) {
+        tx_buf[4 + i] = mask[i];
+    }
+
+    // location_flag
+    if (resolution == SD_3016) {
+        if (disp_mode == DISPLAY_OSD) {
+            tx_buf[8] = loc_buf[index][0];
+            tx_buf[9] = loc_buf[index][1];
+            tx_buf[10] = loc_buf[index][2];
+            tx_buf[11] = loc_buf[index][3];
+        } else {
+            tx_buf[8] = 0x00; // 0x04;
+            tx_buf[9] = 0x00;
+            tx_buf[10] = 0x00; // 0x04;
+            tx_buf[11] = 0x00;
         }
-        return (uint8_t)(ptr + 1);
     }
-#if (0)
-    else {
-        // blank line
-        tx_buf[3] = 0;
-        return 5;
-    }
-#endif
+    return (uint8_t)(ptr + 1);
 }
 
 void insert_tx_byte(uint8_t c) {
@@ -1098,16 +1055,16 @@ void parse_boxids(uint8_t msgLen) {
 
     for (idx = 0, boxCount = 0; idx < msgLen && boxCount < 4; idx++) {
         if (msp_rx_buf[idx] == armBox) {
-            g_arm_page = idx / 8;
-            g_arm_mask = 1 << (idx % 8);
+            g_arm_page = idx >> 3;
+            g_arm_mask = 1 << (idx & 7);
             boxCount++;
         } else if (msp_rx_buf[idx] == cameraBox1) {
-            g_boxCamera1_page = idx / 8;
-            g_boxCamera1_mask = 1 << (idx % 8);
+            g_boxCamera1_page = idx >> 3;
+            g_boxCamera1_mask = 1 << (idx & 7);
             boxCount++;
         } else if (msp_rx_buf[idx] == cameraBox2) {
-            g_boxCamera2_page = idx / 8;
-            g_boxCamera2_mask = 1 << (idx % 8);
+            g_boxCamera2_page = idx >> 3;
+            g_boxCamera2_mask = 1 << (idx & 7);
             boxCount++;
         }
     }
@@ -1273,10 +1230,7 @@ void parse_vtx_params(uint8_t isMSP_V2) {
         if (cur_pwr == (POWER_MAX + 1)) { // Exit 0mW
             // Exit 0mW
             if (cur_pwr == (POWER_MAX + 2)) {
-                if (PIT_MODE)
-                    Init_6300RF(RF_FREQ, POWER_MAX + 1);
-                else
-                    Init_6300RF(RF_FREQ, RF_POWER);
+                Init_6300RF(RF_FREQ, PIT_MODE ? (POWER_MAX + 1) : RF_POWER);
                 DM6300_AUXADC_Calib();
                 needSaveEEP = 1;
             }
@@ -2109,10 +2063,7 @@ void save_vtx_param() {
     else if (tramp_lock)
         ;
     else {
-        if (vtx_pit == PIT_0MW)
-            msp_set_vtx_config(POWER_MAX + 1, 0);
-        else
-            msp_set_vtx_config(RF_POWER, 1);
+        msp_set_vtx_config((vtx_pit == PIT_0MW) ? (POWER_MAX + 1) : RF_POWER, 0);
     }
 }
 
@@ -2285,10 +2236,7 @@ void InitVtxTable() {
     uint8_t const *power_table[5];
 
     // set band num, channel num and power level number
-    if (TEAM_RACE)
-        msp_set_vtx_config(POWER_MAX + 1, 0);
-    else
-        msp_set_vtx_config(RF_POWER, 0);
+    msp_set_vtx_config(TEAM_RACE ? (POWER_MAX + 1) : RF_POWER, 0);
 
     // set band/channel
     for (i = 0; i < 5; i++) {

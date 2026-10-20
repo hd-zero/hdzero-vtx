@@ -317,11 +317,7 @@ void camera_setting_profile_check(uint8_t profile) {
     }
 }
 void camera_profile_read(void) {
-    if (g_camera_switch) {
-        camera_profile_eep = g_camera_id - 1;
-    } else {
-        camera_profile_eep = camera_reg_read_eep(EEP_ADDR_CAM_PROFILE);
-    }
+    camera_profile_eep = g_camera_switch ? (g_camera_id - 1) : camera_reg_read_eep(EEP_ADDR_CAM_PROFILE);
 }
 void camera_profile_write(void) {
     if (!g_camera_switch) {
@@ -949,10 +945,7 @@ void camera_select_menu_cursor_update(uint8_t index) {
 #ifdef USE_TP9950
     uint8_t i;
     for (i = 0; i <= CAM_SELECT_EXIT; i++) {
-        if (i == index)
-            osd_buf[i][osd_menu_offset] = '>';
-        else
-            osd_buf[i][osd_menu_offset] = ' ';
+        osd_buf[i][osd_menu_offset] = (i == index) ? '>' : ' ';
     }
 #else
     UNUSED(index);

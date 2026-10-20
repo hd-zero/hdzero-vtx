@@ -383,21 +383,14 @@ void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset) {
         SPI_Write3(0xD1C, (uint8_t)p);
     }
 }
-
+#if (0)
 void DM6300_SetSingleTone(uint8_t enable) {
     DM6300_Set_Page19();
-
-    if (enable) {
-        SPI_Write3(0x08C, 0x18040000);
-        SPI_Write3(0x0C0, 2);
-        SPI_Write3(0x0BC, 0x5ED097B4);
-    } else {
-        SPI_Write3(0x08C, 0);
-        SPI_Write3(0x0C0, 0);
-        SPI_Write3(0x0BC, 0);
-    }
+    SPI_Write3(0x08C, enable ? 0x18040000 : 0);
+    SPI_Write3(0x0C0, enable ? 0x00000002 : 0);
+    SPI_Write3(0x0BC, enable ? 0x5ED097B4 : 0);
 }
-
+#endif
 void DM6300_RFTest() {
 #if (0)
     uint16_t i;
@@ -565,11 +558,7 @@ CODE_SEG const dm6300_reg_value_t dm6300_init2_regs_bw27[] = {
 
 void DM6300_init2(BWType_e sel) {
     DM6300_Set_Page18();
-    if (sel) {
-        WRITE_REG_MAP3(dm6300_init2_regs_bw17);
-    } else {
-        WRITE_REG_MAP3(dm6300_init2_regs_bw27);
-    }
+    WRITE_REG_MAP3(sel ? dm6300_init2_regs_bw17 : dm6300_init2_regs_bw27);
 }
 
 dm6300_reg_value_t dm6300_init3_regs[] = {
@@ -694,10 +683,7 @@ void DM6300_init5(uint8_t sel) {
     SPI_Write3(0x194, 0x0001FFFF);
     DM6300_Set_Page18();
 
-    if (sel)
-        WRITE_REG_MAP3(dm6300_init5_regs_bm17);
-    else
-        WRITE_REG_MAP3(dm6300_init5_regs_bm27);
+    WRITE_REG_MAP3(sel ? dm6300_init5_regs_bm17 : dm6300_init5_regs_bm27);
 }
 
 dm6300_reg_value_t dm6300_init6_regs_0[] = {

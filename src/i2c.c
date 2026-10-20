@@ -90,10 +90,7 @@ uint8_t I2C_write_byte(uint8_t val) {
         return 1;
 
     for (i = 0; i < 8; i++) {
-        if (val >> 7)
-            SDA_SET(1);
-        else
-            SDA_SET(0);
+        SDA_SET((val >> 7) & 1);
         DELAY_Q;
 
         SCL_SET(1);
@@ -418,10 +415,7 @@ uint8_t RUNCAM_Read_Write(uint8_t cam_id, uint32_t addr, uint32_t val) {
     uint8_t ret = 0;
     uint32_t rdata;
 
-    if (cam_id == RUNCAM_MICRO_V1)
-        rdata = val + 1;
-    else
-        rdata = RUNCAM_Read(cam_id, addr);
+    rdata = (cam_id == RUNCAM_MICRO_V1) ? (val + 1) : RUNCAM_Read(cam_id, addr);
 
     if (rdata != val) {
         RUNCAM_Write(cam_id, addr, val);

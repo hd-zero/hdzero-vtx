@@ -105,16 +105,13 @@ void Init_TC3587(uint8_t fmt) {
 
     I2C_Write16(ADDR_TC3587, 0x0060, 0x800a); // mipi phy timing delay ; 0x800a
 
-    I2C_Write16(ADDR_TC3587, 0x0018, 0x0111);     // pll
-    I2C_Write16(ADDR_TC3587, 0x0018, 0x0113);     // pll
-    if (fmt == 0)                                 // 50/60fps
-        I2C_Write16(ADDR_TC3587, 0x0016, 0x3057); // pll
-    else if (fmt == 1)                            // 90fps
-        I2C_Write16(ADDR_TC3587, 0x0016, 0x809f); // pll
-    I2C_Write16(ADDR_TC3587, 0x0020, 0x0000);     // clk config
-    I2C_Write16(ADDR_TC3587, 0x000c, 0x0101);     // mclk
-    I2C_Write16(ADDR_TC3587, 0x0018, 0x0111);     // pll
-    I2C_Write16(ADDR_TC3587, 0x0018, 0x0113);     // pll
+    I2C_Write16(ADDR_TC3587, 0x0018, 0x0111);                       // pll
+    I2C_Write16(ADDR_TC3587, 0x0018, 0x0113);                       // pll
+    I2C_Write16(ADDR_TC3587, 0x0016, (fmt == 1) ? 0x809f : 0x3057); // pll
+    I2C_Write16(ADDR_TC3587, 0x0020, 0x0000);                       // clk config
+    I2C_Write16(ADDR_TC3587, 0x000c, 0x0101);                       // mclk
+    I2C_Write16(ADDR_TC3587, 0x0018, 0x0111);                       // pll
+    I2C_Write16(ADDR_TC3587, 0x0018, 0x0113);                       // pll
     I2C_Write16(ADDR_TC3587, 0x0002, 0x0001);
     I2C_Write16(ADDR_TC3587, 0x0002, 0x0000);
 }

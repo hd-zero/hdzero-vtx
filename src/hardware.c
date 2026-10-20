@@ -572,53 +572,54 @@ void TempDetect() {
 
 #ifdef USE_TEMPERATURE_SENSOR
 uint8_t temperature_level(void) {
+    static const uint8_t ret_lut[81] = {
+        // 0  - 24
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        // 25 - 29
+        1, 1, 1, 1, 1,
+        // 30 - 34
+        2, 2, 2, 2, 2,
+        // 35 - 37
+        3, 3, 3,
+        // 38 - 39
+        4, 4,
+        // 40 - 42
+        5, 5, 5,
+        // 43 - 44
+        6, 6,
+        // 45 - 47
+        7, 7, 7,
+        // 48 - 49
+        8, 8,
+        // 50 - 52
+        9, 9, 9,
+        // 53 - 54
+        10, 10,
+        // 55 - 57
+        11, 11, 11,
+        // 58 - 59
+        12, 12,
+        // 60 - 62
+        13, 13, 13,
+        // 63 - 64
+        14, 14,
+        // 65 - 67
+        15, 15, 15,
+        // 68 - 69
+        16, 16,
+        // 70 - 72
+        17, 17, 17,
+        // 73 - 74
+        18, 18,
+        // 75 - 77
+        19, 19, 19,
+        // 78 - 80
+        20, 20, 20};
+
     int16_t ret;
     ret = temperature >> 2;
 
-    if (ret < 25)
-        ret = 0;
-    else if (ret < 30)
-        ret = 1;
-    else if (ret < 35)
-        ret = 2;
-    else if (ret < 38)
-        ret = 3;
-    else if (ret < 40)
-        ret = 4;
-    else if (ret < 43)
-        ret = 5;
-    else if (ret < 45)
-        ret = 6;
-    else if (ret < 48)
-        ret = 7;
-    else if (ret < 50)
-        ret = 8;
-    else if (ret < 53)
-        ret = 9;
-    else if (ret < 55)
-        ret = 10;
-    else if (ret < 58)
-        ret = 11;
-    else if (ret < 60)
-        ret = 12;
-    else if (ret < 63)
-        ret = 13;
-    else if (ret < 65)
-        ret = 14;
-    else if (ret < 68)
-        ret = 15;
-    else if (ret < 70)
-        ret = 16;
-    else if (ret < 73)
-        ret = 17;
-    else if (ret < 75)
-        ret = 18;
-    else if (ret < 78)
-        ret = 19;
-    else if (ret < 80)
-        ret = 20;
-    else
-        ret = 20;
+    ret = (ret > 80) ? 20 : ret_lut[ret];
 
     return (uint8_t)ret;
 }
@@ -1014,11 +1015,10 @@ void video_detect(void) {
                 sec = 0;
                 if (video_format == VDO_FMT_720P50) {
                     video_format = VDO_FMT_720P60;
-                    set_vin(video_format);
                 } else if (video_format == VDO_FMT_720P60) {
                     video_format = VDO_FMT_720P50;
-                    set_vin(video_format);
                 }
+                set_vin(video_format);
             }
         } else {
             sec = 0;
@@ -1082,11 +1082,10 @@ void Button1_SP() {
         Setting_Save();
         msp_set_vtx_config(RF_POWER, 1);
 
+        DM6300_SetPower(LP_MODE ? 0 : RF_POWER, RF_FREQ, LP_MODE ? 0 : pwr_offset);
         if (LP_MODE) {
             cur_pwr = 0;
-            DM6300_SetPower(0, RF_FREQ, 0);
         } else {
-            DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
             cur_pwr = RF_POWER;
         }
         break;
@@ -1125,11 +1124,9 @@ void Button1_SP() {
         if (LP_MODE > 2)
             LP_MODE = 0;
 
+        DM6300_SetPower(LP_MODE ? 0 : RF_POWER, RF_FREQ, 0);
         if (LP_MODE) {
-            DM6300_SetPower(0, RF_FREQ, 0); // limit power to 25mW
             cur_pwr = 0;
-        } else {
-            DM6300_SetPower(RF_POWER, RF_FREQ, 0);
         }
 
         msp_set_vtx_config(RF_POWER, 1);
@@ -1491,10 +1488,8 @@ void RF_Delay_Init() {
             if (pwr_init == POWER_MAX + 2) { // 0mW
                 RF_POWER = POWER_MAX + 2;
                 cur_pwr = POWER_MAX + 2;
-            } else if (PIT_MODE) {
-                Init_6300RF(ch_init, POWER_MAX + 1);
             } else {
-                Init_6300RF(ch_init, pwr_init);
+                Init_6300RF(ch_init, PIT_MODE ? (POWER_MAX + 1) : pwr_init);
             }
             DM6300_AUXADC_Calib();
         }
