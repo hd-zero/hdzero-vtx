@@ -150,7 +150,11 @@ void hdzcs_set(uint8_t reg, uint8_t val) {
 }
 
 uint8_t eep_wr(uint8_t reg, uint8_t val) {
-    return eep_wr(reg, val);
+    return I2C_Write8_Wait(10, ADDR_EEPROM, reg, val);
+}
+
+uint8_t eep_rd(uint8_t reg) {
+    return eep_rd(reg);
 }
 
 uint8_t get_camera_switch_type(void) {

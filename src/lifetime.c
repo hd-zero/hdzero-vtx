@@ -8,13 +8,13 @@ uint8_t LifeTimeOP = 0;
 void Get_EEP_LifeTime(void) {
     uint8_t u8;
 
-    u8 = I2C_Read8(ADDR_EEPROM, EEP_ADDR_LIFETIME_0);
+    u8 = eep_rd(EEP_ADDR_LIFETIME_0);
     sysLifeTime = (uint32_t)u8;
-    u8 = I2C_Read8(ADDR_EEPROM, EEP_ADDR_LIFETIME_1);
+    u8 = eep_rd(EEP_ADDR_LIFETIME_1);
     sysLifeTime += (uint32_t)u8 << 8;
-    u8 = I2C_Read8(ADDR_EEPROM, EEP_ADDR_LIFETIME_2);
+    u8 = eep_rd(EEP_ADDR_LIFETIME_2);
     sysLifeTime += (uint32_t)u8 << 16;
-    u8 = I2C_Read8(ADDR_EEPROM, EEP_ADDR_LIFETIME_3);
+    u8 = eep_rd(EEP_ADDR_LIFETIME_3);
     sysLifeTime += (uint32_t)u8 << 24;
 
     if (sysLifeTime == 0xffffffff) {

@@ -140,7 +140,6 @@ void main(void) {
                // [2]   enable INT1   interupt   0
                // [1]   enable timer0 interupt   0
                // [0]   enable INT0   interupt   0
-
     check_eeprom();
     version_info();
     Init_HW(); // init

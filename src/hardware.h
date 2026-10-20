@@ -111,7 +111,6 @@ extern uint8_t LP_MODE;
 extern uint8_t PIT_MODE;
 extern uint8_t OFFSET_25MW;
 extern uint8_t TEAM_RACE;
-extern uint8_t KEYBOARD_ON;
 extern uint8_t EE_VALID;
 extern uint8_t RF_BW;
 extern uint8_t RF_BW_last;
@@ -126,7 +125,6 @@ extern uint8_t fc_lock;
 extern uint8_t vtx_pit;
 extern uint8_t vtx_pit_save;
 extern uint8_t SA_lock;
-extern uint8_t pwr_lmt_sec;
 extern uint8_t pwr_lmt_done;
 
 extern uint8_t cur_pwr;

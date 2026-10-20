@@ -96,7 +96,9 @@ const uint8_t diag_led_flags_0mW[8] = {0xFF, 0xFF, 0xC0, 0x03, 0x00, 0x00, 0x00,
 // Long                  Short     Short
 // XXXXXXXXXXXXXXXX------XXXX------XXXX---------------------------
 const uint8_t diag_led_flags_pit[8] = {0xFF, 0xFF, 0xC0, 0x03, 0x3C, 0x00, 0x00, 0x00};
+
 const uint8_t diag_led_flags_normal[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
 uint8_t temp_err = 0;
 #ifdef USE_TEMPERATURE_SENSOR
 int16_t temp0 = 0;
@@ -412,13 +414,13 @@ void GetVtxParameter() {
 
         // VTX Setting
         lowband_lock = 0; // I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_LOWBAND_LOCK);
-        RF_FREQ = I2C_Read8(ADDR_EEPROM, EEP_ADDR_RF_FREQ);
-        RF_POWER = I2C_Read8(ADDR_EEPROM, EEP_ADDR_RF_POWER);
-        LP_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_LPMODE);
-        PIT_MODE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_PITMODE);
-        OFFSET_25MW = I2C_Read8(ADDR_EEPROM, EEP_ADDR_25MW);
-        TEAM_RACE = I2C_Read8(ADDR_EEPROM, EEP_ADDR_TEAM_RACE);
-        SHORTCUT = I2C_Read8(ADDR_EEPROM, EEP_ADDR_SHORTCUT);
+        RF_FREQ = eep_rd(EEP_ADDR_RF_FREQ);
+        RF_POWER = eep_rd(EEP_ADDR_RF_POWER);
+        LP_MODE = eep_rd(EEP_ADDR_LPMODE);
+        PIT_MODE = eep_rd(EEP_ADDR_PITMODE);
+        OFFSET_25MW = eep_rd(EEP_ADDR_25MW);
+        TEAM_RACE = eep_rd(EEP_ADDR_TEAM_RACE);
+        SHORTCUT = eep_rd(EEP_ADDR_SHORTCUT);
         CFG_Back();
 
 // last_SA_lock
@@ -1624,7 +1626,7 @@ void check_eeprom() {
         ff_cnt[i] = 0;
         for (j = 0; j < FREQ_NUM_INTERNAL; j++) {
             for (k = 0; k < POWER_MAX + 1; k++) {
-                ff_cnt[i] += (I2C_Read8(ADDR_EEPROM, tab_base_address[i] + j * (POWER_MAX + 1) + k) == 0xff);
+                ff_cnt[i] += (eep_rd(tab_base_address[i] + j * (POWER_MAX + 1) + k) == 0xff);
             }
         }
     }
@@ -1645,7 +1647,7 @@ void check_eeprom() {
     if ((ff_cnt[1] + ff_cnt[2]) > (FREQ_NUM_INTERNAL * (POWER_MAX + 1))) {
         for (j = 0; j < FREQ_NUM_INTERNAL; j++) {
             for (k = 0; k < POWER_MAX + 1; k++) {
-                reg[0] = I2C_Read8(ADDR_EEPROM, tab_base_address[0] + j * (POWER_MAX + 1) + k);
+                reg[0] = eep_rd(tab_base_address[0] + j * (POWER_MAX + 1) + k);
                 for (i = 1; i < 3; i++) {
                     eep_wr(tab_base_address[i] + j * (POWER_MAX + 1) + k, reg[0]);
                 }
@@ -1658,7 +1660,7 @@ void check_eeprom() {
     for (i = 0; i < FREQ_NUM_INTERNAL; i++) {
         for (j = 0; j < POWER_MAX + 1; j++) {
             for (k = 0; k < 3; k++) {
-                reg[k] = I2C_Read8(ADDR_EEPROM, tab_base_address[k] + i * (POWER_MAX + 1) + j);
+                reg[k] = eep_rd(tab_base_address[k] + i * (POWER_MAX + 1) + j);
             }
 
             if (reg[0] == reg[1] && reg[1] == reg[2] && reg[0] > tab_range[0] && reg[0] < tab_range[1])
@@ -1685,14 +1687,14 @@ void check_eeprom() {
     for (i = 0; i < 3; i++) {
         ff_cnt[i] = 0;
         for (j = 0; j < 5; j++) {
-            ff_cnt[i] += (I2C_Read8(ADDR_EEPROM, dcoc_base_address[i] + j) == 0xff);
+            ff_cnt[i] += (eep_rd(dcoc_base_address[i] + j) == 0xff);
         }
     }
 
     // Init partition 1/2 by copy paratition 0 if is needed (one time)
     if ((ff_cnt[1] + ff_cnt[2]) > 5) {
         for (j = 0; j < 5; j++) {
-            reg[0] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[0] + j);
+            reg[0] = eep_rd(dcoc_base_address[0] + j);
             for (i = 1; i < 3; i++) {
                 eep_wr(dcoc_base_address[i] + j, reg[0]);
             }
@@ -1702,7 +1704,7 @@ void check_eeprom() {
 
     // Check the validity of each value
     for (i = 0; i < 3; i++) {
-        reg[i] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[i] + 0);
+        reg[i] = eep_rd(dcoc_base_address[i] + 0);
     }
     if (reg[0] == reg[1] && reg[1] == reg[2] && reg[0] == 0x00) {
         ;
@@ -1715,7 +1717,7 @@ void check_eeprom() {
 
     for (i = 1; i < 5; i++) {
         for (j = 0; j < 3; j++) {
-            reg[j] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[j] + i);
+            reg[j] = eep_rd(dcoc_base_address[j] + i);
         }
         if (reg[0] == reg[1] && reg[1] == reg[2] && reg[0] > dcoc_range[0] && reg[0] < dcoc_range[1])
             // all partition are right

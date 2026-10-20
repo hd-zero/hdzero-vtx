@@ -164,7 +164,7 @@ void MonEE(uint8_t op, uint8_t d) {
     uint8_t addr;
 
     addr = RF_FREQ * (POWER_MAX + 1) + RF_POWER;
-    val = I2C_Read8(ADDR_EEPROM, addr);
+    val = eep_rd(addr);
 
     switch (op) {
     case 0: // ew

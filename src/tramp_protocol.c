@@ -255,7 +255,7 @@ void tramp_init(void) {
         tramp_receive();
     }
     if (!tramp_lock)
-        RF_POWER = I2C_Read8(ADDR_EEPROM, EEP_ADDR_RF_POWER);
+        RF_POWER = eep_rd(EEP_ADDR_RF_POWER);
 #endif
 }
 #endif
