@@ -168,7 +168,7 @@ void MonEE(uint8_t op, uint8_t d) {
 
     switch (op) {
     case 0: // ew
-        I2C_Write8_Wait(10, ADDR_EEPROM, addr, d);
+        eep_wr(addr, d);
         break;
 
     case 1: // er
@@ -177,13 +177,13 @@ void MonEE(uint8_t op, uint8_t d) {
     case 2: // ea
         if (val != 0xFF)
             val++;
-        I2C_Write8_Wait(10, ADDR_EEPROM, addr, val);
+        eep_wr(addr, val);
         break;
 
     case 3: // es
         if (val != 0)
             val--;
-        I2C_Write8_Wait(10, ADDR_EEPROM, addr, val);
+        eep_wr(addr, val);
         break;
     }
 
@@ -217,11 +217,11 @@ void Monitor(void) {
     else if (!stricmp(argv[0], "c"))
         Init_6300RF(RF_FREQ, RF_POWER);
     else if (!stricmp(argv[0], "rfrst")) {
-        WriteReg(0, 0x8F, 0x00);
-        WriteReg(0, 0x8F, 0x11);
+        WriteReg(0x8F, 0x00);
+        WriteReg(0x8F, 0x11);
     } else if (!stricmp(argv[0], "rf1")) {
-        // WriteReg(0, 0x8F, 0x00);
-        // WriteReg(0, 0x8F, 0x11);
+        // WriteReg(0x8F, 0x00);
+        // WriteReg(0x8F, 0x11);
         DM6300_init1();
     } else if (!stricmp(argv[0], "rf2"))
         DM6300_init2(0);
@@ -244,9 +244,9 @@ void Monitor(void) {
     } else if (!stricmp(argv[0], "rftest"))
         DM6300_RFTest();
     else if (!stricmp(argv[0], "bbon"))
-        WriteReg(0, 0x8F, 0x11);
+        WriteReg(0x8F, 0x11);
     else if (!stricmp(argv[0], "bboff"))
-        WriteReg(0, 0x8F, 0x01);
+        WriteReg(0x8F, 0x01);
     // else if ( !stricmp( argv[0], "m0" ) )
     // DM6300_M0();
     else if (!stricmp(argv[0], "ch")) {
@@ -266,20 +266,20 @@ void Monitor(void) {
         MonEE(3, 0);
     else if (!stricmp(argv[0], "dc")) {
         if (argc == 5) {
-            I2C_Write8_Wait(10, ADDR_EEPROM, 0x88, Asc2Bin(argv[1]));
-            I2C_Write8_Wait(10, ADDR_EEPROM, 0x89, Asc2Bin(argv[2]));
-            I2C_Write8_Wait(10, ADDR_EEPROM, 0x8a, Asc2Bin(argv[3]));
-            I2C_Write8_Wait(10, ADDR_EEPROM, 0x8b, Asc2Bin(argv[4]));
+            eep_wr(0x88, Asc2Bin(argv[1]));
+            eep_wr(0x89, Asc2Bin(argv[2]));
+            eep_wr(0x8a, Asc2Bin(argv[3]));
+            eep_wr(0x8b, Asc2Bin(argv[4]));
             // debugf("\r\nWrite in eeprom, 0x88=%x,0x89=%x,0x8a=%x,0x8b=%x",
             // Asc2Bin(argv[1]),Asc2Bin(argv[2]),Asc2Bin(argv[3]),Asc2Bin(argv[4]));
         } else
             debugf("   --> missing parameter!");
     } else if (!stricmp(argv[0], "iq")) {
         if (argc == 5) {
-            I2C_Write8_Wait(10, ADDR_EEPROM, 0x8c, Asc2Bin(argv[1]));
-            I2C_Write8_Wait(10, ADDR_EEPROM, 0x8d, Asc2Bin(argv[2]));
-            I2C_Write8_Wait(10, ADDR_EEPROM, 0x8e, Asc2Bin(argv[3]));
-            I2C_Write8_Wait(10, ADDR_EEPROM, 0x8f, Asc2Bin(argv[4]));
+            eep_wr(0x8c, Asc2Bin(argv[1]));
+            eep_wr(0x8d, Asc2Bin(argv[2]));
+            eep_wr(0x8e, Asc2Bin(argv[3]));
+            eep_wr(0x8f, Asc2Bin(argv[4]));
             debugf("\r\nWrite in eeprom, 0x88=%x,0x89=%x,0x8a=%x,0x8b=%x",
                    (uint16_t)Asc2Bin(argv[1]), (uint16_t)Asc2Bin(argv[2]), (uint16_t)Asc2Bin(argv[3]), (uint16_t)Asc2Bin(argv[4]));
         } else
@@ -321,7 +321,7 @@ void MonWrite(uint8_t mode) {
         addr = Asc4Bin(argv[1]);
         value = Asc2Bin(argv[2]);
 
-        WriteReg(mode, (uint8_t)addr, value);
+        WriteReg((uint8_t)addr, value);
     } else {
         if (argc < 4) {
             debugf("   --> missing parameter!");
@@ -336,7 +336,7 @@ void MonWrite(uint8_t mode) {
 
     if (echo) {
         if (mode < 2) {
-            value = ReadReg(mode, (uint8_t)addr);
+            value = ReadReg((uint8_t)addr);
             debugf("\r\nRead %2xh: %2xh ", (uint16_t)addr, (uint16_t)value);
         } else {
             spi_data_L = 0;
@@ -371,7 +371,7 @@ void MonRead(uint8_t mode) {
             return;
         }
         addr = Asc4Bin(argv[1]);
-        value = ReadReg(mode, (uint8_t)addr);
+        value = ReadReg((uint8_t)addr);
         debugf("\r\nRead %3xh: %2xh ", (uint16_t)addr, (uint16_t)value);
     } else {
         if (argc < 3) {
@@ -403,14 +403,14 @@ void chg_vtx(void) {
     pwr = Asc2Bin(argv[2]);
 
     if (!stricmp(argv[1], "-1")) { // Camera
-        WriteReg(0, 0x50, 0x00);
+        WriteReg(0x50, 0x00);
         DM6300_SetChannel(RF_FREQ);
         DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
         debugf("\r\nVTX Cam, channel = %d,power = %d,FPS = %d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)video_format);
     } else { // pattern
-        Set_720P60(0);
         video_format = VDO_FMT_720P60;
-        WriteReg(0, 0x50, 0x01);
+        set_vin(video_format);
+        WriteReg(0x50, 0x01);
 
         RF_POWER = pwr;
         RF_FREQ = chan;

@@ -152,6 +152,10 @@ void hdzcs_set(uint8_t reg, uint8_t val) {
     I2C_Write8_Wait(10, ADDR_HDZCS, reg, val);
 }
 
+uint8_t eep_wr(uint8_t reg, uint8_t val) {
+    return eep_wr(reg, val);
+}
+
 uint8_t get_camera_switch_type(void) {
     uint8_t camera_switch = SWITCH_TYPE_NONE;
 

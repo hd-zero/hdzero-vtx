@@ -1,6 +1,7 @@
 #ifndef __HARDWARE_H_
 #define __HARDWARE_H_
 
+#include "camera.h"
 #include "common.h"
 #include "i2c.h"
 #include "i2c_device.h"
@@ -85,15 +86,7 @@ void Imp_RF_Param();
 void CFG_Back();
 void check_eeprom();
 
-void Set_720P50(uint8_t page);
-void Set_720P60(uint8_t page);
-void Set_540P90(uint8_t page);
-void Set_540P90_crop(uint8_t page);
-void Set_960x720P60(uint8_t page);
-void Set_720P30(uint8_t page, uint8_t is_43);
-void Set_540P60(uint8_t page);
-void Set_1080P30(uint8_t page);
-void Set_720P60_8bit(uint8_t page);
+void set_vin(video_format_e fmt);
 
 void Flicker_LED(uint8_t n);
 void LED_Flip();

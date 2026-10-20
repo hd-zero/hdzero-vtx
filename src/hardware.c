@@ -154,207 +154,195 @@ uint8_t check_uart_loopback();
 #endif
 void reset_config();
 
-void Set_720P50(uint8_t page) {
-    WriteReg(page, 0x21, 0x25);
+typedef struct {
+    uint8_t addr;
+    uint8_t val;
+} video_config_t;
 
-    WriteReg(page, 0x40, 0x00);
-    WriteReg(page, 0x41, 0x25);
-    WriteReg(page, 0x42, 0xD0);
-    WriteReg(page, 0x43, 0xBC);
-    WriteReg(page, 0x44, 0x47);
-    WriteReg(page, 0x45, 0xEE);
-    WriteReg(page, 0x49, 0x04);
-    WriteReg(page, 0x4c, 0x19);
-    WriteReg(page, 0x4f, 0x00);
-    WriteReg(page, 0x52, 0x04);
-    WriteReg(page, 0x53, 0x00);
-    WriteReg(page, 0x54, 0x3C);
+static const video_config_t cfg_720p50[14] = {
+    {0x21, 0x25},
+    {0x40, 0x00},
+    {0x41, 0x25},
+    {0x42, 0xD0},
+    {0x43, 0xBC},
+    {0x44, 0x47},
+    {0x45, 0xEE},
+    {0x49, 0x04},
+    {0x4c, 0x19},
+    {0x4f, 0x00},
+    {0x52, 0x04},
+    {0x53, 0x00},
+    {0x54, 0x3C},
+    {0x06, 0x01},
+};
 
-    WriteReg(page, 0x06, 0x01);
-}
+static const video_config_t cfg_720p60[14] = {
+    {0x21, 0x1F},
+    {0x40, 0x00},
+    {0x41, 0x25},
+    {0x42, 0xD0},
+    {0x43, 0x72},
+    {0x44, 0x46},
+    {0x45, 0xEE},
+    {0x49, 0x04},
+    {0x4c, 0x19},
+    {0x4f, 0x00},
+    {0x52, 0x04},
+    {0x53, 0x00},
+    {0x54, 0x3C},
+    {0x06, 0x01},
+};
 
-void Set_720P60(uint8_t page) {
-    WriteReg(page, 0x21, 0x1F);
+static const video_config_t cfg_720p60_8bit[14] = {
+    {0x21, 0x1F},
+    {0x40, 0x00},
+    {0x41, 0x2A},
+    {0x42, 0xD0},
+    {0x43, 0xE4},
+    {0x44, 0x4C},
+    {0x45, 0xEE},
+    {0x49, 0x04},
+    {0x4c, 0x19},
+    {0x4f, 0x86},
+    {0x52, 0x04},
+    {0x53, 0x00},
+    {0x54, 0x3C},
+    {0x8e, 0x04},
+};
 
-    WriteReg(page, 0x40, 0x00);
-    WriteReg(page, 0x41, 0x25);
-    WriteReg(page, 0x42, 0xD0);
-    WriteReg(page, 0x43, 0x72);
-    WriteReg(page, 0x44, 0x46);
-    WriteReg(page, 0x45, 0xEE);
-    WriteReg(page, 0x49, 0x04);
-    WriteReg(page, 0x4c, 0x19);
-    WriteReg(page, 0x4f, 0x00);
-    WriteReg(page, 0x52, 0x04);
-    WriteReg(page, 0x53, 0x00);
-    WriteReg(page, 0x54, 0x3C);
+static const video_config_t cfg_960x720p60[14] = {
+    {0x21, 0x1C},
+    {0x40, 0xC0},
+    {0x41, 0x23},
+    {0x42, 0xD0},
+    {0x43, 0x49},
+    {0x44, 0x45},
+    {0x45, 0xE3},
+    {0x49, 0x04},
+    {0x4c, 0x08},
+    {0x4f, 0x00},
+    {0x52, 0x04},
+    {0x53, 0x02},
+    {0x54, 0x3C},
+    {0x06, 0x01},
+};
 
-    WriteReg(page, 0x06, 0x01);
-}
+static const video_config_t cfg_540p90[14] = {
+    {0x21, 0x21},
+    {0x40, 0xD0},
+    {0x41, 0x22},
+    {0x42, 0x18},
+    {0x43, 0x1F},
+    {0x44, 0x44},
+    {0x45, 0x29},
+    {0x49, 0x04},
+    {0x4c, 0x08},
+    {0x4f, 0x00},
+    {0x52, 0x04},
+    {0x53, 0x02},
+    {0x54, 0x3C},
+    {0x06, 0x01},
+};
 
-void Set_720P60_8bit(uint8_t page) {
-    WriteReg(page, 0x21, 0x1F);
+static const video_config_t cfg_540p90_crop[14] = {
+    {0x21, 0x1f},
+    {0x40, 0xD0},
+    {0x41, 0x22},
+    {0x42, 0x18},
+    {0x43, 0x1F},
+    {0x44, 0x44},
+    {0x45, 0x29},
+    {0x49, 0x04},
+    {0x4c, 0x08},
+    {0x4f, 0x00},
+    {0x52, 0x04},
+    {0x53, 0x02},
+    {0x54, 0x3C},
+    {0x06, 0x01},
+};
+static const video_config_t cfg_540p60[14] = {
+    {0x21, 0x1F},
+    {0x40, 0xD0},
+    {0x41, 0x22},
+    {0x42, 0x18},
+    {0x43, 0x50},
+    {0x44, 0x46},
+    {0x45, 0x6B},
+    {0x49, 0x04},
+    {0x4c, 0x08},
+    {0x4f, 0x00},
+    {0x52, 0x04},
+    {0x53, 0x02},
+    {0x54, 0x3C},
+    {0x06, 0x01},
+};
+static const video_config_t cfg_1080p30[14] = {
+    {0x21, 0x1B},
+    {0x40, 0x80},
+    {0x41, 0x47},
+    {0x42, 0x38},
+    {0x43, 0x98},
+    {0x44, 0x88},
+    {0x45, 0x65},
+    {0x49, 0x04},
+    {0x4c, 0x29},
+    {0x4f, 0x00},
+    {0x52, 0x04},
+    {0x53, 0x00},
+    {0x54, 0x5A},
+    {0x06, 0x01},
+};
 
-    WriteReg(page, 0x40, 0x00);
-    WriteReg(page, 0x41, 0x2A);
-    WriteReg(page, 0x42, 0xD0);
-    WriteReg(page, 0x43, 0xE4);
-    WriteReg(page, 0x44, 0x4C);
-    WriteReg(page, 0x45, 0xEE);
-    WriteReg(page, 0x49, 0x04);
-    WriteReg(page, 0x4c, 0x19);
-    WriteReg(page, 0x4f, 0x86);
-    WriteReg(page, 0x52, 0x04);
-    WriteReg(page, 0x53, 0x00);
-    WriteReg(page, 0x54, 0x3C);
-    WriteReg(0, 0x8e, 0x04);
+void set_vin(video_format_e fmt) {
+    uint8_t i;
+    const video_config_t *cfg_ptr = cfg_720p50;
+    switch (fmt) {
+    case VDO_FMT_720P50:
+        cfg_ptr = cfg_720p50;
+        break;
+    case VDO_FMT_720P60:
+        cfg_ptr = cfg_720p60;
+        break;
+    case VDO_FMT_720P60_8bit:
+        cfg_ptr = cfg_720p60_8bit;
+    // case VDO_FMT_720P60_NEW:
+    //    break;
+    // case VDO_FMT_720P30:
+    //    break;
+    case VDO_FMT_540P90:
+        cfg_ptr = cfg_540p90;
+        break;
+    case VDO_FMT_540P90_CROP:
+        cfg_ptr = cfg_540p90_crop;
+        break;
+    case VDO_FMT_540P60:
+        cfg_ptr = cfg_540p60;
+        break;
+    case VDO_FMT_960x720P60:
+        cfg_ptr = cfg_960x720p60;
+        break;
+    case VDO_FMT_1080P30:
+        cfg_ptr = cfg_1080p30;
+        break;
+    }
 
-    WriteReg(page, 0x06, 0x01);
-}
-
-void Set_960x720P60(uint8_t page) {
-    WriteReg(page, 0x21, 0x1C);
-
-    WriteReg(page, 0x40, 0xC0);
-    WriteReg(page, 0x41, 0x23);
-    WriteReg(page, 0x42, 0xD0);
-    WriteReg(page, 0x43, 0x49);
-    WriteReg(page, 0x44, 0x45);
-    WriteReg(page, 0x45, 0xE3);
-    WriteReg(page, 0x49, 0x04);
-    WriteReg(page, 0x4c, 0x08);
-    WriteReg(page, 0x4f, 0x00);
-    WriteReg(page, 0x52, 0x04);
-    WriteReg(page, 0x53, 0x02);
-    WriteReg(page, 0x54, 0x3C);
-
-    WriteReg(page, 0x06, 0x01);
-}
-
-void Set_720P30(uint8_t page, uint8_t is_43) {
-    if (is_43)
-        WriteReg(page, 0x21, 0x28);
-    else
-        WriteReg(page, 0x21, 0x1F);
-
-    WriteReg(page, 0x40, 0x00);
-    WriteReg(page, 0x41, 0x25);
-    WriteReg(page, 0x42, 0xB0);
-    WriteReg(page, 0x43, 0xD4);
-    WriteReg(page, 0x44, 0x88);
-    WriteReg(page, 0x45, 0x47);
-    WriteReg(page, 0x49, 0x04);
-    WriteReg(page, 0x4c, 0x19);
-    WriteReg(page, 0x4f, 0x00);
-    WriteReg(page, 0x52, 0x04);
-    WriteReg(page, 0x53, 0x00);
-    WriteReg(page, 0x54, 0x3C);
-
-    WriteReg(page, 0x06, 0x01);
-}
-
-void Set_540P90(uint8_t page) {
-    WriteReg(page, 0x21, 0x21);
-
-    WriteReg(page, 0x40, 0xD0);
-    WriteReg(page, 0x41, 0x22);
-    WriteReg(page, 0x42, 0x18);
-
-    // WriteReg(page, 0x43, 0xD4); //pat
-    // WriteReg(page, 0x44, 0x45);
-
-    WriteReg(page, 0x43, 0x1F); // cam
-    WriteReg(page, 0x44, 0x44);
-
-    WriteReg(page, 0x45, 0x29);
-    WriteReg(page, 0x49, 0x04);
-    WriteReg(page, 0x4c, 0x08);
-    WriteReg(page, 0x4f, 0x00);
-    WriteReg(page, 0x52, 0x04);
-    WriteReg(page, 0x53, 0x02);
-    WriteReg(page, 0x54, 0x3C);
-
-    WriteReg(page, 0x06, 0x01);
-}
-
-void Set_540P90_crop(uint8_t page) {
-    WriteReg(page, 0x21, 0x1f);
-
-    WriteReg(page, 0x40, 0xD0);
-    WriteReg(page, 0x41, 0x22);
-    WriteReg(page, 0x42, 0x18);
-
-    // WriteReg(page, 0x43, 0xD4); //pat
-    // WriteReg(page, 0x44, 0x45);
-
-    WriteReg(page, 0x43, 0x1F); // cam
-    WriteReg(page, 0x44, 0x44);
-
-    WriteReg(page, 0x45, 0x29);
-    WriteReg(page, 0x49, 0x04);
-    WriteReg(page, 0x4c, 0x08);
-    WriteReg(page, 0x4f, 0x00);
-    WriteReg(page, 0x52, 0x04);
-    WriteReg(page, 0x53, 0x02);
-    WriteReg(page, 0x54, 0x3C);
-
-    WriteReg(page, 0x06, 0x01);
-}
-
-void Set_540P60(uint8_t page) {
-    WriteReg(page, 0x21, 0x1F);
-
-    WriteReg(page, 0x40, 0xD0);
-    WriteReg(page, 0x41, 0x22);
-    WriteReg(page, 0x42, 0x18);
-
-    // WriteReg(page, 0x43, 0xD0); //pat
-    // WriteReg(page, 0x44, 0x47);
-
-    WriteReg(page, 0x43, 0x50); // cam
-    WriteReg(page, 0x44, 0x46);
-
-    WriteReg(page, 0x45, 0x6B);
-    WriteReg(page, 0x49, 0x04);
-    WriteReg(page, 0x4c, 0x08);
-    WriteReg(page, 0x4f, 0x00);
-    WriteReg(page, 0x52, 0x04);
-    WriteReg(page, 0x53, 0x02);
-    WriteReg(page, 0x54, 0x3C);
-
-    WriteReg(page, 0x06, 0x01);
-}
-
-void Set_1080P30(uint8_t page) {
-    WriteReg(page, 0x21, 0x1B);
-
-    WriteReg(page, 0x40, 0x80);
-    WriteReg(page, 0x41, 0x47);
-    WriteReg(page, 0x42, 0x38);
-    WriteReg(page, 0x43, 0x98);
-    WriteReg(page, 0x44, 0x88);
-    WriteReg(page, 0x45, 0x65);
-    WriteReg(page, 0x49, 0x04);
-    WriteReg(page, 0x4c, 0x29);
-    WriteReg(page, 0x4f, 0x00);
-    WriteReg(page, 0x52, 0x04);
-    WriteReg(page, 0x53, 0x00);
-    WriteReg(page, 0x54, 0x5A);
-
-    WriteReg(page, 0x06, 0x01);
+    for (i = 0; i < 14; i++) {
+        WriteReg(cfg_ptr[i].addr, cfg_ptr[i].val);
+    }
+    WriteReg(0x06, 0x01);
 }
 
 void Setting_Save() {
     uint8_t err = 0;
 
     if (EE_VALID) {
-        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
-        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
-        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
-        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
-        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
-        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_TEAM_RACE, TEAM_RACE);
-        err |= I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SHORTCUT, SHORTCUT);
+        err |= eep_wr(EEP_ADDR_RF_FREQ, RF_FREQ);
+        err |= eep_wr(EEP_ADDR_RF_POWER, RF_POWER);
+        err |= eep_wr(EEP_ADDR_LPMODE, LP_MODE);
+        err |= eep_wr(EEP_ADDR_PITMODE, PIT_MODE);
+        err |= eep_wr(EEP_ADDR_25MW, OFFSET_25MW);
+        err |= eep_wr(EEP_ADDR_TEAM_RACE, TEAM_RACE);
+        err |= eep_wr(EEP_ADDR_SHORTCUT, SHORTCUT);
     }
 }
 
@@ -376,14 +364,14 @@ void GetVtxParameter() {
     uint8_t ee_vld = 1;
     uint8_t tab_min[4] = {255, 255, 255, 255};
 
-    EE_VALID = !I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_EEP_VLD, 0xFF);
+    EE_VALID = !eep_wr(EEP_ADDR_EEP_VLD, 0xFF);
 
     if (EE_VALID) { // eeprom valid
 
 #ifdef FIX_EEP
         for (i = 0; i < FREQ_NUM_INTERNAL; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
-                I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, table_power[i][j]);
+                eep_wr(i * (POWER_MAX + 1) + j, table_power[i][j]);
             }
         }
 #endif
@@ -431,7 +419,7 @@ void GetVtxParameter() {
 #ifdef _RF_CALIB
             for (i = 0; i < FREQ_NUM_INTERNAL; i++) {
                 for (j = 0; j <= POWER_MAX; j++) {
-                    I2C_Write8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j, table_power[i][j]);
+                    eep_wr(i * (POWER_MAX + 1) + j, table_power[i][j]);
                 }
             }
 #endif
@@ -453,7 +441,7 @@ void GetVtxParameter() {
         last_SA_lock = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK);
         if (last_SA_lock == 0xff) {
             last_SA_lock = 0;
-            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK, last_SA_lock);
+            eep_wr(EEP_ADDR_SA_LOCK, last_SA_lock);
         }
 #endif
 
@@ -467,8 +455,8 @@ void GetVtxParameter() {
 }
 
 void Init_6300RF(uint8_t freq, uint8_t pwr) {
-    WriteReg(0, 0x8F, 0x00);
-    WriteReg(0, 0x8F, 0x01);
+    WriteReg(0x8F, 0x00);
+    WriteReg(0x8F, 0x01);
     DM6300_Init(freq, RF_BW);
     DM6300_SetChannel(freq);
 #ifndef VIDEO_PAT
@@ -482,7 +470,7 @@ void Init_6300RF(uint8_t freq, uint8_t pwr) {
         DM6300_SetPower(pwr, freq, pwr_offset);
         cur_pwr = pwr;
     }
-    WriteReg(0, 0x8F, 0x11);
+    WriteReg(0x8F, 0x11);
     rf_delay_init_done = 1;
 }
 
@@ -491,11 +479,13 @@ void Init_HW() {
     LED_Init();
 #ifdef VIDEO_PAT
 #ifdef USE_TP9950
-    Set_720P60_8bit(0);
+    video_format = VDO_FMT_720P60_8bit;
+    set_vin();
 #else
-    Set_720P60(0);
+    video_format = VDO_FMT_720P60;
+    set_vin(video_format);
 #endif
-    WriteReg(0, 0x50, 0x01);
+    WriteReg(0x50, 0x01);
     RF_FREQ = 0;
     GetVtxParameter();
 #ifdef _RF_CALIB
@@ -532,8 +522,8 @@ void Init_HW() {
 #endif
 
     //---------- DC IQ --------------------
-    // WriteReg(0, 0x25, 0xf6);
-    // WriteReg(0, 0x26, 0x00);
+    // WriteReg(0x25, 0xf6);
+    // WriteReg(0x26, 0x00);
 }
 #ifdef USE_TEMPERATURE_SENSOR
 void TempDetect() {
@@ -832,7 +822,7 @@ void HeatProtect() {
                         if (cnt == 3) {
                             heat_protect = 1;
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
-                            WriteReg(0, 0x8F, 0x00);
+                            WriteReg(0x8F, 0x00);
                             msp_set_vtx_config(POWER_MAX + 1, 0);
 #else
                             DM6300_SetPower(0, RF_FREQ, 0);
@@ -1022,7 +1012,7 @@ void video_detect(void) {
             return;
         }
 
-        cameraLost = (ReadReg(0, 0x02) >> 4) & 1;
+        cameraLost = (ReadReg(0x02) >> 4) & 1;
 #ifdef USE_TP9950
         if (camera_type == CAMERA_TYPE_OUTDATED) {
             cameraLost |= (I2C_Read8(ADDR_TP9950, 0x01) != 0x7E);
@@ -1038,11 +1028,11 @@ void video_detect(void) {
             if (sec == 3) { // video loss
                 sec = 0;
                 if (video_format == VDO_FMT_720P50) {
-                    Set_720P60(IS_RX);
                     video_format = VDO_FMT_720P60;
+                    set_vin(video_format);
                 } else if (video_format == VDO_FMT_720P60) {
-                    Set_720P50(IS_RX);
                     video_format = VDO_FMT_720P50;
+                    set_vin(video_format);
                 }
             }
         } else {
@@ -1297,13 +1287,13 @@ void OnButton1() {
     }
 
     if (KEYBOARD_ON == 0) {
-        WriteReg(0, 0xB0, 0x3E);
+        WriteReg(0xB0, 0x3E);
 
         btn_down = sec = leave_respond = 0;
         cfg_step = 0;
         cfg_to_cnt = 0;
     } else {
-        WriteReg(0, 0xB0, 0x3F);
+        WriteReg(0xB0, 0x3F);
 
         if (btn_down == 0) {
             if (BTN_1 == 0) {
@@ -1428,7 +1418,7 @@ void uart_baudrate_detect(void) {
 
             uart_set_baudrate(BAUDRATE);
 
-            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
+            eep_wr(EEP_ADDR_BAUDRATE, BAUDRATE);
         }
     }
 #endif
@@ -1436,7 +1426,7 @@ void uart_baudrate_detect(void) {
 
 void vtx_paralized(void) {
     // Sleep until repower
-    WriteReg(0, 0x8F, 0x00);
+    WriteReg(0x8F, 0x00);
     while (1) {
         LED_Flip();
         WAIT(50);
@@ -1488,7 +1478,7 @@ void RF_Delay_Init() {
 
     if (SA_saved == 0) {
         if (seconds >= WAIT_SA_CONFIG) {
-            I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK, SA_lock);
+            eep_wr(EEP_ADDR_SA_LOCK, SA_lock);
             SA_saved = 1;
         }
     }
@@ -1537,13 +1527,13 @@ void RF_Delay_Init() {
             Init_6300RF(RF_FREQ, POWER_MAX + 1);
             vtx_pit = PIT_P1MW;
         } else {
-            WriteReg(0, 0x8F, 0x00);
-            WriteReg(0, 0x8F, 0x01);
+            WriteReg(0x8F, 0x00);
+            WriteReg(0x8F, 0x01);
             DM6300_Init(RF_FREQ, RF_BW);
             DM6300_SetChannel(RF_FREQ);
             DM6300_SetPower(0, RF_FREQ, 0);
             cur_pwr = RF_POWER;
-            WriteReg(0, 0x8F, 0x11);
+            WriteReg(0x8F, 0x11);
             rf_delay_init_done = 1;
         }
         DM6300_AUXADC_Calib();
@@ -1559,16 +1549,16 @@ void reset_config() {
     TEAM_RACE = 0;
     BAUDRATE = 0;
     SHORTCUT = 0;
-    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_FREQ, RF_FREQ);
-    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_RF_POWER, RF_POWER);
-    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LPMODE, LP_MODE);
-    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
-    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_25MW, OFFSET_25MW);
-    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_TEAM_RACE, TEAM_RACE);
-    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_BAUDRATE, BAUDRATE);
-    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_SHORTCUT, SHORTCUT);
+    eep_wr(EEP_ADDR_RF_FREQ, RF_FREQ);
+    eep_wr(EEP_ADDR_RF_POWER, RF_POWER);
+    eep_wr(EEP_ADDR_LPMODE, LP_MODE);
+    eep_wr(EEP_ADDR_PITMODE, PIT_MODE);
+    eep_wr(EEP_ADDR_25MW, OFFSET_25MW);
+    eep_wr(EEP_ADDR_TEAM_RACE, TEAM_RACE);
+    eep_wr(EEP_ADDR_BAUDRATE, BAUDRATE);
+    eep_wr(EEP_ADDR_SHORTCUT, SHORTCUT);
 
-    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_CAM_TYPE, 0);
+    eep_wr(EEP_ADDR_CAM_TYPE, 0);
 }
 #if (0)
 uint8_t check_uart_loopback() {
@@ -1604,7 +1594,7 @@ reset_mcu_ptr reset_mcu = (reset_mcu_ptr)0x0000;
 void usb_det_task() {
     if (USB_DET == 1) {
         LED_BLUE_OFF;
-        WriteReg(0, 0x8F, 0x10); // reset RF_chip
+        WriteReg(0x8F, 0x10); // reset RF_chip
         while (USB_DET == 1) {
             WAIT(1);
         }
@@ -1662,7 +1652,7 @@ void check_eeprom() {
     if (ff_cnt[0] == (FREQ_NUM_INTERNAL * (POWER_MAX + 1))) {
         for (j = 0; j < FREQ_NUM_INTERNAL; j++) {
             for (k = 0; k < POWER_MAX + 1; k++) {
-                I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[0] + j * (POWER_MAX + 1) + k, table_power[j][k]);
+                eep_wr(tab_base_address[0] + j * (POWER_MAX + 1) + k, table_power[j][k]);
             }
         }
         _outstring("\r\nInit tab partition 0");
@@ -1675,7 +1665,7 @@ void check_eeprom() {
             for (k = 0; k < POWER_MAX + 1; k++) {
                 reg[0] = I2C_Read8(ADDR_EEPROM, tab_base_address[0] + j * (POWER_MAX + 1) + k);
                 for (i = 1; i < 3; i++) {
-                    I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[i] + j * (POWER_MAX + 1) + k, reg[0]);
+                    eep_wr(tab_base_address[i] + j * (POWER_MAX + 1) + k, reg[0]);
                 }
             }
         }
@@ -1695,17 +1685,17 @@ void check_eeprom() {
                 ;
             else if (reg[0] == reg[1] && reg[1] != reg[2] && reg[0] > tab_range[0] && reg[0] < tab_range[1]) {
                 // partition 2 value is error
-                I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[2] + i * (POWER_MAX + 1) + j, reg[0]);
+                eep_wr(tab_base_address[2] + i * (POWER_MAX + 1) + j, reg[0]);
             } else if (reg[0] == reg[2] && reg[1] != reg[2] && reg[0] > tab_range[0] && reg[0] < tab_range[1]) {
                 // partition 1 value is error
-                I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[1] + i * (POWER_MAX + 1) + j, reg[0]);
+                eep_wr(tab_base_address[1] + i * (POWER_MAX + 1) + j, reg[0]);
             } else if (reg[0] != reg[2] && reg[1] == reg[2] && reg[1] > tab_range[0] && reg[1] < tab_range[1]) {
                 // partition 0 value is error
-                I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[0] + i * (POWER_MAX + 1) + j, reg[1]);
+                eep_wr(tab_base_address[0] + i * (POWER_MAX + 1) + j, reg[1]);
             } else {
-                I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[0] + i * (POWER_MAX + 1) + j, table_power[i][j]);
-                I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[1] + i * (POWER_MAX + 1) + j, table_power[i][j]);
-                I2C_Write8_Wait(10, ADDR_EEPROM, tab_base_address[2] + i * (POWER_MAX + 1) + j, table_power[i][j]);
+                eep_wr(tab_base_address[0] + i * (POWER_MAX + 1) + j, table_power[i][j]);
+                eep_wr(tab_base_address[1] + i * (POWER_MAX + 1) + j, table_power[i][j]);
+                eep_wr(tab_base_address[2] + i * (POWER_MAX + 1) + j, table_power[i][j]);
             }
         }
     }
@@ -1723,7 +1713,7 @@ void check_eeprom() {
         for (j = 0; j < 5; j++) {
             reg[0] = I2C_Read8(ADDR_EEPROM, dcoc_base_address[0] + j);
             for (i = 1; i < 3; i++) {
-                I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[i] + j, reg[0]);
+                eep_wr(dcoc_base_address[i] + j, reg[0]);
             }
         }
         //_outstring("\r\nInit dcoc partition 1, 2");
@@ -1736,9 +1726,9 @@ void check_eeprom() {
     if (reg[0] == reg[1] && reg[1] == reg[2] && reg[0] == 0x00) {
         ;
     } else {
-        I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[0], 0);
-        I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[1], 0);
-        I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[2], 0);
+        eep_wr(dcoc_base_address[0], 0);
+        eep_wr(dcoc_base_address[1], 0);
+        eep_wr(dcoc_base_address[2], 0);
         //_outstring("\r\ndcoc en err");
     }
 
@@ -1751,23 +1741,23 @@ void check_eeprom() {
             ;
         else if (reg[0] == reg[1] && reg[1] != reg[2] && reg[0] > dcoc_range[0] && reg[0] < dcoc_range[1]) {
             // partition 2 value is error
-            I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[2] + i, reg[0]);
+            eep_wr(dcoc_base_address[2] + i, reg[0]);
             //_outstring("\r\ndcoc2:");
             //_outchar('0' + i);
         } else if (reg[0] != reg[1] && reg[1] == reg[2] && reg[1] > dcoc_range[0] && reg[1] < dcoc_range[1]) {
             // partition 0 value is error
-            I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[0] + i, reg[1]);
+            eep_wr(dcoc_base_address[0] + i, reg[1]);
             //_outstring("\r\ndcoc0:");
             //_outchar('0' + i);
         } else if (reg[0] != reg[1] && reg[0] == reg[2] && reg[0] > dcoc_range[0] && reg[0] < dcoc_range[1]) {
             // partition 1 value is error
-            I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[1] + i, reg[0]);
+            eep_wr(dcoc_base_address[1] + i, reg[0]);
             //_outstring("\r\ndcoc1:");
             //_outchar('0' + i);
         } else {
-            I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[0] + i, 128);
-            I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[1] + i, 128);
-            I2C_Write8_Wait(10, ADDR_EEPROM, dcoc_base_address[2] + i, 128);
+            eep_wr(dcoc_base_address[0] + i, 128);
+            eep_wr(dcoc_base_address[1] + i, 128);
+            eep_wr(dcoc_base_address[2] + i, 128);
             //_outstring("\r\ndcoc all:");
             //_outchar('0' + i);
         }

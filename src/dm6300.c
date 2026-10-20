@@ -434,9 +434,9 @@ void DM6300_InitAUXADC() {
 }
 
 void DM6300_AUXADC_Calib() {
-    WriteReg(0, 0x8F, 0x01);
+    WriteReg(0x8F, 0x01);
     DM6300_InitAUXADC();
-    WriteReg(0, 0x8F, 0x11);
+    WriteReg(0x8F, 0x11);
     dm6300_init_done = 1;
 }
 /*void DM6300_CalibRF()

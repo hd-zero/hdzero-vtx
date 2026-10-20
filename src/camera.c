@@ -90,12 +90,14 @@ void camera_mode_detect(uint8_t init) {
     WAIT(100);
 #endif
 
-    Set_720P60_8bit(0);
+    video_format = VDO_FMT_720P60_8bit;
+
+    set_vin();
     id = I2C_Read8(ADDR_TP9950, 0xfe);
     id = I2C_Read8(ADDR_TP9950, 0xff);
     WAIT(200);
 
-    Set_720P60_8bit(0);
+    set_vin();
     id = I2C_Read8(ADDR_TP9950, 0xfe);
     id = I2C_Read8(ADDR_TP9950, 0xff);
     WAIT(200);
@@ -160,7 +162,7 @@ void camera_mode_detect(uint8_t init) {
 #ifdef _RF_CALIB
     WAIT(1000);
     if (I2C_Read8(ADDR_TP9950, 0x01) != 0x7E) { // if camera lost
-        WriteReg(0, 0x50, 0x01);                // set to video pattern
+        WriteReg(0x50, 0x01);                   // set to video pattern
     }
     RF_POWER = 0;
     RF_FREQ = 0;
@@ -177,11 +179,11 @@ void camera_mode_detect(uint8_t init) {
     uint8_t status_reg = 0;
 
     // init tc3587 and detect fps
-    WriteReg(0, 0x8F, 0x91);
+    WriteReg(0x8F, 0x91);
     if (camera_type == CAMERA_TYPE_HDZCS_CVBS) {
         Init_TC3587(0);
-        Set_720P60(IS_RX);
         video_format = VDO_FMT_720P60;
+        set_vin(video_format);
         I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
     } else {
         if (probe_device()) {
@@ -190,47 +192,39 @@ void camera_mode_detect(uint8_t init) {
             if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
                 Init_TC3587(1);
                 if (camera_setting_reg_set[11] == 0) {
-                    Set_540P90(0);
                     video_format = VDO_FMT_540P90;
                 } else if (camera_setting_reg_set[11] == 1) {
-                    Set_540P90_crop(0);
                     video_format = VDO_FMT_540P90_CROP;
                 } else if (camera_setting_reg_set[11] == 2) {
-                    Set_540P60(0);
                     video_format = VDO_FMT_540P60;
                 } else if (camera_setting_reg_set[11] == 3) {
-                    Set_960x720P60(0);
                     video_format = VDO_FMT_960x720P60;
                 }
+                set_vin(video_format);
                 I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
             } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1) {
-                Set_720P60(IS_RX);
-                Init_TC3587(0);
                 video_format = VDO_FMT_720P60;
+                set_vin(video_format);
+                Init_TC3587(0);
                 I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
             } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 || camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
                 if (camera_setting_reg_set[11] == 3) {
-                    Set_1080P30(IS_RX);
                     video_format = VDO_FMT_1080P30;
                 } else {
-                    Set_720P60(IS_RX);
                     video_format = VDO_FMT_720P60;
                 }
+                set_vin(video_format);
                 Init_TC3587(0);
                 I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
             } else {
                 while (cycles) {
-                    if (video_format == VDO_FMT_720P50) {
-                        Init_TC3587(0);
-                        Set_720P50(IS_RX);
-                    } else if (video_format == VDO_FMT_720P60) {
-                        Init_TC3587(0);
-                        Set_720P60(IS_RX);
-                    }
+                    Init_TC3587(0);
+                    set_vin(video_format);
+
                     WAIT(100);
 
                     for (detect_tries = 0; detect_tries < 5; detect_tries++) {
-                        status_reg = ReadReg(0, 0x02);
+                        status_reg = ReadReg(0x02);
                         if ((status_reg >> 4) != 0) {
                             loss = 1;
                         }
@@ -249,9 +243,9 @@ void camera_mode_detect(uint8_t init) {
                 }
 
                 if (cycles == 0) {
-                    Set_720P60(0);
-                    // WriteReg(0, 0x50, 0x01); // Do not output colorbar
+                    // WriteReg(0x50, 0x01); // Do not output colorbar
                     video_format = VDO_FMT_720P60;
+                    set_vin(video_format);
                     I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
                     camera_type = CAMERA_TYPE_RESERVED;
                 }
@@ -271,14 +265,14 @@ void camera_mode_detect(uint8_t init) {
 #endif
 
 void camera_button_init() {
-    WriteReg(0, 0x17, 0xC0);
-    WriteReg(0, 0x16, 0x00);
-    WriteReg(0, 0x15, 0x02);
-    WriteReg(0, 0x14, 0x00);
+    WriteReg(0x17, 0xC0);
+    WriteReg(0x16, 0x00);
+    WriteReg(0x15, 0x02);
+    WriteReg(0x14, 0x00);
 }
 
 void camera_reg_write_eep(uint16_t addr, uint8_t val) {
-    I2C_Write8_Wait(10, ADDR_EEPROM, addr, val);
+    eep_wr(addr, val);
 }
 uint8_t camera_reg_read_eep(uint16_t addr) {
     return I2C_Read8_Wait(10, ADDR_EEPROM, addr);
@@ -901,13 +895,13 @@ uint8_t camera_status_update(uint8_t op) {
                 Init_6300RF(RF_FREQ, POWER_MAX + 1);
                 vtx_pit = PIT_P1MW;
             } else {
-                WriteReg(0, 0x8F, 0x00);
-                WriteReg(0, 0x8F, 0x01);
+                WriteReg(0x8F, 0x00);
+                WriteReg(0x8F, 0x01);
                 DM6300_Init(RF_FREQ, RF_BW);
                 DM6300_SetChannel(RF_FREQ);
                 DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
                 cur_pwr = RF_POWER;
-                WriteReg(0, 0x8F, 0x11);
+                WriteReg(0x8F, 0x11);
             }
             DM6300_AUXADC_Calib();
 

@@ -18,10 +18,10 @@ void Get_EEP_LifeTime(void) {
     sysLifeTime += (uint32_t)u8 << 24;
 
     if (sysLifeTime == 0xffffffff) {
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LIFETIME_0, 0x00);
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LIFETIME_1, 0x00);
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LIFETIME_2, 0x00);
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LIFETIME_3, 0x00);
+        eep_wr(EEP_ADDR_LIFETIME_0, 0x00);
+        eep_wr(EEP_ADDR_LIFETIME_1, 0x00);
+        eep_wr(EEP_ADDR_LIFETIME_2, 0x00);
+        eep_wr(EEP_ADDR_LIFETIME_3, 0x00);
         sysLifeTime = 0;
     }
 
@@ -47,22 +47,22 @@ void Update_EEP_LifeTime(void) {
 
     if ((diff >> 0) & 0xff) {
         u8 = (sysLifeTime >> 0) & 0xff;
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LIFETIME_0, u8);
+        eep_wr(EEP_ADDR_LIFETIME_0, u8);
     }
 
     if ((diff >> 8) & 0xff) {
         u8 = (sysLifeTime >> 8) & 0xff;
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LIFETIME_1, u8);
+        eep_wr(EEP_ADDR_LIFETIME_1, u8);
     }
 
     if ((diff >> 16) & 0xff) {
         u8 = (sysLifeTime >> 16) & 0xff;
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LIFETIME_2, u8);
+        eep_wr(EEP_ADDR_LIFETIME_2, u8);
     }
 
     if ((diff >> 24) & 0xff) {
         u8 = (sysLifeTime >> 24) & 0xff;
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_LIFETIME_3, u8);
+        eep_wr(EEP_ADDR_LIFETIME_3, u8);
     }
 
     sysLifeTime_last = sysLifeTime;
@@ -76,20 +76,20 @@ char *parseLifeTime(void) {
     uint8_t pos = 0;
 
     if (hours == 0) { // display minutes for the first hour
-    
+
         uint8_t minutes = (sysLifeTime % 360) / 6;
         num = (minutes % 60) / 10; // update every 10 minutes
         if (num > 0) {
             lifetime[pos++] = '0' + num;
         }
         lifetime[pos] = '0' + (minutes % 10);
-        memcpy(lifetime+pos+1, "MIN", 4);
+        memcpy(lifetime + pos + 1, "MIN", 4);
 
     } else { // then just display hours
 
         uint32_t num = hours;
         uint8_t digits = 0;
-        while ( num != 0) {
+        while (num != 0) {
             digits++;
             num /= 10;
         }
@@ -99,12 +99,12 @@ char *parseLifeTime(void) {
             memcpy(lifetime, "ERROR", 6);
 
         } else {
-            uint8_t pos = digits-1;
+            uint8_t pos = digits - 1;
             while (hours != 0) {
                 lifetime[pos--] = '0' + (hours % 10);
                 hours /= 10;
             }
-            memcpy(lifetime+digits, "HR", 3);
+            memcpy(lifetime + digits, "HR", 3);
         }
     }
 

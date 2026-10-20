@@ -506,10 +506,12 @@ uint8_t get_tx_data_5680() // prepare data to VRX
         tx_buf[4] = 0x66;
     else if (video_format == VDO_FMT_720P60)
         tx_buf[4] = 0x99;
-    else if (video_format == VDO_FMT_720P60_NEW)
-        tx_buf[4] = 0xAA;
-    else if (video_format == VDO_FMT_720P30)
-        tx_buf[4] = 0xCC;
+    else if (video_format == VDO_FMT_720P60_8bit)
+        tx_buf[4] = 0x99;
+    // else if (video_format == VDO_FMT_720P60_NEW)
+    //     tx_buf[4] = 0xAA;
+    // else if (video_format == VDO_FMT_720P30)
+    //    tx_buf[4] = 0xCC;
     else if (video_format == VDO_FMT_540P90)
         tx_buf[4] = 0xEE;
     else if (video_format == VDO_FMT_540P90_CROP)
@@ -1251,7 +1253,7 @@ void parse_vtx_params(uint8_t isMSP_V2) {
 #endif
 #endif
                 if (nxt_pwr == (POWER_MAX + 1)) {
-                WriteReg(0, 0x8F, 0x10); // 5680 reset low (image tx off).
+                WriteReg(0x8F, 0x10); // 5680 reset low (image tx off).
                 dm6300_init_done = 0;
                 cur_pwr = POWER_MAX + 2;
                 vtx_pit_save = PIT_0MW;
@@ -1281,7 +1283,7 @@ void parse_vtx_params(uint8_t isMSP_V2) {
             vtx_pit_save = PIT_MODE;
         } else if (nxt_pwr == POWER_MAX + 1) { // Enter 0mW
             if (cur_pwr != (POWER_MAX + 2)) {
-                WriteReg(0, 0x8F, 0x10);
+                WriteReg(0x8F, 0x10);
                 dm6300_init_done = 0;
                 cur_pwr = POWER_MAX + 2;
                 vtx_pit_save = PIT_0MW;
@@ -1568,7 +1570,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                 save_vtx_param();
             } else {
                 msp_set_vtx_config(POWER_MAX + 1, 0); // enter 0mW for SA
-                WriteReg(0, 0x8F, 0x10);
+                WriteReg(0x8F, 0x10);
                 dm6300_init_done = 0;
                 cur_pwr = POWER_MAX + 2;
                 temp_err = 1;
@@ -1864,13 +1866,13 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                 if (camera_selected == CAM_SELECT_RATIO) {
                     camRatio = 1 - camRatio;
                     camera_select_menu_ratio_update();
-                    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_CAM_RATIO, camRatio);
+                    eep_wr(EEP_ADDR_CAM_RATIO, camRatio);
                 }
             } else if (VirtualBtn == BTN_RIGHT) {
                 if (camera_selected == CAM_SELECT_RATIO) {
                     camRatio = 1 - camRatio;
                     camera_select_menu_ratio_update();
-                    I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_CAM_RATIO, camRatio);
+                    eep_wr(EEP_ADDR_CAM_RATIO, camRatio);
                 } else {
                     camera_is_3v3 = (camera_selected == CAM_SELECT_RUNCAM_ECO);
                     clear_screen();
@@ -2120,7 +2122,7 @@ void set_vtx_param() {
         if (!pit_mode_cfg_done) {
             if (PIT_MODE) {
                 if (vtx_pit_save == PIT_0MW) {
-                    WriteReg(0, 0x8F, 0x10);
+                    WriteReg(0x8F, 0x10);
                     dm6300_init_done = 0;
                     // SPI_Write(0x6, 0xFF0, 0x00000018);
                     // SPI_Write(0x3, 0xd00, 0x00000000);
@@ -2162,12 +2164,12 @@ void set_vtx_param() {
             }
         } else if (heat_protect) {
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
-            WriteReg(0, 0x8F, 0x00);        // dm6300 reset low
-            WriteReg(0, 0x8F, 0x01);        // dm6300 reset high
+            WriteReg(0x8F, 0x00);           // dm6300 reset low
+            WriteReg(0x8F, 0x01);           // dm6300 reset high
             DM6300_Init(RF_FREQ, RF_BW);    // Set bandwidth
             DM6300_SetChannel(RF_FREQ);     // Set band/channel
             DM6300_SetPower(0, RF_FREQ, 0); // Set low power (25mW)
-            WriteReg(0, 0x8F, 0x11);        // enable 5680 video engine
+            WriteReg(0x8F, 0x11);           // enable 5680 video engine
 #else
             DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
             cur_pwr = RF_POWER;
@@ -2177,7 +2179,7 @@ void set_vtx_param() {
 
         first_arm = 1;
         PIT_MODE = PIT_OFF;
-        I2C_Write8_Wait(10, ADDR_EEPROM, EEP_ADDR_PITMODE, PIT_MODE);
+        eep_wr(EEP_ADDR_PITMODE, PIT_MODE);
         if (!TEAM_RACE)
             ; // msp_set_vtx_config(RF_POWER, 1);
     } else if (!g_IS_ARMED && g_IS_ARMED_last) {

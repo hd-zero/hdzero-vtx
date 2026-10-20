@@ -17,12 +17,12 @@
 
 extern uint8_t camera_is_3v3;
 
-#define camera_button_enter WriteReg(0, 0x14, camera_is_3v3 ? 50 : 65)
-#define camera_button_right WriteReg(0, 0x14, camera_is_3v3 ? 88 : 89)
-#define camera_button_down  WriteReg(0, 0x14, camera_is_3v3 ? 100 : 100)
-#define camera_button_left  WriteReg(0, 0x14, camera_is_3v3 ? 63 : 72)
-#define camera_button_up    WriteReg(0, 0x14, camera_is_3v3 ? 75 : 80)
-#define camera_button_mid   WriteReg(0, 0x14, camera_is_3v3 ? 0 : 44)
+#define camera_button_enter WriteReg(0x14, camera_is_3v3 ? 50 : 65)
+#define camera_button_right WriteReg(0x14, camera_is_3v3 ? 88 : 89)
+#define camera_button_down  WriteReg(0x14, camera_is_3v3 ? 100 : 100)
+#define camera_button_left  WriteReg(0x14, camera_is_3v3 ? 63 : 72)
+#define camera_button_up    WriteReg(0x14, camera_is_3v3 ? 75 : 80)
+#define camera_button_mid   WriteReg(0x14, camera_is_3v3 ? 0 : 44)
 
 typedef enum {
     CAMERA_MFR_UNKNOW,
@@ -46,8 +46,9 @@ typedef enum {
 typedef enum {
     VDO_FMT_720P50,
     VDO_FMT_720P60,
-    VDO_FMT_720P60_NEW,
-    VDO_FMT_720P30,
+    VDO_FMT_720P60_8bit,
+    // VDO_FMT_720P60_NEW,
+    // VDO_FMT_720P30,
     VDO_FMT_540P90,
     VDO_FMT_540P90_CROP,
     VDO_FMT_540P60,

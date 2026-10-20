@@ -184,7 +184,7 @@ void SA_Update(uint8_t cmd) {
                 if (last_SA_lock && seconds < WAIT_SA_CONFIG) {
                     pwr_init = cur_pwr;
                 } else {
-                    WriteReg(0, 0x8F, 0x10); // reset RF_chip
+                    WriteReg(0x8F, 0x10); // reset RF_chip
                     dm6300_init_done = 0;
                     temp_err = 1;
                 }
@@ -281,7 +281,7 @@ void SA_Update(uint8_t cmd) {
                     cur_pwr = POWER_MAX + 2;
                     PIT_MODE = 0;
                     vtx_pit = PIT_0MW;
-                    WriteReg(0, 0x8F, 0x10); // reset RF_chip
+                    WriteReg(0x8F, 0x10); // reset RF_chip
                     dm6300_init_done = 0;
                     temp_err = 1;
                 } else {
@@ -295,7 +295,7 @@ void SA_Update(uint8_t cmd) {
                     cur_pwr = POWER_MAX + 2;
                     PIT_MODE = 0;
                     vtx_pit = PIT_0MW;
-                    WriteReg(0, 0x8F, 0x10); // reset RF_chip
+                    WriteReg(0x8F, 0x10); // reset RF_chip
                     dm6300_init_done = 0;
                     temp_err = 1;
                 } else {
