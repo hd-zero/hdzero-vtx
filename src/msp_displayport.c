@@ -1938,8 +1938,13 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
 #endif
 }
 
+void osd_write_string(uint8_t row, uint8_t col, const char *string) {
+    strcpy(&osd_buf[row][col], string);
+}
+
 void vtx_menu_init() {
     uint8_t i;
+    uint8_t col;
 
     if (resolution == HD_5018)
         osd_menu_offset = 8;
@@ -1949,24 +1954,25 @@ void vtx_menu_init() {
     disp_mode = DISPLAY_CMS;
     clear_screen();
 
-    strcpy(osd_buf[0] + osd_menu_offset + 2, "----VTX_MENU----");
-    strcpy(osd_buf[2] + osd_menu_offset + 2, ">CHANNEL");
-    strcpy(osd_buf[3] + osd_menu_offset + 2, " POWER");
-    strcpy(osd_buf[4] + osd_menu_offset + 2, " LP_MODE");
-    strcpy(osd_buf[5] + osd_menu_offset + 2, " PIT_MODE");
-    strcpy(osd_buf[6] + osd_menu_offset + 2, " OFFSET_25MW");
-    strcpy(osd_buf[7] + osd_menu_offset + 2, " TEAM_RACE");
-    strcpy(osd_buf[8] + osd_menu_offset + 2, " SHORTCUTS");
-    strcpy(osd_buf[9] + osd_menu_offset + 2, " EXIT  ");
-    strcpy(osd_buf[10] + osd_menu_offset + 2, " SAVE&EXIT");
-    strcpy(osd_buf[11] + osd_menu_offset + 2, "------INFO------");
-    strcpy(osd_buf[12] + osd_menu_offset + 2, " SWITCH");
-    strcpy(osd_buf[13] + osd_menu_offset + 2, " CAMERA");
-    strcpy(osd_buf[14] + osd_menu_offset + 2, " VTX");
-    strcpy(osd_buf[15] + osd_menu_offset + 2, " VER");
-    strcpy(osd_buf[16] + osd_menu_offset + 2, " LIFETIME");
+    col = osd_menu_offset + 2;
+    osd_write_string(0, col, "----VTX_MENU----");
+    osd_write_string(2, col, ">CHANNEL");
+    osd_write_string(3, col, " POWER");
+    osd_write_string(4, col, " LP_MODE");
+    osd_write_string(5, col, " PIT_MODE");
+    osd_write_string(6, col, " OFFSET_25MW");
+    osd_write_string(7, col, " TEAM_RACE");
+    osd_write_string(8, col, " SHORTCUTS");
+    osd_write_string(9, col, " EXIT  ");
+    osd_write_string(10, col, " SAVE&EXIT");
+    osd_write_string(11, col, "------INFO------");
+    osd_write_string(12, col, " SWITCH");
+    osd_write_string(13, col, " CAMERA");
+    osd_write_string(14, col, " VTX");
+    osd_write_string(15, col, " VER");
+    osd_write_string(16, col, " LIFETIME");
 #ifdef USE_TEMPERATURE_SENSOR
-    strcpy(osd_buf[17] + osd_menu_offset + 2, " TEMPERATURE");
+    osd_write_string(17, col, " TEMPERATURE");
 #endif
 
     for (i = 2; i < 9; i++) {
@@ -1975,8 +1981,9 @@ void vtx_menu_init() {
     }
 
     // draw variant & version
-    strcpy(osd_buf[14] + osd_menu_offset + 13, VTX_NAME);
-    strcpy(osd_buf[15] + osd_menu_offset + 13, VTX_VERSION_STRING);
+    col = osd_menu_offset + 13;
+    osd_write_string(14, col, VTX_NAME);
+    osd_write_string(15, col, VTX_VERSION_STRING);
 
     vtx_channel = RF_FREQ;
     vtx_power = RF_POWER;
@@ -1997,14 +2004,13 @@ void update_vtx_menu_param(uint8_t state) {
     const char *shortcutString[] = {"OPT_A", "OPT_B"};
     const char *cameraTypeString[] = {"UNKNOWN ", "RESERVED", "OUTDATED", "MICRO_V1", "MICRO_V2", "NANO_90 ", "MICRO_V3", "CVBS    "};
     const char *cameraSwitchString[] = {"NONE", "DUAL", "TRIPLE"};
+    uint8_t col;
 
     // cursor
     state += 2;
+    col = osd_menu_offset + 2;
     for (i = 2; i < 11; i++) {
-        if (i == state)
-            osd_buf[i][osd_menu_offset + 2] = '>';
-        else
-            osd_buf[i][osd_menu_offset + 2] = ' ';
+        osd_buf[i][col] = (i == state) ? '>' : ' ';
     }
 
     // channel display
@@ -2027,39 +2033,48 @@ void update_vtx_menu_param(uint8_t state) {
         osd_buf[2][osd_menu_offset + 24] = '1' + vtx_channel - 12;
     }
 
-    strcpy(osd_buf[3] + osd_menu_offset + 20, powerString[vtx_power]);
-    strcpy(osd_buf[4] + osd_menu_offset + 20, lowPowerString[vtx_lp]);
-    strcpy(osd_buf[5] + osd_menu_offset + 20, pitString[vtx_pit]);
+    col = osd_menu_offset + 20;
+    osd_write_string(3, col, powerString[vtx_power]);
+    osd_write_string(4, col, lowPowerString[vtx_lp]);
+    osd_write_string(5, col, pitString[vtx_pit]);
 
     if (vtx_offset < 10) {
-        strcpy(osd_buf[6] + osd_menu_offset + 20, "     ");
+        osd_write_string(6, col, "     ");
         osd_buf[6][osd_menu_offset + 23] = '0' + vtx_offset;
     } else if (vtx_offset == 10)
-        strcpy(osd_buf[6] + osd_menu_offset + 20, "   10");
+        osd_write_string(6, col, "   10");
     else if (vtx_offset < 20) {
-        strcpy(osd_buf[6] + osd_menu_offset + 20, "   -");
+        osd_write_string(6, col, "   -");
         osd_buf[6][osd_menu_offset + 24] = '0' + (vtx_offset - 10);
     } else if (vtx_offset == 20)
-        strcpy(osd_buf[6] + osd_menu_offset + 20, "  -10");
+        osd_write_string(6, col, "  -10");
 
-    strcpy(osd_buf[7] + osd_menu_offset + 20, treamRaceString[vtx_team_race]);
-
-    strcpy(osd_buf[8] + osd_menu_offset + 20, shortcutString[vtx_shortcut]);
+    osd_write_string(7, col, treamRaceString[vtx_team_race]);
+    osd_write_string(8, col, shortcutString[vtx_shortcut]);
 
     // camera switch info
-    if (g_camera_switch == SWITCH_TYPE_NONE)
-        strcpy(osd_buf[12] + osd_menu_offset + 13, cameraSwitchString[0]);
-    else if (g_camera_switch == SWITCH_TYPE_PI4IO)
-        strcpy(osd_buf[12] + osd_menu_offset + 13, cameraSwitchString[1]);
-    else if (g_camera_switch == SWITCH_TYPE_PCA9557 || g_camera_switch == SWITCH_TYPE_HDZCS)
-        strcpy(osd_buf[12] + osd_menu_offset + 13, cameraSwitchString[2]);
+    col = osd_menu_offset + 13;
+    const char *switch_str = cameraSwitchString[0];
+    switch (g_camera_switch) {
+    case SWITCH_TYPE_PI4IO:
+        switch_str = cameraSwitchString[1];
+        break;
+    case SWITCH_TYPE_PCA9557:
+    case SWITCH_TYPE_HDZCS:
+        switch_str = cameraSwitchString[2];
+        break;
+    case SWITCH_TYPE_NONE:
+    default:
+        switch_str = cameraSwitchString[0];
+        break;
+    }
+    osd_write_string(12, col, switch_str);
 
     // camera selection
     osd_buf[13][osd_menu_offset + 10] = '0' + g_camera_id;
     osd_buf[13][osd_menu_offset + 11] = (g_manual_camera_sel) ? 'M' : ' ';
-    strcpy(osd_buf[13] + osd_menu_offset + 13, cameraTypeString[camera_type]);
-
-    strcpy(osd_buf[16] + osd_menu_offset + 13, parseLifeTime());
+    osd_write_string(13, col, cameraTypeString[camera_type]);
+    osd_write_string(16, col, parseLifeTime());
 
 #ifdef USE_TEMPERATURE_SENSOR
     osd_buf[17][osd_menu_offset + 16] = (temperature >> 2) / 100 + '0';

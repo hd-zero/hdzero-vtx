@@ -175,6 +175,7 @@ void set_vtx_param();
 uint8_t channel_to_bfChannel(uint8_t const channel);
 uint8_t bfChannel_to_channel(uint8_t const channel);
 void resync_vrx_vtmg();
+void osd_write_string(uint8_t row, uint8_t col, const char *string);
 
 #ifdef INIT_VTX_TABLE
 void InitVtxTable();
