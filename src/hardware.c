@@ -1544,32 +1544,6 @@ void reset_config() {
 
     eep_wr(EEP_ADDR_CAM_TYPE, 0);
 }
-#if (0)
-uint8_t check_uart_loopback() {
-    uint8_t rdat[4];
-    uint8_t i = 0;
-
-    while (CMS_ready())
-        rdat[0] = CMS_rx();
-
-    CMS_tx(0x11);
-    CMS_tx(0x22);
-    CMS_tx(0x33);
-    CMS_tx(0x44);
-
-    while (CMS_ready()) {
-        rdat[i] = CMS_rx();
-        _outchar(rdat[i]);
-        i++;
-    }
-
-    if (i == 4 && rdat[0] == 0x11 && rdat[1] == 0x22 && rdat[2] == 0x33 && rdat[3] == 0x44) {
-        return 1;
-    } else {
-        return 0;
-    }
-}
-#endif
 
 #ifdef USE_USB_DET
 typedef void (*reset_mcu_ptr)(void);
@@ -1588,17 +1562,6 @@ void usb_det_task() {
 }
 #endif
 
-#if (0)
-void _outstring(char *string) {
-    uint8_t i = 0;
-    for (i = 0; i < 128; i++) {
-        if (string[i] == 0)
-            break;
-        else
-            _outchar(string[i]);
-    }
-}
-#endif
 void check_eeprom() {
     const uint8_t tab_base_address[3] = {
         EEP_ADDR_TAB1,
