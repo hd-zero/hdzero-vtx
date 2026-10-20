@@ -357,7 +357,6 @@ void CFG_Back() {
 }
 
 void GetVtxParameter() {
-    unsigned char CODE_SEG *ptr = (unsigned char CODE_SEG *)0xFFE8;
     uint8_t i, j;
     XDATA_SEG uint8_t tab[FREQ_NUM_EXTERNAL][POWER_MAX + 1];
     uint8_t flash_vld = 1;
@@ -867,7 +866,7 @@ void PwrLMT() {
                                 p_init = 0;
                             }
 
-                            SPI_Write(0x6, 0xFF0, 0x00000018);
+                            SPI_Write6(0xFF0, 0x00000018);
 
                             if (p >= table_power[RF_FREQ][3]) {
                                 p = table_power[RF_FREQ][3];
@@ -875,8 +874,8 @@ void PwrLMT() {
                                 p += 0x4;
                             }
 
-                            SPI_Write(0x3, 0xD1C, (uint32_t)p);
-                            SPI_Write(0x3, 0x330, 0x31F); // 1W
+                            SPI_Write3(0xD1C, (uint32_t)p);
+                            SPI_Write3(0x330, 0x31F); // 1W
                         }
                     }
 #endif
@@ -930,15 +929,15 @@ void PwrLMT() {
                                     p = table_power[RF_FREQ][3] - 0x1C;
                                     p_init = 0;
                                 }
-                                SPI_Write(0x6, 0xFF0, 0x00000018); // set page
+                                SPI_Write6(0xFF0, 0x00000018); // set page
 
                                 if (p >= table_power[RF_FREQ][3])
                                     p = table_power[RF_FREQ][3];
                                 else {
                                     p += 0x4;
                                 }
-                                SPI_Write(0x3, 0xD1C, (uint32_t)(p + pwr_offset)); // digital offset
-                                SPI_Write(0x3, 0x330, 0x31F);                      // analog offset 1W
+                                SPI_Write3(0xD1C, (uint32_t)(p + pwr_offset)); // digital offset
+                                SPI_Write3(0x330, 0x31F);                      // analog offset 1W
                             }
                         }
 #endif // HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2

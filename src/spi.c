@@ -138,3 +138,17 @@ void SPI_Read(uint8_t trans, uint16_t addr, uint32_t *dat_l) {
     SET_CK(0);
     SET_DO(0);
 }
+
+void SPI_Write3(uint16_t addr, uint32_t dat) {
+    SPI_Write(3, addr, dat);
+}
+void SPI_Write6(uint16_t addr, uint32_t dat) {
+    SPI_Write(6, addr, dat);
+}
+
+void SPI_Read3(uint16_t addr, uint32_t *dat) {
+    SPI_Read(3, addr, dat);
+}
+void SPI_Read6(uint16_t addr, uint32_t *dat) {
+    SPI_Read(6, addr, dat);
+}

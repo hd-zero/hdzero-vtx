@@ -1598,8 +1598,8 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
             } else {
                 save_vtx_param();
                 pit_mode_cfg_done = 1; // avoid to config DM6300 again
-                // SPI_Write(0x6, 0xFF0, 0x00000018);
-                // SPI_Write(0x3, 0xd00, 0x00000003);
+                // SPI_Write6(0xFF0, 0x00000018);
+                // SPI_Write3(0xd00, 0x00000003);
                 Init_6300RF(RF_FREQ, RF_POWER);
                 DM6300_AUXADC_Calib();
             }
@@ -2124,8 +2124,8 @@ void set_vtx_param() {
                 if (vtx_pit_save == PIT_0MW) {
                     WriteReg(0x8F, 0x10);
                     dm6300_init_done = 0;
-                    // SPI_Write(0x6, 0xFF0, 0x00000018);
-                    // SPI_Write(0x3, 0xd00, 0x00000000);
+                    // SPI_Write6(0xFF0, 0x00000018);
+                    // SPI_Write3(0xd00, 0x00000000);
                     cur_pwr = POWER_MAX + 2;
                     temp_err = 1;
                 } else // if(vtx_pit_save == PIT_P1MW)

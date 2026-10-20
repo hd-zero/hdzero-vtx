@@ -237,10 +237,10 @@ void Monitor(void) {
         DM6300_init7(0);
     else if (!stricmp(argv[0], "efuse1")) {
         DM6300_EFUSE1();
-        SPI_Write(0x6, 0xFF0, 0x00000018);
+        SPI_Write6(0xFF0, 0x00000018);
     } else if (!stricmp(argv[0], "efuse2")) {
         DM6300_EFUSE2();
-        SPI_Write(0x6, 0xFF0, 0x00000018);
+        SPI_Write6(0xFF0, 0x00000018);
     } else if (!stricmp(argv[0], "rftest"))
         DM6300_RFTest();
     else if (!stricmp(argv[0], "bbon"))
