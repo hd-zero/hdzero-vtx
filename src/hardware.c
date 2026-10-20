@@ -83,34 +83,20 @@ uint8_t led_status = 0;
 
 // Short     Short
 // XXXX------XXXX---------------------------------------------------
-const uint8_t diag_led_flags_cameralost[64] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0,
-                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+const uint8_t diag_led_flags_cameralost[8] = {0x0F, 0x3C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 // Short     Short     Short
 // XXXX------XXXX------XXXX-----------------------------------------
-const uint8_t diag_led_flags_heatprotect[64] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0,
-                                                0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-                                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+const uint8_t diag_led_flags_heatprotect[8] = {0x0F, 0x3C, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00};
 // Short     Short     Short     Short
 // XXXX------XXXX------XXXX------XXXX-------------------------------
-const uint8_t diag_led_flags_dm6300lost[64] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0,
-                                               0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1,
-                                               1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+const uint8_t diag_led_flags_dm6300lost[8] = {0x0F, 0x3C, 0xF0, 0xC0, 0x03, 0x00, 0x00, 0x00};
 // Long                  Short
 // XXXXXXXXXXXXXXXX------XXXX-------------------------------------
-const uint8_t diag_led_flags_0mW[64] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                                        0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+const uint8_t diag_led_flags_0mW[8] = {0xFF, 0xFF, 0xC0, 0x03, 0x00, 0x00, 0x00, 0x00};
 // Long                  Short     Short
 // XXXXXXXXXXXXXXXX------XXXX------XXXX---------------------------
-const uint8_t diag_led_flags_pit[64] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                                        0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+const uint8_t diag_led_flags_pit[8] = {0xFF, 0xFF, 0xC0, 0x03, 0x3C, 0x00, 0x00, 0x00};
+const uint8_t diag_led_flags_normal[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 uint8_t temp_err = 0;
 #ifdef USE_TEMPERATURE_SENSOR
 int16_t temp0 = 0;
@@ -1355,22 +1341,24 @@ void LED_Flip() {
     }
 }
 void LED_Task() {
-    if (dm6300_lost) {
-        Set_Blue_LED(diag_led_flags_dm6300lost[led_timer_cnt]);
+    const uint8_t *led_ptr = NULL;
 
+    if (dm6300_lost) {
+        led_ptr = diag_led_flags_dm6300lost;
     } else if (cameraLost) {
-        Set_Blue_LED(diag_led_flags_cameralost[led_timer_cnt]);
+        led_ptr = diag_led_flags_cameralost;
 
     } else if (heat_protect) {
-        Set_Blue_LED(diag_led_flags_heatprotect[led_timer_cnt]);
-
+        led_ptr = diag_led_flags_heatprotect;
     } else if (cur_pwr == POWER_MAX + 2) {
-        Set_Blue_LED(diag_led_flags_0mW[led_timer_cnt]);
-
+        led_ptr = diag_led_flags_0mW;
     } else if (PIT_MODE != PIT_OFF) {
-        Set_Blue_LED(diag_led_flags_pit[led_timer_cnt]);
-    } else
-        Set_Blue_LED(1);
+        led_ptr = diag_led_flags_pit;
+    } else {
+        led_ptr = diag_led_flags_normal;
+    }
+
+    Set_Blue_LED((led_ptr[led_timer_cnt >> 3] >> (led_timer_cnt & 7)) & 1);
 }
 
 void Set_Blue_LED(uint8_t flag) {
