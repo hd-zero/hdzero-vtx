@@ -33,11 +33,8 @@ void DM6300_Set_Page18();
 void DM6300_Set_Page19();
 // void DM6300_M0();
 
-extern int16_t auxadc_offset;
 extern uint8_t table_power[FREQ_NUM_EXTERNAL][POWER_MAX + 1];
-
 extern uint32_t dcoc_ih, dcoc_qh;
-
 extern uint8_t dm6300_init_done;
 extern uint8_t dm6300_lost;
 #endif /* __DM6300_H_ */

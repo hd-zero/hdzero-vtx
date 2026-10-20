@@ -14,9 +14,9 @@ typedef struct {
     uint32_t dat;
 } dm6300_reg_value_t;
 
-int16_t auxadc_offset = 0;
-uint32_t init6300_fcnt = 0;
-uint32_t init6300_fnum[FREQ_NUM_EXTERNAL] = {0};
+static int16_t auxadc_offset = 0;
+static uint32_t init6300_fcnt = 0;
+static uint32_t init6300_fnum[FREQ_NUM_EXTERNAL] = {0};
 
 uint32_t dcoc_ih = 0x075F0000;
 uint32_t dcoc_qh = 0x075F0000;
