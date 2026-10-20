@@ -24,9 +24,9 @@ uint8_t video_format = VDO_FMT_720P60;
 uint8_t camRatio = 0; // 0->16:9   1->4:3
 uint8_t camMenuStatus = CAM_STATUS_IDLE;
 uint8_t isp_reset_reqd = 0;
-
+#ifdef USE_TP9950
 uint8_t camera_is_3v3 = 0;
-
+#endif
 extern uint8_t g_camera_id;
 extern uint8_t g_camera_switch;
 
@@ -434,6 +434,7 @@ void camera_reinit(void) {
 }
 
 void camera_button_op(uint8_t op) {
+#ifdef USE_TP9950
     switch (op) {
     case BTN_UP:
         camera_button_up;
@@ -456,6 +457,9 @@ void camera_button_op(uint8_t op) {
     default:
         break;
     }
+#else
+    UNUSED(op);
+#endif
 }
 
 void camera_menu_draw_bracket(void) {
@@ -646,12 +650,13 @@ void camera_profile_menu_toggle(uint8_t op) {
             camera_profile_menu++;
             if (camera_profile_menu == CAMERA_PROFILE_NUM)
                 camera_profile_menu = 0;
-            camera_setting_reg_menu_update();
-            isp_reset_reqd |= camera_set(camera_setting_reg_menu, 0, 0);
         } else if (op == BTN_LEFT) {
             camera_profile_menu--;
             if (camera_profile_menu > CAMERA_PROFILE_NUM)
                 camera_profile_menu = CAMERA_PROFILE_NUM - 1;
+        }
+
+        if (op == BTN_RIGHT || op == BTN_LEFT) {
             camera_setting_reg_menu_update();
             isp_reset_reqd |= camera_set(camera_setting_reg_menu, 0, 0);
         }
@@ -768,12 +773,13 @@ uint8_t camera_status_update(uint8_t op) {
 
     if (op >= BTN_INVALID)
         return ret;
-
+#ifdef USE_TP9950
     if (camera_type == CAMERA_TYPE_UNKNOWN ||
         camera_type == CAMERA_TYPE_OUTDATED) {
         camera_button_op(op);
         return ret;
     }
+#endif
 
     switch (camMenuStatus) {
     case CAM_STATUS_IDLE:

@@ -183,7 +183,6 @@ void InitVtxTable();
 extern uint8_t osd_buf[OSD_CANVAS_HD_VMAX1][OSD_CANVAS_HD_HMAX1];
 extern uint8_t osd_menu_offset;
 extern uint8_t disp_mode;
-extern uint8_t msp_tx_cnt;
 extern uint8_t resolution;
 extern uint8_t first_arm;
 extern uint8_t mspVtxLock;

@@ -323,37 +323,29 @@ uint16_t I2C_Read16_a8(uint8_t slave_addr, uint8_t reg_addr) {
 }
 /////////////////////////////////////////////////////////////////
 // runcam I2C
-uint8_t RUNCAM_Write(uint8_t cam_id, uint32_t addr, uint32_t val) {
+uint8_t RUNCAM_Write(uint16_t addr, uint32_t val) {
     uint8_t value;
 
     I2C_start(); // start
 
-    value = I2C_write_byte(cam_id); // slave
+    value = I2C_write_byte(camera_device); // slave
     if (value) {
         I2C_stop();
         return 1;
     }
 
-    I2C_write_byte(0x12); // write cmd
-
-    value = (addr >> 16) & 0xFF; // ADDR[23:16]
-    I2C_write_byte(value);
-
+    I2C_write_byte(0x12);       // write cmd
+    I2C_write_byte(0);          // ADDR[23:16]
     value = (addr >> 8) & 0xFF; // ADDR[15:8]
     I2C_write_byte(value);
-
-    value = addr & 0xFF; // ADDR[7:0]
+    value = (addr >> 0) & 0xFF; // ADDR[7:0]
     I2C_write_byte(value);
-
     value = (val >> 24) & 0xFF; // DATA[31:24]
     I2C_write_byte(value);
-
     value = (val >> 16) & 0xFF; // DATA[23:16]
     I2C_write_byte(value);
-
     value = (val >> 8) & 0xFF; // DATA[15:8]
     I2C_write_byte(value);
-
     value = val & 0xFF; // DATA[7:0]
     I2C_write_byte(value);
 
@@ -364,38 +356,29 @@ uint8_t RUNCAM_Write(uint8_t cam_id, uint32_t addr, uint32_t val) {
     return 0;
 }
 
-uint32_t RUNCAM_Read(uint8_t cam_id, uint32_t addr) {
+uint32_t RUNCAM_Read(uint16_t addr) {
     uint8_t value;
     uint32_t ret = 0;
 
-    I2C_start(); // start
+    I2C_start();                   // start
+    I2C_write_byte(camera_device); // slave
 
-    I2C_write_byte(cam_id); // slave
-
-    I2C_write_byte(0x13); // read cmd
-
-    value = (addr >> 16) & 0xFF; // ADDR[23:16]
-    I2C_write_byte(value);
-
+    I2C_write_byte(0x13);       // read cmd
+    I2C_write_byte(0);          // ADDR[23:16]
     value = (addr >> 8) & 0xFF; // ADDR[15:8]
     I2C_write_byte(value);
-
-    value = addr & 0xFF; // ADDR[7:0]
+    value = (addr >> 0) & 0xFF; // ADDR[7:0]
     I2C_write_byte(value);
 
-    I2C_start(); // start
-
-    I2C_write_byte(cam_id | 0x01); // slave | 0x01
+    I2C_start();                          // start
+    I2C_write_byte(camera_device | 0x01); // slave | 0x01
 
     value = I2C_read_byte(0); // read DATA[31:24]
     ret = (ret << 8) | value;
-
     value = I2C_read_byte(0); // read DATA[23:16]
     ret = (ret << 8) | value;
-
     value = I2C_read_byte(0); // read DATA[15:8]
     ret = (ret << 8) | value;
-
     value = I2C_read_byte(1); // read DATA[7:0]
     ret = (ret << 8) | value;
 
@@ -411,14 +394,14 @@ uint32_t RUNCAM_Read(uint8_t cam_id, uint32_t addr) {
     0: only read
     1: read and write
 */
-uint8_t RUNCAM_Read_Write(uint8_t cam_id, uint32_t addr, uint32_t val) {
+uint8_t RUNCAM_Read_Write(uint16_t addr, uint32_t val) {
     uint8_t ret = 0;
     uint32_t rdata;
 
-    rdata = (cam_id == RUNCAM_MICRO_V1) ? (val + 1) : RUNCAM_Read(cam_id, addr);
+    rdata = (camera_device == RUNCAM_MICRO_V1) ? (val + 1) : RUNCAM_Read(addr);
 
     if (rdata != val) {
-        RUNCAM_Write(cam_id, addr, val);
+        RUNCAM_Write(addr, val);
         ret = 1;
     }
 

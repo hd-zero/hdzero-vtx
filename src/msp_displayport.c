@@ -43,10 +43,6 @@ uint8_t vtx_team_race = 0;
 uint8_t vtx_shortcut = 0;
 uint8_t first_arm = 0;
 
-uint8_t fc_pwr_rx = 0;
-uint8_t fc_pit_rx = 0;
-uint8_t fc_lp_rx = 0;
-
 uint8_t g_IS_ARMED = 0;
 uint8_t g_IS_PARALYZE = 0;
 
@@ -72,7 +68,6 @@ uint8_t msp_tx_cnt = 0xff;
 
 uint8_t mspVtxLock = 0;
 uint8_t init_table_supported = 0;
-uint8_t init_table_done = 0;
 
 #ifdef USE_TP9950
 uint16_t cam_menu_timeout_sec = 0;
@@ -1129,6 +1124,9 @@ void parse_get_osd_canvas(void) {
 }
 
 void parse_vtx_params(uint8_t isMSP_V2) {
+    uint8_t fc_pwr_rx = 0;
+    uint8_t fc_pit_rx = 0;
+    uint8_t fc_lp_rx = 0;
     uint8_t nxt_ch = INVALID_CHANNEL;
     uint8_t nxt_pwr;
     uint8_t nxt_pit;
@@ -1828,16 +1826,18 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                     camera_select_menu_ratio_update();
                     eep_wr(EEP_ADDR_CAM_RATIO, camRatio);
                 } else {
+#ifdef USE_TP9950
                     camera_is_3v3 = (camera_selected == CAM_SELECT_RUNCAM_ECO);
+#endif
                     clear_screen();
                     if (camera_selected == CAM_SELECT_EXIT) {
                         disp_mode = DISPLAY_OSD;
                         cms_state = CMS_OSD;
                         msp_tx_cnt = 0;
                     } else {
-                        camera_button_enter;
                         camera_menu_mode_exit_note();
 #ifdef USE_TP9950
+                        camera_button_enter;
                         cam_menu_timeout_sec = seconds;
 #endif
                         cms_state = CMS_CAM;
@@ -2293,7 +2293,6 @@ void InitVtxTable() {
     }
 
     msp_eeprom_write();
-    init_table_done = 1;
 }
 #endif
 

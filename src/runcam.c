@@ -137,18 +137,18 @@ void runcam_type_detect(void) {
     uint8_t i, j;
     uint32_t rdat;
 
-    if (!RUNCAM_Write(RUNCAM_MICRO_V1, 0x50, 0x0452484E)) {
+    camera_device = RUNCAM_MICRO_V1;
+    if (!RUNCAM_Write(0x0050, 0x0452484E)) {
         camera_type = CAMERA_TYPE_RUNCAM_MICRO_V1;
-        camera_device = RUNCAM_MICRO_V1;
         for (i = 0; i < CAMERA_SETTING_NUM; i++) {
             for (j = 0; j < 4; j++)
                 camera_attribute[i][j] = runcam_micro_v1_attribute[i][j];
         }
     } else {
-        rdat = RUNCAM_Read(RUNCAM_MICRO_V2, 0x50);
+        camera_device = RUNCAM_MICRO_V2;
+        rdat = RUNCAM_Read(0x0050);
         if (rdat != 0x00000000 && rdat != 0xffffffff) {
             camera_type = CAMERA_TYPE_RUNCAM_MICRO_V2;
-            camera_device = RUNCAM_MICRO_V2;
             for (i = 0; i < CAMERA_SETTING_NUM; i++) {
                 for (j = 0; j < 4; j++)
                     camera_attribute[i][j] = runcam_micro_v2_attribute[i][j];
@@ -156,10 +156,10 @@ void runcam_type_detect(void) {
             return;
         }
 
-        rdat = RUNCAM_Read(RUNCAM_NANO_90, 0x50);
+        camera_device = RUNCAM_NANO_90;
+        rdat = RUNCAM_Read(0x0050);
         if (rdat != 0x00000000 && rdat != 0xffffffff) {
             camera_type = CAMERA_TYPE_RUNCAM_NANO_90;
-            camera_device = RUNCAM_NANO_90;
             for (i = 0; i < CAMERA_SETTING_NUM; i++) {
                 for (j = 0; j < 4; j++)
                     camera_attribute[i][j] = runcam_nano_90_attribute[i][j];
@@ -167,10 +167,10 @@ void runcam_type_detect(void) {
             return;
         }
 
-        rdat = RUNCAM_Read(RUNCAM_MICRO_V3, 0x50);
+        camera_device = RUNCAM_MICRO_V3;
+        rdat = RUNCAM_Read(0x0050);
         if (rdat != 0x00000000 && rdat != 0xffffffff) {
             camera_type = CAMERA_TYPE_RUNCAM_MICRO_V3;
-            camera_device = RUNCAM_MICRO_V3;
             for (i = 0; i < CAMERA_SETTING_NUM; i++) {
                 for (j = 0; j < 4; j++)
                     camera_attribute[i][j] = runcam_micro_v3_attribute[i][j];
@@ -229,31 +229,33 @@ void runcam_brightness(uint8_t val, uint8_t led_mode) {
     d += (val_32 << 16);
     d -= ((uint32_t)camera_attribute[0][CAM_SETTING_ITEM_DEFAULT] << 16);
 
-    RUNCAM_Read_Write(camera_device, 0x50, d);
+    RUNCAM_Read_Write(0x0050, d);
 }
 
 void runcam_sharpness(uint8_t val) {
-    uint32_t d;
-
-    camera_setting_reg_set[1] = val;
+    uint32_t d = 0;
+    uint32_t val_cc_dd = 0;
 
     if (val == 0) {
-        if (camera_type == RUNCAM_MICRO_V1)
+        if (camera_type == RUNCAM_MICRO_V1) {
             d = 0x03FF0100;
-        else // if (camera_type == RUNCAM_MICRO_V2 || camera_type == RUNCAM_NANO_90)
+        } else {
             d = 0x03FF0000;
-        RUNCAM_Read_Write(camera_device, 0x0003C4, d);
-        RUNCAM_Read_Write(camera_device, 0x0003CC, 0x0A0C0E10);
-        RUNCAM_Read_Write(camera_device, 0x0003D8, 0x0A0C0E10);
+        }
+        val_cc_dd = 0x0A0C0E10;
     } else if (val == 1) {
-        RUNCAM_Read_Write(camera_device, 0x0003C4, 0x03FF0000);
-        RUNCAM_Read_Write(camera_device, 0x0003CC, 0x14181C20);
-        RUNCAM_Read_Write(camera_device, 0x0003D8, 0x14181C20);
+        d = 0x03FF0000;
+        val_cc_dd = 0x14181C20;
     } else if (val == 2) {
-        RUNCAM_Read_Write(camera_device, 0x0003C4, 0x03FF0000);
-        RUNCAM_Read_Write(camera_device, 0x0003CC, 0x28303840);
-        RUNCAM_Read_Write(camera_device, 0x0003D8, 0x28303840);
+        d = 0x03FF0000;
+        val_cc_dd = 0x28303840;
+    } else {
+        return;
     }
+
+    RUNCAM_Read_Write(0x03C4, d);
+    RUNCAM_Read_Write(0x03CC, val_cc_dd);
+    RUNCAM_Read_Write(0x03D8, val_cc_dd);
 }
 
 void runcam_contrast(uint8_t val) {
@@ -273,7 +275,7 @@ void runcam_contrast(uint8_t val) {
     else if (val == 2) // high
         d += 0x04040404;
 
-    RUNCAM_Read_Write(camera_device, 0x00038C, d);
+    RUNCAM_Read_Write(0x038C, d);
 }
 
 void runcam_saturation(uint8_t val) {
@@ -303,7 +305,7 @@ void runcam_saturation(uint8_t val) {
     else if (val == 6)
         d += 0x04041418;
 
-    RUNCAM_Read_Write(camera_device, 0x0003A4, d);
+    RUNCAM_Read_Write(0x03A4, d);
 }
 
 void runcam_wb(uint8_t wbMode, uint8_t wbRed, uint8_t wbBlue) {
@@ -322,64 +324,58 @@ void runcam_wb(uint8_t wbMode, uint8_t wbRed, uint8_t wbBlue) {
     }
 
     if (wbMode) { // MWB
-        RUNCAM_Read_Write(camera_device, 0x0001b8, 0x020b007b);
-        RUNCAM_Read_Write(camera_device, 0x000204, wbRed_u32);
-        RUNCAM_Read_Write(camera_device, 0x000208, wbBlue_u32);
+        RUNCAM_Read_Write(0x01b8, 0x020b007b);
+        RUNCAM_Read_Write(0x0204, wbRed_u32);
+        RUNCAM_Read_Write(0x0208, wbBlue_u32);
     } else { // AWB
-        RUNCAM_Read_Write(camera_device, 0x0001b8, 0x020b0079);
+        RUNCAM_Read_Write(0x01b8, 0x020b0079);
     }
 }
 
 uint8_t runcam_hv_flip(uint8_t val) {
     uint8_t ret = 0;
+    static const uint32_t flip_val_lut[4] = {
+        0x0022ffa9, // case 0: no flip
+        0x002effa9, // case 1: hv flip
+        0x0026ffa9, // case 2: v flip
+        0x002affa9  // case 3: h flip
+    };
     if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 || camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3 || camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
         camera_setting_reg_set[8] = val;
-        switch (val) {
-        case 0: // no flip
-            ret = RUNCAM_Read_Write(camera_device, 0x000040, 0x0022ffa9);
-            break;
-        case 1: // hv flip
-            ret = RUNCAM_Read_Write(camera_device, 0x000040, 0x002effa9);
-            break;
-        case 2: // v flip
-            ret = RUNCAM_Read_Write(camera_device, 0x000040, 0x0026ffa9);
-            break;
-        case 3: // h flip
-            ret = RUNCAM_Read_Write(camera_device, 0x000040, 0x002affa9);
-            break;
-        default:
-            break;
+        if (val < 4) {
+            ret = RUNCAM_Read_Write(0x0040, flip_val_lut[val]);
         }
     }
     return ret;
 }
 
 void runcam_night_mode(uint8_t val) {
-    /*
-        0: night mode off
-        1: night mode on
-    */
+    // 0/1: night mode off/on
+    static const uint32_t vals_v3_off[3] = {0x30003000, 0x32003200, 0x34003400};
+    static const uint32_t vals_other_off[3] = {0x30002900, 0x32003100, 0x34003300};
+    static const uint32_t vals_on[3] = {0x28002700, 0x29002800, 0x29002900};
+
+    const uint32_t *target_vals = NULL;
     if (camera_type != CAMERA_TYPE_RUNCAM_MICRO_V2 && camera_type != CAMERA_TYPE_RUNCAM_NANO_90 && camera_type != CAMERA_TYPE_RUNCAM_MICRO_V3)
         return;
 
-        camera_setting_reg_set[9] = val;
+    camera_setting_reg_set[9] = val;
 
-        if (val == 0) { // Max gain off
-            RUNCAM_Read_Write(camera_device, 0x000070, 0x10000040);
-            if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
-                RUNCAM_Read_Write(camera_device, 0x000718, 0x30003000);
-                RUNCAM_Read_Write(camera_device, 0x00071c, 0x32003200);
-                RUNCAM_Read_Write(camera_device, 0x000720, 0x34003400);
-            } else {
-                RUNCAM_Read_Write(camera_device, 0x000718, 0x30002900);
-                RUNCAM_Read_Write(camera_device, 0x00071c, 0x32003100);
-                RUNCAM_Read_Write(camera_device, 0x000720, 0x34003300);
-            }
-        } else if (val == 1) { // Max gain on
-            RUNCAM_Read_Write(camera_device, 0x000070, 0x10000040);
-            RUNCAM_Read_Write(camera_device, 0x000718, 0x28002700);
-            RUNCAM_Read_Write(camera_device, 0x00071c, 0x29002800);
-            RUNCAM_Read_Write(camera_device, 0x000720, 0x29002900);
+    if (val == 0) {
+        if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
+            target_vals = vals_v3_off;
+        } else {
+            target_vals = vals_other_off;
+        }
+    } else if (val == 1) {
+        target_vals = vals_on;
+    }
+
+    RUNCAM_Read_Write(0x0070, 0x10000040);
+    if (target_vals != NULL) {
+        RUNCAM_Read_Write(0x0718, target_vals[0]);
+        RUNCAM_Read_Write(0x071c, target_vals[1]);
+        RUNCAM_Read_Write(0x0720, target_vals[2]);
     }
 }
 
@@ -398,48 +394,46 @@ uint8_t runcam_video_format(uint8_t val) {
         3: 960x720@60 4:3
     */
     uint8_t ret = 0;
+    const uint32_t *val_lut = NULL;
+    uint32_t reg0034_val = 0x00012941;
+    static const uint32_t micro_v2_lut[4] = {
+        0x0008910B,
+        0x00089102,
+        0x00089110,
+        0x81089106,
+    };
+    static const uint32_t micro_v3_lut[4] = {
+        0x8208910B,
+        0x82089102,
+        0x82089110,
+        0x81089106,
+    };
+    static const uint32_t nano90_lut[4] = {
+        0x8008811d,
+        0x83088120,
+        0x8108811e,
+        0x8208811f,
+    };
 
     camera_setting_reg_set[11] = val;
 
-    if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1)
-        ;
-    else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2) {
-        if (val == 0)
-            ret |= RUNCAM_Read_Write(camera_device, 0x000008, 0x0008910B);
-        else if (val == 1)
-            ret |= RUNCAM_Read_Write(camera_device, 0x000008, 0x00089102);
-        else if (val == 2)
-            ret |= RUNCAM_Read_Write(camera_device, 0x000008, 0x00089110);
-        else if (val == 3) // 1080p30
-            ret |= RUNCAM_Read_Write(camera_device, 0x000008, 0x81089106);
-
-        if (val == 3) // 1080p30
-            ret |= RUNCAM_Read_Write(camera_device, 0x000034, 0x00014441);
-        else
-            ret |= RUNCAM_Read_Write(camera_device, 0x000034, 0x00012941);
+    if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2) {
+        val_lut = micro_v2_lut;
     } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
-        if (val == 0)
-            ret |= RUNCAM_Read_Write(camera_device, 0x000008, 0x8208910B);
-        else if (val == 1)
-            ret |= RUNCAM_Read_Write(camera_device, 0x000008, 0x82089102);
-        else if (val == 2)
-            ret |= RUNCAM_Read_Write(camera_device, 0x000008, 0x82089110);
-        else if (val == 3)
-            ret |= RUNCAM_Read_Write(camera_device, 0x000008, 0x81089106);
-
-        if (val == 3) // 1080p30
-            ret |= RUNCAM_Read_Write(camera_device, 0x000034, 0x00014441);
-        else
-            ret |= RUNCAM_Read_Write(camera_device, 0x000034, 0x00012941);
+        val_lut = micro_v3_lut;
     } else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
-        if (val == 0)
-            ret |= RUNCAM_Read_Write(camera_device, 0x000008, 0x8008811d);
-        else if (val == 1)
-            ret |= RUNCAM_Read_Write(camera_device, 0x000008, 0x83088120);
-        else if (val == 2)
-            ret |= RUNCAM_Read_Write(camera_device, 0x000008, 0x8108811e);
-        else if (val == 3)
-            ret |= RUNCAM_Read_Write(camera_device, 0x000008, 0x8208811f);
+        val_lut = nano90_lut;
+    }
+
+    if (val_lut != NULL && val < 4) {
+        ret |= RUNCAM_Read_Write(0x0008, val_lut[val]);
+    }
+
+    if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 || camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
+        if (val == 3) {
+            reg0034_val = 0x00014441;
+        }
+        ret |= RUNCAM_Read_Write(0x0034, reg0034_val);
     }
 
     return ret;
@@ -450,9 +444,9 @@ void runcam_shutter(uint8_t val) {
 
     camera_setting_reg_set[4] = val;
     if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1) {
-        RUNCAM_Write(camera_device, 0x00006c, 0x000004a6);
+        RUNCAM_Write(0x006c, 0x000004a6);
         WAIT(50);
-        RUNCAM_Write(camera_device, 0x000044, 0x80019229);
+        RUNCAM_Write(0x0044, 0x80019229);
         WAIT(50);
         return;
     } else {
@@ -462,17 +456,17 @@ void runcam_shutter(uint8_t val) {
             else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90)
                 dat = 0x447;
             // DO NOT REMOVE, Otherwise, auto mode may fail to be set.
-            RUNCAM_Write(camera_device, 0x00006c, 800);
+            RUNCAM_Write(0x006c, 800);
             WAIT(50);
-            RUNCAM_Write(camera_device, 0x000044, 0x80009629);
+            RUNCAM_Write(0x0044, 0x80009629);
             WAIT(50);
         } else { // manual
             dat = (uint32_t)(val) * 25;
         }
 
-        RUNCAM_Write(camera_device, 0x00006c, dat);
+        RUNCAM_Write(0x006c, dat);
         WAIT(50);
-        RUNCAM_Write(camera_device, 0x000044, 0x80009629);
+        RUNCAM_Write(0x0044, 0x80009629);
         WAIT(50);
     }
 }
@@ -492,9 +486,9 @@ void runcam_shutter_fix(uint16_t sec) {
                 dat = (uint32_t)(val) * 25;
             }
 
-            RUNCAM_Write(camera_device, 0x00006c, dat);
+            RUNCAM_Write(0x006c, dat);
             WAIT(50);
-            RUNCAM_Write(camera_device, 0x000044, 0x80009629);
+            RUNCAM_Write(0x0044, 0x80009629);
             WAIT(50);
         }
         fixed = 1;
@@ -511,12 +505,12 @@ uint8_t runcam_setting_update_need(uint8_t *setting_p, uint8_t start, uint8_t st
 }
 
 void runcam_save(void) {
-    RUNCAM_Write(camera_device, 0x000694, 0x00000310);
-    RUNCAM_Write(camera_device, 0x000694, 0x00000311);
+    RUNCAM_Write(0x0694, 0x00000310);
+    RUNCAM_Write(0x0694, 0x00000311);
 }
 
 void runcam_reset_isp(void) {
-    RUNCAM_Write(camera_device, 0x000694, 0x00000130);
+    RUNCAM_Write(0x0694, 0x00000130);
 }
 
 uint8_t runcam_set(uint8_t *setting_profile, uint8_t init) {
