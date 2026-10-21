@@ -1031,19 +1031,19 @@ void DM6300_EFUSE2() {
             dcoc_qh = efuse.macro.m2[i].tx1.dcoc_q & 0xFFFF0000;
 
             if (EE_VALID) {
-                rdat = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_EN);
+                rdat = eep_rd(EEP_ADDR_DCOC_EN);
                 if ((rdat & 0xFF) == 0) {
                     DM6300_Set_Page18();
 
-                    rdat = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_IH);
+                    rdat = eep_rd(EEP_ADDR_DCOC_IH);
                     rdat <<= 8;
-                    rdat |= I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_IL);
+                    rdat |= eep_rd(EEP_ADDR_DCOC_IL);
                     rdat |= dcoc_ih;
                     SPI_Write3(0x380, rdat);
 
-                    rdat = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_QH);
+                    rdat = eep_rd(EEP_ADDR_DCOC_QH);
                     rdat <<= 8;
-                    rdat |= I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_DCOC_QL);
+                    rdat |= eep_rd(EEP_ADDR_DCOC_QL);
                     rdat |= dcoc_qh;
                     SPI_Write3(0x388, rdat);
                 }

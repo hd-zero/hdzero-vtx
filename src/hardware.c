@@ -455,7 +455,7 @@ void GetVtxParameter() {
         // race band
         for (i = 0; i < FREQ_NUM_INTERNAL; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
-                tab[i][j] = I2C_Read8_Wait(10, ADDR_EEPROM, i * (POWER_MAX + 1) + j);
+                tab[i][j] = eep_rd(i * (POWER_MAX + 1) + j);
                 if (tab[i][j] < tab_min[j])
                     tab_min[j] = tab[i][j];
                 if (tab[i][j] == 0xFF)
@@ -486,7 +486,7 @@ void GetVtxParameter() {
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
 #else
                     if (j == 0) // 25mw +3dbm
-                        table_power[i][j] += (rf_chip == RF_CHIP_DM6300) ? 0xC : 0x03;
+                        table_power[i][j] += (rf_chip == RF_CHIP_DM6300) ? 0xC : 0x01;
 #endif
 #endif
                 }
@@ -503,7 +503,7 @@ void GetVtxParameter() {
         }
 
         // VTX Setting
-        lowband_lock = 0; // I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_LOWBAND_LOCK);
+        lowband_lock = 0; // eep_rd(EEP_ADDR_LOWBAND_LOCK);
         RF_FREQ = eep_rd(EEP_ADDR_RF_FREQ);
         RF_POWER = eep_rd(EEP_ADDR_RF_POWER);
         LP_MODE = eep_rd(EEP_ADDR_LPMODE);
@@ -515,7 +515,7 @@ void GetVtxParameter() {
 
 // last_SA_lock
 #if defined USE_SMARTAUDIO_SW || defined USE_SMARTAUDIO_HW
-        last_SA_lock = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_SA_LOCK);
+        last_SA_lock = eep_rd(EEP_ADDR_SA_LOCK);
         if (last_SA_lock == 0xff) {
             last_SA_lock = 0;
             eep_wr(EEP_ADDR_SA_LOCK, last_SA_lock);
@@ -524,7 +524,7 @@ void GetVtxParameter() {
 
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
         // powerLock
-        powerLock = 0x01 & I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_POWER_LOCK);
+        powerLock = 0x01 & eep_rd(EEP_ADDR_POWER_LOCK);
 #endif
     } else {
         CFG_Back();

@@ -65,7 +65,7 @@ void camera_ratio_detect(void) {
         break;
 #ifdef USE_TP9950
     case CAMERA_TYPE_OUTDATED:
-        camRatio = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_CAM_RATIO);
+        camRatio = eep_rd(EEP_ADDR_CAM_RATIO);
         if (camRatio > 1)
             camRatio = 1;
         break;
@@ -281,7 +281,7 @@ void camera_reg_write_eep(uint16_t addr, uint8_t val) {
     eep_wr(addr, val);
 }
 uint8_t camera_reg_read_eep(uint16_t addr) {
-    return I2C_Read8_Wait(10, ADDR_EEPROM, addr);
+    return eep_rd(addr);
 }
 
 void camera_setting_profile_read(uint8_t profile) {

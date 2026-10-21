@@ -193,12 +193,12 @@ void DM6300B_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset) {
 #ifndef _RF_CALIB
         if (RF_POWER == 0 && pwr == 0) { // fine tuning in vtx menu
 
-            if (OFFSET_25MW <= 10)
+            if (offset_25mw_real() <= 3)
                 p += offset_25mw_real();
-            else if (p < (OFFSET_25MW - 10))
+            else if (p < (offset_25mw_real() - 3))
                 p = 0;
             else
-                p = p + 10 - offset_25mw_real();
+                p = p + 3 - offset_25mw_real();
         }
 #endif
 

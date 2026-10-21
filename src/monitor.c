@@ -189,7 +189,7 @@ void MonEE(uint8_t op, uint8_t d) {
         break;
     }
 
-    val = I2C_Read8_Wait(10, ADDR_EEPROM, addr);
+    val = eep_rd(addr);
     table_power[RF_FREQ][RF_POWER] = val;
     debugf("\r\nRF TAB[%d][%d] = %x", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, val);
 
