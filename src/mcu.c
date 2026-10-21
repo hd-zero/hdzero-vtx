@@ -183,6 +183,7 @@ void main(void) {
         if (last_SA_lock && seconds < WAIT_SA_CONFIG)
             ;
         else {
+            LED_Task();
             rf_monitor_task();
             TempDetect(); // temperature dectect
             PwrLMT();     // RF power ctrl

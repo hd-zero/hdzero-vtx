@@ -181,19 +181,19 @@ dm6300_reg_value_t dm6300_set_channel_regs[] = {
     {0x04C, 0x021288A2},
     {0x050, 0x00FFCF33},
     {0x054, 0x1F3C3440},
-    {0x028, 0x00008000}, // [12] // 0x00008000 + (init6300_fcnt & 0xFF)
-    {0x020, 0x00000000}, // [13] // init6300_fnum[ch]
+    {0x028, 0x00008000}, // [11] // 0x00008000 + (init6300_fcnt & 0xFF)
+    {0x020, 0x00000000}, // [12] // init6300_fnum[ch]
     {0x01C, 0x00000002},
     {0x018, 0x00000001}, // WAIT(1},
     {0x018, 0x00000000}, // WAIT(1},
-    {0x028, 0x00000000}, // [17] // 0x00008000 + (init6300_fcnt & 0xFF)
-    {0x020, 0x00000000}, // [18] // init6300_fnum[ch]},
+    {0x028, 0x00000000}, // [16] // 0x00008000 + (init6300_fcnt & 0xFF)
+    {0x020, 0x00000000}, // [17] // init6300_fnum[ch]},
     {0x01C, 0x00000003},
     {0x018, 0x00000001}, // WAIT(1},
     {0x018, 0x00000000}, // WAIT(1},
     {0x050, 0x00FFCFB3},
-    {0x004, 0x00000000}, // [23] // tab[1][ch]
-    {0x008, 0x00000000}, // [24] // tab[2][ch]
+    {0x004, 0x00000000}, // [22] // tab[1][ch]
+    {0x008, 0x00000000}, // [23] // tab[2][ch]
     {0x000, 0x00000000}, // WAIT(1},
     {0x000, 0x00000003},
     {0x050, 0x000333B3},
@@ -205,14 +205,14 @@ void DM6300_SetChannel(uint8_t ch) {
     if (ch >= FREQ_NUM)
         ch = 0;
 
-    dm6300_set_channel_regs[12].dat = 0x00008000 + (init6300_fcnt & 0xFF);
-    dm6300_set_channel_regs[13].dat = init6300_fnum[ch];
+    dm6300_set_channel_regs[11].dat = 0x00008000 + (init6300_fcnt & 0xFF);
+    dm6300_set_channel_regs[12].dat = init6300_fnum[ch];
 
-    dm6300_set_channel_regs[17].dat = 0x00008000 + (init6300_fcnt & 0xFF);
-    dm6300_set_channel_regs[18].dat = init6300_fnum[ch];
+    dm6300_set_channel_regs[16].dat = 0x00008000 + (init6300_fcnt & 0xFF);
+    dm6300_set_channel_regs[17].dat = init6300_fnum[ch];
 
-    dm6300_set_channel_regs[23].dat = tab[1][ch];
-    dm6300_set_channel_regs[24].dat = tab[2][ch];
+    dm6300_set_channel_regs[22].dat = tab[1][ch];
+    dm6300_set_channel_regs[23].dat = tab[2][ch];
 
     DM6300_Set_Page18();
     WRITE_REG_MAP3(dm6300_set_channel_regs);
@@ -362,6 +362,7 @@ CODE_SEG const dm6300_reg_value_t dm6300_init1_regs[] = {
 };
 
 void DM6300_init1() {
+    DM6300_Set_Page18();
     WRITE_REG_MAP6(dm6300_init1_regs);
 }
 
@@ -394,7 +395,8 @@ CODE_SEG const dm6300_reg_value_t dm6300_init2_regs_bw17[] = {
     {0x240, 0x00030041},
     {0x248, 0x00000404},
     {0x258, 0x00010003},
-    {0x254, 0x00057A17}};
+    {0x254, 0x00057A17},
+};
 CODE_SEG const dm6300_reg_value_t dm6300_init2_regs_bw27[] = {
     // 02_BBPLL_3456
     {0x2AC, 0x00000300},
@@ -431,7 +433,10 @@ CODE_SEG const dm6300_reg_value_t dm6300_init2_regs_bw27[] = {
 
 void DM6300_init2(BWType_e sel) {
     DM6300_Set_Page18();
-    WRITE_REG_MAP3(sel ? dm6300_init2_regs_bw17 : dm6300_init2_regs_bw27);
+    if (sel)
+        WRITE_REG_MAP3(dm6300_init2_regs_bw17);
+    else
+        WRITE_REG_MAP3(dm6300_init2_regs_bw27);
 }
 
 dm6300_reg_value_t dm6300_init3_regs[] = {
@@ -556,7 +561,10 @@ void DM6300_init5(uint8_t sel) {
     SPI_Write3(0x194, 0x0001FFFF);
     DM6300_Set_Page18();
 
-    WRITE_REG_MAP3(sel ? dm6300_init5_regs_bm17 : dm6300_init5_regs_bm27);
+    if (sel)
+        WRITE_REG_MAP3(dm6300_init5_regs_bm17);
+    else
+        WRITE_REG_MAP3(dm6300_init5_regs_bm27);
 }
 
 dm6300_reg_value_t dm6300_init6_regs_0[] = {
@@ -658,7 +666,8 @@ CODE_SEG const dm6300_reg_value_t dm6300_init7_regs_bw17[] = {
     {0xCF0, 0xFFDBFFE7},
     {0xCF4, 0xFFE9FFDD},
     {0xCF8, 0x0001FFF7},
-    {0xCFC, 0x00040004}};
+    {0xCFC, 0x00040004},
+};
 CODE_SEG const dm6300_reg_value_t dm6300_init7_regs_bw27[] = {
     // 07_fir_128stap
     {0xC00, 0x004E0041},
@@ -729,11 +738,10 @@ CODE_SEG const dm6300_reg_value_t dm6300_init7_regs_bw27[] = {
 
 void DM6300_init7(BWType_e sel) {
     DM6300_Set_Page18();
-    if (sel) {
+    if (sel)
         WRITE_REG_MAP3(dm6300_init7_regs_bw17);
-    } else {
+    else
         WRITE_REG_MAP3(dm6300_init7_regs_bw27);
-    }
 }
 
 uint8_t DM6300_is_alive(void) {
@@ -952,10 +960,6 @@ void DM6300_EFUSE1() {
     DM6300_Set_Page18();
 }
 
-const dm6300_reg_value_t dm6300_regs_dm6300_efuse2_1[] = {
-    {0x6, 0xFF0, 0x00000018},
-    {0x3, 0x3AC, 0x00000012}};
-
 void DM6300_EFUSE2() {
     int i;
     // uint32_t d0,d1,d2,d3,d4,d5,d6,d7;
@@ -971,7 +975,8 @@ void DM6300_EFUSE2() {
     // version[1];  //version[1] M.N---M
     // version[3];  //version[3] M.N---N
 
-    WRITE_REG_MAP3(dm6300_regs_dm6300_efuse2_1);
+    DM6300_Set_Page18();
+    SPI_Write3(0x3AC, 0x00000012);
 
     for (i = 0; i < efuse.macro.m0.band_num; i++) // find match macro 5.8G
                                                   // for(i=0; i<FREQ_NUM_EXTERNAL; i++) // find match macro 5.8G

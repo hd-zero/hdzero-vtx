@@ -1,6 +1,9 @@
 #include "rf.h"
+#include "common.h"
 #include "dm6300.h"
 #include "dm6300b.h"
+#include "print.h"
+#include "spi.h"
 
 const uint16_t frequencies[] = {
     FREQ_R1,
@@ -38,11 +41,20 @@ void rf_chip_check() {
     if (DM6300_is_alive()) {
         rf_chip_lost = 0;
         rf_chip = RF_CHIP_DM6300;
+#ifdef _DEBUG_MODE
+        debugf("\r\nRF CHIP: DM6300");
+#endif
     } else if (DM6300B_is_alive()) {
         rf_chip_lost = 0;
-        rf_chip = RF_CHIP_DM6300;
+        rf_chip = RF_CHIP_DM6300B;
+#ifdef _DEBUG_MODE
+        debugf("\r\nRF CHIP: DM6300B");
+#endif
     } else {
         rf_chip_lost = 1;
+#ifdef _DEBUG_MODE
+        debugf("\r\nRF CHIP: Unknown!!!");
+#endif
     }
 
     WriteReg(0x8F, 0x00);
@@ -72,6 +84,10 @@ void rf_init(uint8_t ch, uint8_t bw) {
         DM6300B_Init(ch, bw);
 
     cur_ch = ch;
+
+#ifdef _DEBUG_MODE
+    debugf("\r\nRF init ch=%d, bw=%d", ch, bw);
+#endif
 }
 
 void rf_set_channel(uint8_t ch) {
@@ -81,6 +97,10 @@ void rf_set_channel(uint8_t ch) {
         DM6300B_SetChannel(ch);
 
     cur_ch = ch;
+
+#ifdef _DEBUG_MODE
+    debugf("\r\nRF set ch %d", ch);
+#endif
 }
 
 void rf_set_power(uint8_t pwr, uint8_t offset) {
@@ -88,6 +108,9 @@ void rf_set_power(uint8_t pwr, uint8_t offset) {
         DM6300_SetPower(pwr, cur_ch, offset);
     else
         DM6300B_SetPower(pwr, cur_ch, offset);
+#ifdef _DEBUG_MODE
+    debugf("\r\nRF set pwr %d ofst%d", pwr, offset);
+#endif
 }
 
 int16_t rf_get_temp() {
@@ -100,7 +123,10 @@ int16_t rf_get_temp() {
 
 void rf_auxadc_calib() {
     if (rf_chip == RF_CHIP_DM6300) {
-        rf_auxadc_calib();
+        DM6300_AUXADC_Calib();
+#ifdef _DEBUG_MODE
+        debugf("\r\nRF auxadc calib");
+#endif
     }
     rf_init_done = 1;
 }

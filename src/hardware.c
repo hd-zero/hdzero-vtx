@@ -554,6 +554,7 @@ void Init_6300RF(uint8_t freq, uint8_t pwr) {
 void Init_HW() {
     SPI_Init();
     LED_Init();
+    rf_chip_check();
 #ifdef VIDEO_PAT
 #ifdef USE_TP9950
     video_format = VDO_FMT_720P60_8bit;

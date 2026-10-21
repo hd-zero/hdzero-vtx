@@ -3,11 +3,13 @@
 #include "camera.h"
 #include "common.h"
 #include "dm6300.h"
+#include "dm6300b.h"
 #include "global.h"
 #include "hardware.h"
 #include "i2c.h"
 #include "i2c_device.h"
 #include "print.h"
+#include "rf.h"
 #include "sfr_ext.h"
 #include "spi.h"
 #include "uart.h"
@@ -241,12 +243,12 @@ void Monitor(void) {
         if (argc == 3) {
             adr = Asc4Bin(argv[1]);
             dat = Asc2Bin(argv[2]);
-            spi_write(adr, dat);
+            DM6300B_spi_write(adr, dat);
         }
     } else if (!stricmp(argv[0], "gr")) {
         if (argc == 2) {
             adr = Asc4Bin(argv[1]);
-            dat = gspi_read(adr);
+            dat = DM6300B_spi_read(adr);
             debugf("\r\nGC Read: %x = %x", adr, (uint16_t)dat);
         }
     } else if (!stricmp(argv[0], "ew"))

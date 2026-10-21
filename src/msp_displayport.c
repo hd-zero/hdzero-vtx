@@ -2312,6 +2312,11 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     (void)power;
     (void)save;
 }
+void osd_write_string(uint8_t row, uint8_t col, const char *string) {
+    UNUSED(row);
+    UNUSED(col);
+    UNUSED(string);
+}
 
 uint8_t channel_to_bfChannel(uint8_t const channel) {
 

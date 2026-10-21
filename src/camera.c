@@ -38,6 +38,9 @@ void camera_type_detect(void) {
         camera_mfr = CAMERA_MFR_HDZERO;
     } else {
         runcam_type_detect();
+#ifdef _DEBUG_MODE
+        debugf("\r\ncamera type %d", camera_type);
+#endif
         if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 ||
             camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 ||
             camera_type == CAMERA_TYPE_RUNCAM_NANO_90 ||
@@ -261,6 +264,9 @@ void camera_mode_detect(uint8_t init) {
             RF_BW = BW_27M;
         RF_BW_last = RF_BW;
     }
+#ifdef _DEBUG_MODE
+    debugf("\r\nvideo_format:%d", video_format);
+#endif
 }
 #endif
 
