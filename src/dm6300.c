@@ -7,6 +7,7 @@
 #include "i2c_device.h"
 #include "monitor.h"
 #include "print.h"
+#include "rf.h"
 #include "spi.h"
 
 typedef struct {
@@ -20,91 +21,6 @@ static uint32_t init6300_fnum[FREQ_NUM_EXTERNAL] = {0};
 
 uint32_t dcoc_ih = 0x075F0000;
 uint32_t dcoc_qh = 0x075F0000;
-
-uint8_t dm6300_init_done = 0;
-uint8_t dm6300_lost = 0;
-#if defined HDZERO_FREESTYLE_V1
-uint8_t table_power[FREQ_NUM_EXTERNAL][POWER_MAX + 1] = {
-    // race band
-    {0x70, 0x68, 0x5c, 0x60},
-    {0x70, 0x68, 0x5c, 0x60},
-    {0x70, 0x68, 0x60, 0x60},
-    {0x72, 0x6d, 0x60, 0x60},
-    {0x74, 0x70, 0x62, 0x5c},
-    {0x78, 0x74, 0x64, 0x5b},
-    {0x7a, 0x77, 0x64, 0x5b},
-    {0x7a, 0x77, 0x64, 0x5b},
-    // e band
-    {0x70, 0x68, 0x5c, 0x60}, // E1
-    // fatshark band
-    {0x70, 0x68, 0x60, 0x60}, // F1
-    {0x72, 0x6d, 0x60, 0x60}, // F2
-    {0x74, 0x70, 0x62, 0x5c}, // F4
-    // low band
-    {0x70, 0x68, 0x5c, 0x60},
-    {0x70, 0x68, 0x5c, 0x60},
-    {0x70, 0x68, 0x5c, 0x60},
-    {0x70, 0x68, 0x5c, 0x60},
-    {0x70, 0x68, 0x5c, 0x60},
-    {0x70, 0x68, 0x5c, 0x60},
-    {0x70, 0x68, 0x5c, 0x60},
-    {0x70, 0x68, 0x5c, 0x60},
-};
-#elif defined HDZERO_FREESTYLE_V2
-uint8_t table_power[FREQ_NUM_EXTERNAL][POWER_MAX + 1] = {
-    // race band
-    {0x30, 0x50, 0x50, 0x58},
-    {0x30, 0x50, 0x50, 0x58},
-    {0x30, 0x50, 0x50, 0x58},
-    {0x30, 0x50, 0x50, 0x58},
-    {0x30, 0x50, 0x50, 0x58},
-    {0x30, 0x50, 0x50, 0x58},
-    {0x30, 0x50, 0x50, 0x58},
-    {0x30, 0x50, 0x50, 0x58},
-    // e band
-    {0x70, 0x68, 0x5c, 0x60}, // E1
-    // fatshark band
-    {0x70, 0x68, 0x60, 0x60}, // F1
-    {0x72, 0x6d, 0x60, 0x60}, // F2
-    {0x74, 0x70, 0x62, 0x5c}, // F4
-    // low band
-    {0x70, 0x68, 0x5c, 0x60},
-    {0x70, 0x68, 0x5c, 0x60},
-    {0x70, 0x68, 0x5c, 0x60},
-    {0x70, 0x68, 0x5c, 0x60},
-    {0x70, 0x68, 0x5c, 0x60},
-    {0x70, 0x68, 0x5c, 0x60},
-    {0x70, 0x68, 0x5c, 0x60},
-    {0x70, 0x68, 0x5c, 0x60},
-};
-#else
-uint8_t table_power[FREQ_NUM_EXTERNAL][POWER_MAX + 1] = {
-    // race band
-    {0x50, 0x60},
-    {0x50, 0x60},
-    {0x50, 0x60},
-    {0x50, 0x60},
-    {0x50, 0x60},
-    {0x50, 0x60},
-    {0x50, 0x60},
-    {0x50, 0x60},
-    // e band
-    {0x79, 0x83}, // E1
-    // fatshark band
-    {0x75, 0x80}, // F1
-    {0x73, 0x7E}, // F2
-    {0x72, 0x7C}, // F4
-    // low band
-    {0x79, 0x83},
-    {0x79, 0x83},
-    {0x79, 0x83},
-    {0x79, 0x83},
-    {0x79, 0x83},
-    {0x79, 0x83},
-    {0x79, 0x83},
-    {0x79, 0x83},
-};
-#endif
 
 const uint32_t tab[3][FREQ_NUM_EXTERNAL] = {
     {
@@ -225,29 +141,6 @@ const uint32_t freq_tab[FREQ_NUM_EXTERNAL] = {
     112420,
 };
 
-const uint16_t frequencies[] = {
-    FREQ_R1,
-    FREQ_R2,
-    FREQ_R3,
-    FREQ_R4,
-    FREQ_R5,
-    FREQ_R6,
-    FREQ_R7,
-    FREQ_R8,
-    FREQ_E1,
-    FREQ_F1,
-    FREQ_F2,
-    FREQ_F4,
-    FREQ_L1,
-    FREQ_L2,
-    FREQ_L3,
-    FREQ_L4,
-    FREQ_L5,
-    FREQ_L6,
-    FREQ_L7,
-    FREQ_L8,
-};
-
 static void DM6300_write_reg_map(uint8_t trans, const dm6300_reg_value_t *reg_map, uint8_t size) {
     uint8_t i = 0;
     for (i = 0; i < size; i++) {
@@ -325,23 +218,11 @@ void DM6300_SetChannel(uint8_t ch) {
     WRITE_REG_MAP3(dm6300_set_channel_regs);
 }
 
-uint8_t DM6300_GetChannelByFreq(uint16_t const freq) {
-    uint8_t iter;
-    for (iter = 0; iter < ARRAY_SIZE(frequencies); iter++) {
-        if (frequencies[iter] == freq) {
-            return iter;
-        }
-    }
-    return INVALID_CHANNEL;
-}
-
-uint16_t DM6300_GetFreqByChannel(uint8_t const ch) {
-    if (ch < ARRAY_SIZE(frequencies)) {
-        return frequencies[ch];
-    }
-    return 0;
-}
-
+#if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
+#define PIT_POWER 0x18 // 2dbm
+#else
+#define PIT_POWER 0x26
+#endif
 void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset) {
 #ifdef HDZERO_FREESTYLE_V1
     uint16_t a_tab[4] = {0x204, 0x11F, 0x21F, 0x31F};
@@ -367,11 +248,11 @@ void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset) {
             p = table_power[freq][pwr] + offset - 2;
 
             if (OFFSET_25MW <= 10)
-                p += OFFSET_25MW;
+                p += offset_25mw_real();
             else if (p < (OFFSET_25MW - 10))
                 p = 0;
             else
-                p = p + 10 - OFFSET_25MW;
+                p = p + 10 - offset_25mw_real();
         } else
 #endif
             p = table_power[freq][pwr] + offset - 2;
@@ -391,13 +272,6 @@ void DM6300_SetSingleTone(uint8_t enable) {
     SPI_Write3(0x0BC, enable ? 0x5ED097B4 : 0);
 }
 #endif
-void DM6300_RFTest() {
-#if (0)
-    uint16_t i;
-    for (i = 0; i < 100; i++)
-        DM6300_Set_Page18();
-#endif
-}
 
 void DM6300_InitAUXADC() {
     uint32_t dat;
@@ -449,7 +323,6 @@ void DM6300_AUXADC_Calib() {
     WriteReg(0x8F, 0x01);
     DM6300_InitAUXADC();
     WriteReg(0x8F, 0x11);
-    dm6300_init_done = 1;
 }
 
 int16_t DM6300_GetTemp() {
@@ -863,11 +736,11 @@ void DM6300_init7(BWType_e sel) {
     }
 }
 
-uint8_t DM6300_detect(void) {
+uint8_t DM6300_is_alive(void) {
     uint32_t rdat = 0;
     DM6300_Set_Page18();
     SPI_Read6(0xFF0, &rdat);
-    return rdat != 0x18;
+    return rdat == 0x18;
 }
 
 CODE_SEG const dm6300_reg_value_t dm6300_init_regs[] = {
@@ -887,51 +760,6 @@ CODE_SEG const dm6300_reg_value_t dm6300_init_regs[] = {
     {0x018, 0x00000001},
     {0x018, 0x00000000},
 };
-void DM6300_Init(uint8_t ch, BWType_e bw) {
-    int i;
-    uint32_t dat;
-
-    // dm6300 detect
-    dm6300_lost = DM6300_detect();
-    // 01_INIT
-    DM6300_init1();
-
-#ifdef USE_EFUSE
-    DM6300_EFUSE1();
-#endif
-
-    DM6300_Set_Page18();
-    WRITE_REG_MAP3(dm6300_init_regs);
-
-    SPI_Read3(0x02C, &dat);
-    init6300_fcnt = dat & 0x3FFF;
-    init6300_fcnt = 0x20000 / init6300_fcnt - 3;
-    for (i = 0; i < FREQ_NUM_EXTERNAL; i++)
-        init6300_fnum[i] = freq_tab[i] * init6300_fcnt / 384;
-
-    // 02_BBPLL_3456
-    DM6300_init2(bw);
-
-    // 03_RFPLL_CA1_TX_10G
-    DM6300_init3(ch);
-
-    // 04_TX_CA1_RF
-    DM6300_init4();
-
-    // 05_tx_cal_DAC_BBF
-    DM6300_init5(bw);
-
-    // 06_TX_CA1_RBDP_CMOS
-    DM6300_init6(bw);
-
-    // 07_fir_128stap
-    DM6300_init7(bw);
-
-#ifdef USE_EFUSE
-    DM6300_EFUSE2();
-#endif
-    DM6300_Set_Page18();
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // efuse rd amd imp
@@ -1218,4 +1046,48 @@ void DM6300_EFUSE2() {
             break;
         }
     }
+}
+
+void DM6300_Init(uint8_t ch, BWType_e bw) {
+    int i;
+    uint32_t dat;
+
+    // 01_INIT
+    DM6300_init1();
+
+#ifdef USE_EFUSE
+    DM6300_EFUSE1();
+#endif
+
+    DM6300_Set_Page18();
+    WRITE_REG_MAP3(dm6300_init_regs);
+
+    SPI_Read3(0x02C, &dat);
+    init6300_fcnt = dat & 0x3FFF;
+    init6300_fcnt = 0x20000 / init6300_fcnt - 3;
+    for (i = 0; i < FREQ_NUM_EXTERNAL; i++)
+        init6300_fnum[i] = freq_tab[i] * init6300_fcnt / 384;
+
+    // 02_BBPLL_3456
+    DM6300_init2(bw);
+
+    // 03_RFPLL_CA1_TX_10G
+    DM6300_init3(ch);
+
+    // 04_TX_CA1_RF
+    DM6300_init4();
+
+    // 05_tx_cal_DAC_BBF
+    DM6300_init5(bw);
+
+    // 06_TX_CA1_RBDP_CMOS
+    DM6300_init6(bw);
+
+    // 07_fir_128stap
+    DM6300_init7(bw);
+
+#ifdef USE_EFUSE
+    DM6300_EFUSE2();
+#endif
+    DM6300_Set_Page18();
 }

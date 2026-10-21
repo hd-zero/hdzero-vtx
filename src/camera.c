@@ -1,6 +1,5 @@
 #include "camera.h"
 #include "common.h"
-#include "dm6300.h"
 #include "global.h"
 #include "hardware.h"
 #include "i2c.h"
@@ -8,6 +7,7 @@
 #include "isr.h"
 #include "msp_displayport.h"
 #include "print.h"
+#include "rf.h"
 #include "runcam.h"
 
 uint8_t camera_type;
@@ -167,7 +167,7 @@ void camera_mode_detect(uint8_t init) {
     RF_POWER = 0;
     RF_FREQ = 0;
     Init_6300RF(RF_FREQ, RF_POWER);
-    DM6300_AUXADC_Calib();
+    rf_auxadc_calib();
 #endif
 }
 #else
@@ -899,13 +899,13 @@ uint8_t camera_status_update(uint8_t op) {
             } else {
                 WriteReg(0x8F, 0x00);
                 WriteReg(0x8F, 0x01);
-                DM6300_Init(RF_FREQ, RF_BW);
-                DM6300_SetChannel(RF_FREQ);
-                DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+                rf_init(RF_FREQ, RF_BW);
+                rf_set_channel(RF_FREQ);
+                rf_set_power(RF_POWER, pwr_offset);
                 cur_pwr = RF_POWER;
                 WriteReg(0x8F, 0x11);
             }
-            DM6300_AUXADC_Calib();
+            rf_auxadc_calib();
 
             camera_menu_show_saving();
             saving_start_sec = seconds;

@@ -10,6 +10,7 @@
 #include "monitor.h"
 #include "msp_displayport.h"
 #include "print.h"
+#include "rf.h"
 #include "rom.h"
 #include "runcam.h"
 #include "sfr_ext.h"
@@ -140,6 +141,7 @@ void main(void) {
                // [2]   enable INT1   interupt   0
                // [1]   enable timer0 interupt   0
                // [0]   enable INT0   interupt   0
+
     check_eeprom();
     version_info();
     Init_HW(); // init
@@ -181,7 +183,7 @@ void main(void) {
         if (last_SA_lock && seconds < WAIT_SA_CONFIG)
             ;
         else {
-            LED_Task();
+            rf_monitor_task();
             TempDetect(); // temperature dectect
             PwrLMT();     // RF power ctrl
             msp_task();

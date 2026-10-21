@@ -191,12 +191,14 @@ void MonEE(uint8_t op, uint8_t d) {
     table_power[RF_FREQ][RF_POWER] = val;
     debugf("\r\nRF TAB[%d][%d] = %x", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, val);
 
-    DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+    rf_set_power(RF_POWER, pwr_offset);
 }
 #endif
 
 void Monitor(void) {
 #ifdef _DEBUG_MODE
+    uint16_t adr;
+    uint8_t dat;
     if (!MonGetCommand())
         return;
 
@@ -219,42 +221,33 @@ void Monitor(void) {
     else if (!stricmp(argv[0], "rfrst")) {
         WriteReg(0x8F, 0x00);
         WriteReg(0x8F, 0x11);
-    } else if (!stricmp(argv[0], "rf1")) {
-        // WriteReg(0x8F, 0x00);
-        // WriteReg(0x8F, 0x11);
-        DM6300_init1();
-    } else if (!stricmp(argv[0], "rf2"))
-        DM6300_init2(0);
-    else if (!stricmp(argv[0], "rf3"))
-        DM6300_init3(RF_FREQ);
-    else if (!stricmp(argv[0], "rf4"))
-        DM6300_init4();
-    else if (!stricmp(argv[0], "rf5"))
-        DM6300_init5(0);
-    else if (!stricmp(argv[0], "rf6"))
-        DM6300_init6(0);
-    else if (!stricmp(argv[0], "rf7"))
-        DM6300_init7(0);
-    else if (!stricmp(argv[0], "efuse1")) {
-        DM6300_EFUSE1();
-        DM6300_Set_Page18();
-    } else if (!stricmp(argv[0], "efuse2")) {
-        DM6300_EFUSE2();
-        DM6300_Set_Page18();
-    } else if (!stricmp(argv[0], "rftest"))
-        DM6300_RFTest();
-    else if (!stricmp(argv[0], "bbon"))
+    } else if (!stricmp(argv[0], "bbon"))
         WriteReg(0x8F, 0x11);
     else if (!stricmp(argv[0], "bboff"))
         WriteReg(0x8F, 0x01);
-    // else if ( !stricmp( argv[0], "m0" ) )
-    // DM6300_M0();
     else if (!stricmp(argv[0], "ch")) {
         if (argc == 3 && Asc2Bin(argv[1]) < FREQ_NUM_INTERNAL && Asc2Bin(argv[2]) <= POWER_MAX) {
             RF_FREQ = Asc2Bin(argv[1]);
             RF_POWER = Asc2Bin(argv[2]);
-            DM6300_SetChannel(RF_FREQ);
-            DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+            rf_set_channel(RF_FREQ);
+            rf_set_power(RF_POWER, pwr_offset);
+        }
+    } else if (!stricmp(argv[0], "pwr")) {
+        if (argc == 2) {
+            dat = Asc2Bin(argv[1]);
+            gc_tx_gain_set(dat);
+        }
+    } else if (!stricmp(argv[0], "gw")) {
+        if (argc == 3) {
+            adr = Asc4Bin(argv[1]);
+            dat = Asc2Bin(argv[2]);
+            spi_write(adr, dat);
+        }
+    } else if (!stricmp(argv[0], "gr")) {
+        if (argc == 2) {
+            adr = Asc4Bin(argv[1]);
+            dat = gspi_read(adr);
+            debugf("\r\nGC Read: %x = %x", adr, (uint16_t)dat);
         }
     } else if (!stricmp(argv[0], "ew"))
         MonEE(0, Asc2Bin(argv[1]));
@@ -404,8 +397,8 @@ void chg_vtx(void) {
 
     if (!stricmp(argv[1], "-1")) { // Camera
         WriteReg(0x50, 0x00);
-        DM6300_SetChannel(RF_FREQ);
-        DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+        rf_set_channel(RF_FREQ);
+        rf_set_power(RF_POWER, pwr_offset);
         debugf("\r\nVTX Cam, channel = %d,power = %d,FPS = %d", (uint16_t)RF_FREQ, (uint16_t)RF_POWER, (uint16_t)video_format);
     } else { // pattern
         video_format = VDO_FMT_720P60;
@@ -414,8 +407,8 @@ void chg_vtx(void) {
 
         RF_POWER = pwr;
         RF_FREQ = chan;
-        DM6300_SetChannel(RF_FREQ);
-        DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+        rf_set_channel(RF_FREQ);
+        rf_set_power(RF_POWER, pwr_offset);
         debugf("\r\nVTX Pattern, channel = %d,power = %d,FPS = 1", (uint16_t)RF_FREQ, (uint16_t)RF_POWER);
     }
 }

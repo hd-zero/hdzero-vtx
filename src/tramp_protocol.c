@@ -1,9 +1,9 @@
 #include "tramp_protocol.h"
-#include "dm6300.h"
 #include "global.h"
 #include "hardware.h"
 #include "msp_displayport.h"
 #include "print.h"
+#include "rf.h"
 
 uint8_t tr_tx_busy = 0;
 uint8_t tramp_lock = 0;
@@ -49,15 +49,15 @@ void trampResponse(void) {
 }
 
 static void set_freq(uint16_t freq) {
-    uint8_t ch = DM6300_GetChannelByFreq(freq);
+    uint8_t ch = rf_get_ch_by_freq(freq);
 
     if (ch != 0xff) {
         if (ch > 9 && lowband_lock) {
             ;
         } else {
             RF_FREQ = ch;
-            if (dm6300_init_done) {
-                DM6300_SetChannel(RF_FREQ);
+            if (rf_init_done) {
+                rf_set_channel(RF_FREQ);
             }
         }
     }
@@ -115,17 +115,15 @@ static void set_power(uint16_t power) {
         vtx_pit = PIT_0MW;
 
         WriteReg(0x8F, 0x10); // reset RF_chip
-        dm6300_init_done = 0;
+        rf_init_done = 0;
         temp_err = 1;
     } else {
 
-        if (dm6300_init_done) {
-            DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
-
+        if (rf_init_done) {
+            rf_set_power(RF_POWER, pwr_offset);
         } else {
             Init_6300RF(RF_FREQ, RF_POWER);
-            DM6300_AUXADC_Calib();
-            dm6300_init_done = 1;
+            rf_auxadc_calib();
         }
         cur_pwr = RF_POWER;
         if (RF_POWER == POWER_MAX + 1)
@@ -136,7 +134,7 @@ static void set_power(uint16_t power) {
 // Process response and return code if valid else 0
 static uint8_t tramp_reply(void) {
     const uint8_t respCode = rbuf[1];
-    uint16_t freq = DM6300_GetFreqByChannel(RF_FREQ);
+    uint16_t freq = rf_get_freq_by_ch(RF_FREQ);
     uint16_t power = get_power();
     const uint8_t locked = 0;
     uint8_t pitmode = 0;

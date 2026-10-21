@@ -154,7 +154,7 @@ uint8_t eep_wr(uint8_t reg, uint8_t val) {
 }
 
 uint8_t eep_rd(uint8_t reg) {
-    return eep_rd(reg);
+    return I2C_Read8(ADDR_EEPROM, reg);
 }
 
 uint8_t get_camera_switch_type(void) {

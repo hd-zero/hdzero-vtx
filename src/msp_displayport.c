@@ -1,12 +1,12 @@
 #include "msp_displayport.h"
 #include "camera.h"
 #include "common.h"
-#include "dm6300.h"
 #include "global.h"
 #include "hardware.h"
 #include "isr.h"
 #include "lifetime.h"
 #include "print.h"
+#include "rf.h"
 #include "smartaudio_protocol.h"
 #include "spi.h"
 #include "tramp_protocol.h"
@@ -876,7 +876,7 @@ void msp_send_vtx_temperature() {
 
 void msp_send_vtx_hw_faults() {
     uint8_t crc = 0;
-    uint8_t faults = cameraLost & 1 | (dm6300_lost << 1) | (heat_protect << 2);
+    uint8_t faults = cameraLost & 1 | (rf_chip_lost << 1) | (heat_protect << 2);
 
     msp_send_response(0, MSP_HEADER_V2);
     crc = msp_send_header_v2(1, MSP_VTX_GET_HW_FAULTS);
@@ -891,7 +891,7 @@ void msp_set_vtx_config(uint8_t power, uint8_t save) {
     uint8_t crc = 0;
     uint8_t channel = RF_FREQ;
     uint8_t band;
-    uint16_t const freq = DM6300_GetFreqByChannel(channel);
+    uint16_t const freq = rf_get_freq_by_ch(channel);
 
     if (channel < 8) { // race band
         band = 5;
@@ -1085,8 +1085,8 @@ uint8_t msp_vtx_set_channel(uint8_t const channel) {
 
     vtx_channel = channel;
     RF_FREQ = channel;
-    if (dm6300_init_done)
-        DM6300_SetChannel(channel);
+    if (rf_init_done)
+        rf_set_channel(channel);
     return 1;
 }
 
@@ -1167,7 +1167,7 @@ void parse_vtx_params(uint8_t isMSP_V2) {
         // BF sends band index 0 when frequency setting is used.
         // Won't harm to validate frequency in all cases.
         uint16_t const fc_frequency = ((uint16_t)msp_rx_buf[6] << 8) + msp_rx_buf[5];
-        nxt_ch = DM6300_GetChannelByFreq(fc_frequency);
+        nxt_ch = rf_get_ch_by_freq(fc_frequency);
     }
     needSaveEEP |= msp_vtx_set_channel(nxt_ch);
 
@@ -1179,7 +1179,7 @@ void parse_vtx_params(uint8_t isMSP_V2) {
         msp_set_vtx_config(POWER_MAX + 1, 0);
         // Sometimes FC is delayed in receive 0mW, so check fc reply power and resend 0mW.
         if (nxt_pwr == POWER_MAX + 1) {
-            dm6300_init_done = 0;
+            rf_init_done = 0;
             cur_pwr = POWER_MAX + 2;
             vtx_pit_save = PIT_0MW;
             vtx_pit = PIT_0MW;
@@ -1188,15 +1188,15 @@ void parse_vtx_params(uint8_t isMSP_V2) {
         return;
     }
 
-    if ((nxt_pwr != (POWER_MAX + 1)) && !dm6300_init_done) {
+    if ((nxt_pwr != (POWER_MAX + 1)) && !rf_init_done) {
         Init_6300RF(RF_FREQ, RF_POWER);
-        DM6300_AUXADC_Calib();
+        rf_auxadc_calib();
     }
 
     if (nxt_pit != PIT_MODE) {
         PIT_MODE = nxt_pit;
         if (PIT_MODE) {
-            DM6300_SetPower(POWER_MAX + 1, RF_FREQ, pwr_offset);
+            rf_set_power(POWER_MAX + 1, pwr_offset);
             cur_pwr = POWER_MAX + 1;
             vtx_pit_save = PIT_MODE;
         } else {
@@ -1209,13 +1209,13 @@ void parse_vtx_params(uint8_t isMSP_V2) {
 #endif
                 if (nxt_pwr == (POWER_MAX + 1)) {
                 WriteReg(0x8F, 0x10); // 5680 reset low (image tx off).
-                dm6300_init_done = 0;
+                rf_init_done = 0;
                 cur_pwr = POWER_MAX + 2;
                 vtx_pit_save = PIT_0MW;
                 vtx_pit = PIT_0MW;
                 temp_err = 1;
             } else {
-                DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+                rf_set_power(RF_POWER, pwr_offset);
                 cur_pwr = RF_POWER;
                 vtx_pit_save = PIT_MODE;
             }
@@ -1229,14 +1229,14 @@ void parse_vtx_params(uint8_t isMSP_V2) {
             // Exit 0mW
             if (cur_pwr == (POWER_MAX + 2)) {
                 Init_6300RF(RF_FREQ, PIT_MODE ? (POWER_MAX + 1) : RF_POWER);
-                DM6300_AUXADC_Calib();
+                rf_auxadc_calib();
                 needSaveEEP = 1;
             }
             vtx_pit_save = PIT_MODE;
         } else if (nxt_pwr == POWER_MAX + 1) { // Enter 0mW
             if (cur_pwr != (POWER_MAX + 2)) {
                 WriteReg(0x8F, 0x10);
-                dm6300_init_done = 0;
+                rf_init_done = 0;
                 cur_pwr = POWER_MAX + 2;
                 vtx_pit_save = PIT_0MW;
                 vtx_pit = PIT_0MW;
@@ -1250,7 +1250,7 @@ void parse_vtx_params(uint8_t isMSP_V2) {
             else if (LP_MODE)
                 nxt_pwr = 0;
 
-            if (dm6300_init_done) {
+            if (rf_init_done) {
                 if (cur_pwr != nxt_pwr) {
 #ifndef VIDEO_PAT
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
@@ -1260,14 +1260,14 @@ void parse_vtx_params(uint8_t isMSP_V2) {
 #endif
 #endif
                     {
-                        DM6300_SetPower(nxt_pwr, RF_FREQ, pwr_offset);
+                        rf_set_power(nxt_pwr, pwr_offset);
                         cur_pwr = nxt_pwr;
                     }
                     needSaveEEP = 1;
                 }
             } else {
                 Init_6300RF(RF_FREQ, RF_POWER);
-                DM6300_AUXADC_Calib();
+                rf_auxadc_calib();
             }
             vtx_pit_save = PIT_MODE;
         }
@@ -1527,7 +1527,7 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
             } else {
                 msp_set_vtx_config(POWER_MAX + 1, 0); // enter 0mW for SA
                 WriteReg(0x8F, 0x10);
-                dm6300_init_done = 0;
+                rf_init_done = 0;
                 cur_pwr = POWER_MAX + 2;
                 temp_err = 1;
             }
@@ -1550,14 +1550,14 @@ void update_cms_menu(uint16_t roll, uint16_t pitch, uint16_t yaw, uint16_t throt
                 vtx_pit = PIT_P1MW;
                 Init_6300RF(RF_FREQ, POWER_MAX + 1);
                 cur_pwr = POWER_MAX + 1;
-                DM6300_AUXADC_Calib();
+                rf_auxadc_calib();
             } else {
                 save_vtx_param();
                 pit_mode_cfg_done = 1; // avoid to config DM6300 again
                 // DM6300_Set_Page18();
                 // SPI_Write3(0xd00, 0x00000003);
                 Init_6300RF(RF_FREQ, RF_POWER);
-                DM6300_AUXADC_Calib();
+                rf_auxadc_calib();
             }
         }
         if (!(IS_HI_yaw && IS_LO_throttle && IS_LO_roll && IS_LO_pitch))
@@ -2093,25 +2093,25 @@ void set_vtx_param() {
             if (PIT_MODE) {
                 if (vtx_pit_save == PIT_0MW) {
                     WriteReg(0x8F, 0x10);
-                    dm6300_init_done = 0;
+                    rf_init_done = 0;
                     // DM6300_Set_Page18();
                     // SPI_Write3(0xd00, 0x00000000);
                     cur_pwr = POWER_MAX + 2;
                     temp_err = 1;
                 } else // if(vtx_pit_save == PIT_P1MW)
                 {
-                    if (!dm6300_init_done) {
+                    if (!rf_init_done) {
                         Init_6300RF(RF_FREQ, POWER_MAX + 1);
-                        DM6300_AUXADC_Calib();
+                        rf_auxadc_calib();
                     } else
-                        DM6300_SetPower(POWER_MAX + 1, RF_FREQ, 0);
+                        rf_set_power(POWER_MAX + 1, 0);
                     cur_pwr = POWER_MAX + 1;
                 }
             }
             pit_mode_cfg_done = 1;
         } else if (!lp_mode_cfg_done) {
             if (LP_MODE) {
-                DM6300_SetPower(0, RF_FREQ, 0); // limit power to 25mW
+                rf_set_power(0, 0); // limit power to 25mW
                 cur_pwr = 0;
             }
             lp_mode_cfg_done = 1;
@@ -2129,19 +2129,19 @@ void set_vtx_param() {
 #endif
 #endif
             {
-                DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+                rf_set_power(RF_POWER, pwr_offset);
                 cur_pwr = RF_POWER;
             }
         } else if (heat_protect) {
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
-            WriteReg(0x8F, 0x00);           // dm6300 reset low
-            WriteReg(0x8F, 0x01);           // dm6300 reset high
-            DM6300_Init(RF_FREQ, RF_BW);    // Set bandwidth
-            DM6300_SetChannel(RF_FREQ);     // Set band/channel
-            DM6300_SetPower(0, RF_FREQ, 0); // Set low power (25mW)
-            WriteReg(0x8F, 0x11);           // enable 5680 video engine
+            WriteReg(0x8F, 0x00);    // dm6300 reset low
+            WriteReg(0x8F, 0x01);    // dm6300 reset high
+            rf_init(RF_FREQ, RF_BW); // Set bandwidth
+            rf_set_channel(RF_FREQ); // Set band/channel
+            rf_set_power(0, 0);      // Set low power (25mW)
+            WriteReg(0x8F, 0x11);    // enable 5680 video engine
 #else
-            DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+            rf_set_power(RF_POWER, pwr_offset);
             cur_pwr = RF_POWER;
             heat_protect = 0;
 #endif
@@ -2154,7 +2154,7 @@ void set_vtx_param() {
             ; // msp_set_vtx_config(RF_POWER, 1);
     } else if (!g_IS_ARMED && g_IS_ARMED_last) {
         if (LP_MODE == 1) {
-            DM6300_SetPower(0, RF_FREQ, 0); // limit power to 25mW during disarmed
+            rf_set_power(0, 0); // limit power to 25mW during disarmed
             cur_pwr = 0;
         }
     }

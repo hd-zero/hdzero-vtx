@@ -1,7 +1,6 @@
 #include "hardware.h"
 #include "camera.h"
 #include "common.h"
-#include "dm6300.h"
 #include "global.h"
 #include "i2c.h"
 #include "i2c_device.h"
@@ -10,11 +9,95 @@
 #include "monitor.h"
 #include "msp_displayport.h"
 #include "print.h"
+#include "rf.h"
 #include "sfr_ext.h"
 #include "smartaudio_protocol.h"
 #include "spi.h"
 #include "tramp_protocol.h"
 #include "uart.h"
+
+#if defined HDZERO_FREESTYLE_V1
+uint8_t table_power[FREQ_NUM_EXTERNAL][POWER_MAX + 1] = {
+    // race band
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x60, 0x60},
+    {0x72, 0x6d, 0x60, 0x60},
+    {0x74, 0x70, 0x62, 0x5c},
+    {0x78, 0x74, 0x64, 0x5b},
+    {0x7a, 0x77, 0x64, 0x5b},
+    {0x7a, 0x77, 0x64, 0x5b},
+    // e band
+    {0x70, 0x68, 0x5c, 0x60}, // E1
+    // fatshark band
+    {0x70, 0x68, 0x60, 0x60}, // F1
+    {0x72, 0x6d, 0x60, 0x60}, // F2
+    {0x74, 0x70, 0x62, 0x5c}, // F4
+    // low band
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+};
+#elif defined HDZERO_FREESTYLE_V2
+uint8_t table_power[FREQ_NUM_EXTERNAL][POWER_MAX + 1] = {
+    // race band
+    {0x30, 0x50, 0x50, 0x58},
+    {0x30, 0x50, 0x50, 0x58},
+    {0x30, 0x50, 0x50, 0x58},
+    {0x30, 0x50, 0x50, 0x58},
+    {0x30, 0x50, 0x50, 0x58},
+    {0x30, 0x50, 0x50, 0x58},
+    {0x30, 0x50, 0x50, 0x58},
+    {0x30, 0x50, 0x50, 0x58},
+    // e band
+    {0x70, 0x68, 0x5c, 0x60}, // E1
+    // fatshark band
+    {0x70, 0x68, 0x60, 0x60}, // F1
+    {0x72, 0x6d, 0x60, 0x60}, // F2
+    {0x74, 0x70, 0x62, 0x5c}, // F4
+    // low band
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+    {0x70, 0x68, 0x5c, 0x60},
+};
+#else
+uint8_t table_power[FREQ_NUM_EXTERNAL][POWER_MAX + 1] = {
+    // race band
+    {0x50, 0x60},
+    {0x50, 0x60},
+    {0x50, 0x60},
+    {0x50, 0x60},
+    {0x50, 0x60},
+    {0x50, 0x60},
+    {0x50, 0x60},
+    {0x50, 0x60},
+    // e band
+    {0x79, 0x83}, // E1
+    // fatshark band
+    {0x75, 0x80}, // F1
+    {0x73, 0x7E}, // F2
+    {0x72, 0x7C}, // F4
+    // low band
+    {0x79, 0x83},
+    {0x79, 0x83},
+    {0x79, 0x83},
+    {0x79, 0x83},
+    {0x79, 0x83},
+    {0x79, 0x83},
+    {0x79, 0x83},
+    {0x79, 0x83},
+};
+#endif
 
 uint8_t KEYBOARD_ON = 0; // avoid conflict between keyboard and cam_control
 uint8_t EE_VALID = 0;
@@ -101,7 +184,6 @@ const uint8_t diag_led_flags_normal[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x
 
 uint8_t temp_err = 0;
 #ifdef USE_TEMPERATURE_SENSOR
-int16_t temp0 = 0;
 uint8_t p;
 #endif
 
@@ -136,7 +218,6 @@ uint8_t cameraLost = 0;
 uint8_t timer_cnt = 0;
 uint8_t led_timer_cnt = 0;
 
-void LED_Init();
 #if (0)
 uint8_t check_uart_loopback();
 #endif
@@ -281,6 +362,13 @@ static const video_config_t cfg_1080p30[14] = {
     {0x06, 0x01},
 };
 
+uint8_t offset_25mw_real() {
+    if (rf_chip == RF_CHIP_DM6300B)
+        return ((OFFSET_25MW + 2) >> 2);
+    else
+        return OFFSET_25MW;
+}
+
 void set_vin(video_format_e fmt) {
     uint8_t i;
     const video_config_t *cfg_ptr = cfg_720p50;
@@ -358,7 +446,9 @@ void GetVtxParameter() {
 #ifdef FIX_EEP
         for (i = 0; i < FREQ_NUM_INTERNAL; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
-                eep_wr(i * (POWER_MAX + 1) + j, table_power[i][j]);
+                eep_wr(EEP_ADDR_TAB1 + i * (POWER_MAX + 1) + j, table_power[i][j]);
+                eep_wr(EEP_ADDR_TAB2 + i * (POWER_MAX + 1) + j, table_power[i][j]);
+                eep_wr(EEP_ADDR_TAB3 + i * (POWER_MAX + 1) + j, table_power[i][j]);
             }
         }
 #endif
@@ -384,7 +474,7 @@ void GetVtxParameter() {
         // low band
         for (i = 10; i < FREQ_NUM_EXTERNAL; i++) {
             for (j = 0; j <= POWER_MAX; j++) {
-                tab[i][j] = tab_min[j] - 4;
+                tab[i][j] = tab_min[j] - ((rf_chip == RF_CHIP_DM6300) ? 4 : 2);
             }
         }
 
@@ -396,7 +486,7 @@ void GetVtxParameter() {
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
 #else
                     if (j == 0) // 25mw +3dbm
-                        table_power[i][j] += 0xC;
+                        table_power[i][j] += (rf_chip == RF_CHIP_DM6300) ? 0xC : 0x03;
 #endif
 #endif
                 }
@@ -444,8 +534,8 @@ void GetVtxParameter() {
 void Init_6300RF(uint8_t freq, uint8_t pwr) {
     WriteReg(0x8F, 0x00);
     WriteReg(0x8F, 0x01);
-    DM6300_Init(freq, RF_BW);
-    DM6300_SetChannel(freq);
+    rf_init(freq, RF_BW);
+    rf_set_channel(freq);
 #ifndef VIDEO_PAT
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
     if ((pwr == 3) && (!g_IS_ARMED))
@@ -454,7 +544,7 @@ void Init_6300RF(uint8_t freq, uint8_t pwr) {
 #endif
 #endif
     {
-        DM6300_SetPower(pwr, freq, pwr_offset);
+        rf_set_power(pwr, pwr_offset);
         cur_pwr = pwr;
     }
     WriteReg(0x8F, 0x11);
@@ -482,7 +572,7 @@ void Init_HW() {
     RF_POWER = 0;
 #endif
     Init_6300RF(RF_FREQ, RF_POWER);
-    DM6300_AUXADC_Calib();
+    rf_auxadc_calib();
 #else
 #ifdef USE_TC3587_LED
     LED_TC3587_Init();
@@ -499,10 +589,16 @@ void Init_HW() {
     camera_init();
 
 #ifdef _RF_CALIB
+    if (camera_type == CAMERA_TYPE_UNKNOWN) {
+        Set_720P60(0);
+        WriteReg(0, 0x50, 0x01);
+        video_format = VDO_FMT_720P60;
+    }
+
     RF_POWER = 0; // max power
     RF_FREQ = 0;  // ch1
     Init_6300RF(RF_FREQ, RF_POWER);
-    DM6300_AUXADC_Calib();
+    rf_auxadc_calib();
 #endif
 //--------- dm6300 --------------------
 // move to RF_Delay_Init()
@@ -515,14 +611,11 @@ void Init_HW() {
 #ifdef USE_TEMPERATURE_SENSOR
 void TempDetect() {
     static uint8_t init = 1;
-    int16_t temp_new, temp_new0;
+    int16_t temp_new;
 
     if (timer_2hz) {
         if (init) {
             init = 0;
-            temp0 = DM6300_GetTemp();
-            temp0 <<= 2;
-
             temperature = I2C_Read8(ADDR_TEMPADC, 0); // NCT75 MSB 8bit
             // temperature >>= 5; //LM75AD
 
@@ -530,8 +623,6 @@ void TempDetect() {
                 temperature = 0x7D;
             temperature <<= 2; // filter * 4
         } else {
-            temp_new0 = DM6300_GetTemp();
-
             temp_new = I2C_Read8(ADDR_TEMPADC, 0);
             if (temp_new >= 0x7D) // MAX +125
                 temp_new = 0x7D;
@@ -544,10 +635,7 @@ void TempDetect() {
             if (temp_new > 15)
                 temp_new -= 15;
 #endif
-
             temperature = temperature - (temperature >> 2) + temp_new;
-
-            temp0 = temp0 - (temp0 >> 2) + temp_new0;
         }
     }
 }
@@ -556,16 +644,16 @@ void TempDetect() {
     static uint8_t init = 1;
     int16_t temp_new;
 
-    if (!dm6300_init_done)
+    if (!rf_init_done)
         return;
 
     if (timer_2hz) {
         if (init) {
             init = 0;
-            temperature = DM6300_GetTemp();
+            temperature = rf_get_temp();
             temperature <<= 2;
         } else {
-            temp_new = DM6300_GetTemp();
+            temp_new = rf_get_temp();
             temperature = temperature - (temperature >> 2) + temp_new;
         }
     }
@@ -636,6 +724,10 @@ void PowerAutoSwitch() {
     last_ofs = pwr_offset;
     pwr_offset = temperature_level();
 
+    if (rf_chip == RF_CHIP_DM6300B) {
+        pwr_offset >>= 2;
+    }
+
 #ifdef HDZERO_WHOOP_LITE
     pwr_offset >>= 1;
 #elif defined HDZERO_FREESTYLE_V2
@@ -643,10 +735,10 @@ void PowerAutoSwitch() {
         pwr_offset = 16;
 #endif
 
-    if ((!g_IS_ARMED) && (last_ofs == pwr_offset))
+    if ((!g_IS_ARMED) || (last_ofs == pwr_offset))
         ;
     else {
-        DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+        rf_set_power(RF_POWER, pwr_offset);
         cur_pwr = RF_POWER;
     }
 }
@@ -751,13 +843,13 @@ void PowerAutoSwitch() {
 
     if (OFFSET_25MW <= 10) {
         if (temp_err)
-            pwr_offset = 10 - OFFSET_25MW;
+            pwr_offset = 10 - offset_25mw_real();
         else if (pwr_offset + OFFSET_25MW > 20)
-            pwr_offset = 20 - OFFSET_25MW;
+            pwr_offset = 20 - offset_25mw_real();
     }
 
     if (last_ofs != pwr_offset) {
-        DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+        rf_set_power(RF_POWER, pwr_offset);
         cur_pwr = RF_POWER;
     } else {
     }
@@ -813,7 +905,7 @@ void HeatProtect() {
                             WriteReg(0x8F, 0x00);
                             msp_set_vtx_config(POWER_MAX + 1, 0);
 #else
-                            DM6300_SetPower(0, RF_FREQ, 0);
+                            rf_set_power(0, 0);
                             msp_set_vtx_config(0, 0);
 #endif
                             cur_pwr = 0;
@@ -869,7 +961,7 @@ void PwrLMT() {
                     }
 #endif
                     if (pwr_lmt_sec >= PWR_LMT_SEC) {
-                        DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+                        rf_set_power(RF_POWER, pwr_offset);
                         cur_pwr = RF_POWER;
                         pwr_lmt_done = 1;
                         pwr_lmt_sec = 0;
@@ -900,7 +992,7 @@ void PwrLMT() {
             else
                 set 0.1mW;*/
         } else if (LP_MODE) {
-            // DM6300_SetPower(0, RF_FREQ, 0);
+            // rf_set_power(0, 0);
             // cur_pwr = 0;
         } else {
             HeatProtect();
@@ -932,7 +1024,7 @@ void PwrLMT() {
 #endif // HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
 
                         if (pwr_lmt_sec >= PWR_LMT_SEC) {
-                            DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+                            rf_set_power(RF_POWER, pwr_offset);
                             cur_pwr = RF_POWER;
                             pwr_lmt_done = 1;
                             pwr_lmt_sec = 0;
@@ -1029,7 +1121,7 @@ void video_detect(void) {
 }
 
 void Imp_RF_Param() {
-    DM6300_SetChannel(RF_FREQ);
+    rf_set_channel(RF_FREQ);
     if (LP_MODE && !g_IS_ARMED)
         return;
 #ifndef VIDEO_PAT
@@ -1039,7 +1131,7 @@ void Imp_RF_Param() {
     else
 #endif
 #endif
-        DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+        rf_set_power(RF_POWER, pwr_offset);
     cur_pwr = RF_POWER;
 }
 
@@ -1050,7 +1142,7 @@ void Button1_SP() {
     // exit 0mW
     if (vtx_pit_save == PIT_0MW) {
         Init_6300RF(RF_FREQ, RF_POWER);
-        DM6300_AUXADC_Calib();
+        rf_auxadc_calib();
         cur_pwr = RF_POWER;
         // reset pitmode
         vtx_pit_save = PIT_OFF;
@@ -1084,7 +1176,7 @@ void Button1_SP() {
         Setting_Save();
         msp_set_vtx_config(RF_POWER, 1);
 
-        DM6300_SetPower(LP_MODE ? 0 : RF_POWER, RF_FREQ, LP_MODE ? 0 : pwr_offset);
+        rf_set_power(LP_MODE ? 0 : RF_POWER, LP_MODE ? 0 : pwr_offset);
         if (LP_MODE) {
             cur_pwr = 0;
         } else {
@@ -1105,7 +1197,7 @@ void Button1_SP() {
 
         msp_set_vtx_config(RF_POWER, 1);
         if (LP_MODE) { // limit power to 25mW
-            DM6300_SetPower(0, RF_FREQ, 0);
+            rf_set_power(0, 0);
             cur_pwr = 0;
         } else {
 #ifndef VIDEO_PAT
@@ -1116,7 +1208,7 @@ void Button1_SP() {
 #endif
 #endif
             {
-                DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+                rf_set_power(RF_POWER, pwr_offset);
                 cur_pwr = RF_POWER;
             }
         }
@@ -1126,7 +1218,7 @@ void Button1_SP() {
         if (LP_MODE > 2)
             LP_MODE = 0;
 
-        DM6300_SetPower(LP_MODE ? 0 : RF_POWER, RF_FREQ, 0);
+        rf_set_power(LP_MODE ? 0 : RF_POWER, 0);
         if (LP_MODE) {
             cur_pwr = 0;
         }
@@ -1342,7 +1434,7 @@ void LED_Flip() {
 void LED_Task() {
     const uint8_t *led_ptr = NULL;
 
-    if (dm6300_lost) {
+    if (rf_chip_lost) {
         led_ptr = diag_led_flags_dm6300lost;
     } else if (cameraLost) {
         led_ptr = diag_led_flags_cameralost;
@@ -1479,7 +1571,7 @@ void RF_Delay_Init() {
             seconds = WAIT_SA_CONFIG;
     } else if (rf_delay_init_done)
         return;
-    else if (dm6300_init_done)
+    else if (rf_init_done)
         return;
     else
         rf_delay_init_done = 1;
@@ -1493,7 +1585,7 @@ void RF_Delay_Init() {
             } else {
                 Init_6300RF(ch_init, PIT_MODE ? (POWER_MAX + 1) : pwr_init);
             }
-            DM6300_AUXADC_Calib();
+            rf_auxadc_calib();
         }
     } else if (!mspVtxLock) {
         if (TEAM_RACE == 0x01)
@@ -1513,14 +1605,14 @@ void RF_Delay_Init() {
         } else {
             WriteReg(0x8F, 0x00);
             WriteReg(0x8F, 0x01);
-            DM6300_Init(RF_FREQ, RF_BW);
-            DM6300_SetChannel(RF_FREQ);
-            DM6300_SetPower(0, RF_FREQ, 0);
+            rf_init(RF_FREQ, RF_BW);
+            rf_set_channel(RF_FREQ);
+            rf_set_power(0, 0);
             cur_pwr = RF_POWER;
             WriteReg(0x8F, 0x11);
             rf_delay_init_done = 1;
         }
-        DM6300_AUXADC_Calib();
+        rf_auxadc_calib();
     }
 }
 

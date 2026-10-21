@@ -36,7 +36,7 @@ void CalibProc() {
             case 'w':
                 table_power[RF_FREQ][RF_POWER] = rxbuf[1];
 
-                DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+                rf_set_power(RF_POWER, pwr_offset);
 
                 eep_wr(EEP_ADDR_TAB1 + RF_FREQ * (POWER_MAX + 1) + RF_POWER, table_power[RF_FREQ][RF_POWER]);
                 eep_wr(EEP_ADDR_TAB2 + RF_FREQ * (POWER_MAX + 1) + RF_POWER, table_power[RF_FREQ][RF_POWER]);
@@ -47,8 +47,8 @@ void CalibProc() {
                 if (rxbuf[1] < FREQ_NUM_INTERNAL && rxbuf[2] <= POWER_MAX) {
                     RF_FREQ = rxbuf[1];
                     RF_POWER = rxbuf[2];
-                    DM6300_SetChannel(RF_FREQ);
-                    DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+                    rf_set_channel(RF_FREQ);
+                    rf_set_power(RF_POWER, pwr_offset);
                 }
                 break;
 

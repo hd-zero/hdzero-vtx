@@ -72,6 +72,7 @@ extern uint8_t lowband_lock;
 #define LED_BLUE_OFF LED_1 = OFF
 #endif
 
+void LED_Init();
 void Init_HW();
 void OnButton1();
 void video_detect();
@@ -99,12 +100,16 @@ void vtx_paralized(void);
 
 void timer_task();
 void RF_Delay_Init();
+
+uint8_t offset_25mw_real();
+
 #ifdef USE_USB_DET
 void usb_det_task();
 #endif
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
 extern uint8_t powerLock;
 #endif
+extern uint8_t table_power[FREQ_NUM_EXTERNAL][POWER_MAX + 1];
 extern uint8_t RF_FREQ;
 extern uint8_t RF_POWER;
 extern uint8_t LP_MODE;
