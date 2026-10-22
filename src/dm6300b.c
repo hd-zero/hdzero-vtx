@@ -99,6 +99,17 @@ void gc_tx_gain_set(uint8_t gain_index);
 void gc_read_scap(void);
 void gc_write_scap(void);
 
+#ifdef _RF_CALIB
+void DM6300B_reset_table_power() {
+    uint8_t i;
+
+    for (i = 0; i < FREQ_NUM_EXTERNAL; i++) {
+        table_power[i][0] = 0x12;
+        table_power[i][1] = 0x1C;
+    }
+}
+#endif
+
 uint8_t DM6300B_is_alive(void) {
     DM6300B_spi_write(0x900, 0x07);
     DM6300B_spi_write(0x904, 0xA4);

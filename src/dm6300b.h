@@ -16,5 +16,7 @@ uint8_t DM6300B_spi_read(uint16_t addr);
 void gc_tx_gain_set(uint8_t gain_index);
 
 uint8_t DM6300B_is_alive();
-
+#ifdef _RF_CALIB
+void DM6300B_reset_table_power();
+#endif
 #endif

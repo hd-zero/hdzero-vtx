@@ -47,6 +47,9 @@ void rf_chip_check() {
     } else if (DM6300B_is_alive()) {
         rf_chip_lost = 0;
         rf_chip = RF_CHIP_DM6300B;
+#ifdef _RF_CALIB
+        DM6300B_reset_table_power();
+#endif
 #ifdef _DEBUG_MODE
         debugf("\r\nRF CHIP: DM6300B");
 #endif
