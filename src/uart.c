@@ -45,8 +45,7 @@ void uart_set_baudrate(uint8_t baudIndex) {
 }
 
 void uart_init() {
-#ifdef USE_TRAMP
-    // tramp protocol need 115200 bps.
+#ifdef USE_T115200
     BAUDRATE = 0;
 #else
     BAUDRATE = eep_rd(EEP_ADDR_BAUDRATE);
