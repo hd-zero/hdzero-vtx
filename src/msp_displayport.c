@@ -2067,7 +2067,10 @@ void save_vtx_param() {
     else if (tramp_lock)
         ;
     else {
-        msp_set_vtx_config((vtx_pit == PIT_0MW) ? (POWER_MAX + 1) : RF_POWER, 0);
+        if (vtx_pit == PIT_0MW)
+            msp_set_vtx_config(POWER_MAX + 1, 0);
+        else
+            msp_set_vtx_config(RF_POWER, 1);
     }
 }
 

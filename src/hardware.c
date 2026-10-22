@@ -1472,7 +1472,7 @@ uint8_t RF_BW_to_be_changed(void) {
 }
 
 void uart_baudrate_detect(void) {
-#ifdef USE_TRAMP
+#ifdef USE_115200
     // tramp protocol need 115200 bps.
     return;
 #else
