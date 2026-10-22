@@ -248,11 +248,11 @@ void DM6300_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset) {
             p = table_power[freq][pwr] + offset - 2;
 
             if (OFFSET_25MW <= 10)
-                p += offset_25mw_real();
+                p += OFFSET_25MW;
             else if (p < (OFFSET_25MW - 10))
                 p = 0;
             else
-                p = p + 10 - offset_25mw_real();
+                p = p + 10 - OFFSET_25MW;
         } else
 #endif
             p = table_power[freq][pwr] + offset - 2;

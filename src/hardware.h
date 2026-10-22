@@ -101,8 +101,6 @@ void vtx_paralized(void);
 void timer_task();
 void RF_Delay_Init();
 
-uint8_t offset_25mw_real();
-
 #ifdef USE_USB_DET
 void usb_det_task();
 #endif

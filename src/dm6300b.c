@@ -180,6 +180,7 @@ void DM6300B_spi_write(uint16_t addr, uint8_t val) {
 ////////////////////////////////////////////////////////////////////////////////
 void DM6300B_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset) {
     int16_t p;
+    uint8_t offset_25mw_reals = 0;
 
     if (freq >= FREQ_NUM)
         freq = 0;
@@ -193,12 +194,12 @@ void DM6300B_SetPower(uint8_t pwr, uint8_t freq, uint8_t offset) {
 #ifndef _RF_CALIB
         if (RF_POWER == 0 && pwr == 0) { // fine tuning in vtx menu
 
-            if (offset_25mw_real() <= 3)
-                p += offset_25mw_real();
-            else if (p < (offset_25mw_real() - 3))
+            if (OFFSET_25MW <= 10) { // 0~10 -> 0~10
+                p += ((OFFSET_25MW + 2) >> 2);
+            } else if (p < (OFFSET_25MW - 10))
                 p = 0;
-            else
-                p = p + 3 - offset_25mw_real();
+            else // 11~20 -> -1~-10
+                p = p + 3 - ((OFFSET_25MW - 10 + 2) >> 2);
         }
 #endif
 

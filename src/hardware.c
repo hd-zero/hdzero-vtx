@@ -362,13 +362,6 @@ static const video_config_t cfg_1080p30[14] = {
     {0x06, 0x01},
 };
 
-uint8_t offset_25mw_real() {
-    if (rf_chip == RF_CHIP_DM6300B)
-        return ((OFFSET_25MW + 2) >> 2);
-    else
-        return OFFSET_25MW;
-}
-
 void set_vin(video_format_e fmt) {
     uint8_t i;
     const video_config_t *cfg_ptr = cfg_720p50;
@@ -844,9 +837,9 @@ void PowerAutoSwitch() {
 
     if (OFFSET_25MW <= 10) {
         if (temp_err)
-            pwr_offset = 10 - offset_25mw_real();
+            pwr_offset = 10 - OFFSET_25MW;
         else if (pwr_offset + OFFSET_25MW > 20)
-            pwr_offset = 20 - offset_25mw_real();
+            pwr_offset = 20 - OFFSET_25MW;
     }
 
     if (last_ofs != pwr_offset) {
