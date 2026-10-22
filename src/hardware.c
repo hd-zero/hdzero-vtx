@@ -581,9 +581,9 @@ void Init_HW() {
 
 #ifdef _RF_CALIB
     if (camera_type == CAMERA_TYPE_UNKNOWN) {
-        Set_720P60(0);
-        WriteReg(0, 0x50, 0x01);
         video_format = VDO_FMT_720P60;
+        set_vin(video_format);
+        WriteReg(0x50, 0x01);
     }
 
     RF_POWER = 0; // max power

@@ -6,6 +6,7 @@
 #include "hardware.h"
 #include "i2c.h"
 #include "i2c_device.h"
+#include "rf.h"
 #include "spi.h"
 #include "uart.h"
 
@@ -17,6 +18,7 @@ void CalibProc() {
     static int cnt = 0;
     uint8_t rx;
     uint32_t dcoc;
+    uint8_t i;
 
     if (Rom_ready()) {
         rx = Rom_rx();
@@ -117,21 +119,13 @@ void CalibProc() {
                     SPI_Write3(0x388, dcoc);
 
                     // write to eeprom
-                    eep_wr(EEP_ADDR_DCOC1 + 0, 0x00);
-                    eep_wr(EEP_ADDR_DCOC1 + 1, rxbuf[2]);
-                    eep_wr(EEP_ADDR_DCOC1 + 2, rxbuf[3]);
-                    eep_wr(EEP_ADDR_DCOC1 + 3, rxbuf[4]);
-                    eep_wr(EEP_ADDR_DCOC1 + 4, rxbuf[5]);
-                    eep_wr(EEP_ADDR_DCOC2 + 0, 0x00);
-                    eep_wr(EEP_ADDR_DCOC2 + 1, rxbuf[2]);
-                    eep_wr(EEP_ADDR_DCOC2 + 2, rxbuf[3]);
-                    eep_wr(EEP_ADDR_DCOC2 + 3, rxbuf[4]);
-                    eep_wr(EEP_ADDR_DCOC2 + 4, rxbuf[5]);
-                    eep_wr(EEP_ADDR_DCOC3 + 0, 0x00);
-                    eep_wr(EEP_ADDR_DCOC3 + 1, rxbuf[2]);
-                    eep_wr(EEP_ADDR_DCOC3 + 2, rxbuf[3]);
-                    eep_wr(EEP_ADDR_DCOC3 + 3, rxbuf[4]);
-                    eep_wr(EEP_ADDR_DCOC3 + 4, rxbuf[5]);
+                    for (i = 0; i < 4; i++) {
+                        if (i == 0) {
+                            eep_wr(EEP_ADDR_DCOC1 + i, i == 0 ? 0 : rxbuf[i + 1]);
+                            eep_wr(EEP_ADDR_DCOC2 + i, i == 0 ? 0 : rxbuf[i + 1]);
+                            eep_wr(EEP_ADDR_DCOC3 + i, i == 0 ? 0 : rxbuf[i + 1]);
+                        }
+                    }
                     break;
                 }
                 break;
