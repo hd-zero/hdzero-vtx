@@ -107,7 +107,7 @@ void usb_det_task();
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
 extern uint8_t powerLock;
 #endif
-extern uint8_t table_power[FREQ_NUM_EXTERNAL][POWER_MAX + 1];
+extern uint8_t table_power[FREQ_NUM_EXTERNAL][4];
 extern uint8_t RF_FREQ;
 extern uint8_t RF_POWER;
 extern uint8_t LP_MODE;
