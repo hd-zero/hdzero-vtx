@@ -1,5 +1,4 @@
 #include "dm6300.h"
-
 #include "common.h"
 #include "global.h"
 #include "hardware.h"
@@ -163,10 +162,12 @@ static void DM6300_write_reg_map6(const dm6300_reg_value_t *reg_map, uint8_t siz
 #define WRITE_REG_MAP6(regs) DM6300_write_reg_map6(regs, REG_MAP_COUNT(regs))
 
 void DM6300_Set_Page18() {
-    SPI_Write6(0xFF0, 0x00000018);
+    if (rf_chip == RF_CHIP_DM6300)
+        SPI_Write6(0xFF0, 0x00000018);
 }
 void DM6300_Set_Page19() {
-    SPI_Write6(0xFF0, 0x00000019);
+    if (rf_chip == RF_CHIP_DM6300)
+        SPI_Write6(0xFF0, 0x00000019);
 }
 
 dm6300_reg_value_t dm6300_set_channel_regs[] = {

@@ -218,7 +218,7 @@ void SA_Update(uint8_t cmd) {
                     else
 #endif
 #endif
-                        rf_set_power(RF_POWER, RF_FREQ, pwr_offset);
+                        rf_set_power(RF_POWER, pwr_offset);
                 }
 
                 Setting_Save();
@@ -285,7 +285,7 @@ void SA_Update(uint8_t cmd) {
                     rf_init_done = 0;
                     temp_err = 1;
                 } else {
-                    rf_set_power(POWER_MAX + 1, RF_FREQ, 0);
+                    rf_set_power(POWER_MAX + 1, 0);
                     cur_pwr = POWER_MAX + 1;
                 }
             } else {
@@ -308,7 +308,7 @@ void SA_Update(uint8_t cmd) {
 #endif
 #endif
                     {
-                        rf_set_power(RF_POWER, RF_FREQ, pwr_offset);
+                        rf_set_power(RF_POWER, pwr_offset);
                         cur_pwr = RF_POWER;
                     }
                 }

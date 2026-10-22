@@ -95,12 +95,12 @@ void camera_mode_detect(uint8_t init) {
 
     video_format = VDO_FMT_720P60_8bit;
 
-    set_vin();
+    set_vin(video_format);
     id = I2C_Read8(ADDR_TP9950, 0xfe);
     id = I2C_Read8(ADDR_TP9950, 0xff);
     WAIT(200);
 
-    set_vin();
+    set_vin(video_format);
     id = I2C_Read8(ADDR_TP9950, 0xfe);
     id = I2C_Read8(ADDR_TP9950, 0xff);
     WAIT(200);

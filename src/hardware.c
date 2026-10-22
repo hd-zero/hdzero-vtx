@@ -1,6 +1,7 @@
 #include "hardware.h"
 #include "camera.h"
 #include "common.h"
+#include "dm6300.h"
 #include "global.h"
 #include "i2c.h"
 #include "i2c_device.h"
