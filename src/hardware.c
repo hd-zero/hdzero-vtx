@@ -1659,7 +1659,7 @@ void check_eeprom() {
         EEP_ADDR_DCOC2,
         EEP_ADDR_DCOC3,
     };
-    const uint8_t tab_range[2] = {20, 160};
+    const uint8_t tab_range[2] = {8, 160};
     const uint8_t dcoc_range[2] = {80, 180};
 
     uint8_t reg[3];
