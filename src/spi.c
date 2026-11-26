@@ -56,8 +56,7 @@ uint8_t SPI_Read_Byte() {
 }
 
 void SPI_Write(uint8_t trans, uint16_t addr, uint32_t dat_l) {
-    uint32_t rh = 0, rl = 0;
-    uint16_t rlh = 0, rll = 0;
+    uint32_t rl = 0;
 
     int i, N;
     uint8_t byte;
@@ -96,14 +95,15 @@ void SPI_Write(uint8_t trans, uint16_t addr, uint32_t dat_l) {
 #ifdef _DEBUG_SPI
     SPI_Read(trans, addr, &rl);
     if (dat_l != rl)
-        debugf("                           --- W or R error !!   wdat=%lx", dat_l);
+        debugf("\r\n spi w %d %04x: %lx   --- W or R error !!", trans, addr, dat_l);
+    else
+        debugf("\r\n spi w %d %04x: %lx", trans, addr, dat_l);
 #endif
 }
 
 void SPI_Read(uint8_t trans, uint16_t addr, uint32_t *dat_l) {
     int i, N;
     uint8_t byte;
-    uint16_t rlh = 0, rll = 0;
 
     if (trans == 6)
         N = 2;
@@ -137,4 +137,18 @@ void SPI_Read(uint8_t trans, uint16_t addr, uint32_t *dat_l) {
     SET_CS(1); // end
     SET_CK(0);
     SET_DO(0);
+}
+
+void SPI_Write3(uint16_t addr, uint32_t dat) {
+    SPI_Write(3, addr, dat);
+}
+void SPI_Write6(uint16_t addr, uint32_t dat) {
+    SPI_Write(6, addr, dat);
+}
+
+void SPI_Read3(uint16_t addr, uint32_t *dat) {
+    SPI_Read(3, addr, dat);
+}
+void SPI_Read6(uint16_t addr, uint32_t *dat) {
+    SPI_Read(6, addr, dat);
 }

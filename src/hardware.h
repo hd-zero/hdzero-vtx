@@ -1,6 +1,7 @@
 #ifndef __HARDWARE_H_
 #define __HARDWARE_H_
 
+#include "camera.h"
 #include "common.h"
 #include "i2c.h"
 #include "i2c_device.h"
@@ -71,6 +72,7 @@ extern uint8_t lowband_lock;
 #define LED_BLUE_OFF LED_1 = OFF
 #endif
 
+void LED_Init();
 void Init_HW();
 void OnButton1();
 void video_detect();
@@ -85,15 +87,7 @@ void Imp_RF_Param();
 void CFG_Back();
 void check_eeprom();
 
-void Set_720P50(uint8_t page);
-void Set_720P60(uint8_t page);
-void Set_540P90(uint8_t page);
-void Set_540P90_crop(uint8_t page);
-void Set_960x720P60(uint8_t page);
-void Set_720P30(uint8_t page, uint8_t is_43);
-void Set_540P60(uint8_t page);
-void Set_1080P30(uint8_t page);
-void Set_720P60_8bit(uint8_t page);
+void set_vin(video_format_e fmt);
 
 void Flicker_LED(uint8_t n);
 void LED_Flip();
@@ -106,19 +100,20 @@ void vtx_paralized(void);
 
 void timer_task();
 void RF_Delay_Init();
+
 #ifdef USE_USB_DET
 void usb_det_task();
 #endif
 #if defined HDZERO_FREESTYLE_V1 || HDZERO_FREESTYLE_V2
 extern uint8_t powerLock;
 #endif
+extern uint8_t table_power[FREQ_NUM_EXTERNAL][4];
 extern uint8_t RF_FREQ;
 extern uint8_t RF_POWER;
 extern uint8_t LP_MODE;
 extern uint8_t PIT_MODE;
 extern uint8_t OFFSET_25MW;
 extern uint8_t TEAM_RACE;
-extern uint8_t KEYBOARD_ON;
 extern uint8_t EE_VALID;
 extern uint8_t RF_BW;
 extern uint8_t RF_BW_last;
@@ -133,7 +128,6 @@ extern uint8_t fc_lock;
 extern uint8_t vtx_pit;
 extern uint8_t vtx_pit_save;
 extern uint8_t SA_lock;
-extern uint8_t pwr_lmt_sec;
 extern uint8_t pwr_lmt_done;
 
 extern uint8_t cur_pwr;

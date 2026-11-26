@@ -10,6 +10,7 @@
 #include "monitor.h"
 #include "msp_displayport.h"
 #include "print.h"
+#include "rf.h"
 #include "rom.h"
 #include "runcam.h"
 #include "sfr_ext.h"
@@ -122,9 +123,9 @@ void main(void) {
     WAIT(500);
 
     CPU_init();
-    WriteReg(0, 0xB0, 0x3E);
-    WriteReg(0, 0xB2, 0x03);
-    WriteReg(0, 0x80, 0xC8);
+    WriteReg(0xB0, 0x3E);
+    WriteReg(0xB2, 0x03);
+    WriteReg(0x80, 0xC8);
 
     if (I2C_EN == 0)
         I2C_EN = 1;
@@ -183,6 +184,7 @@ void main(void) {
             ;
         else {
             LED_Task();
+            rf_monitor_task();
             TempDetect(); // temperature dectect
             PwrLMT();     // RF power ctrl
             msp_task();

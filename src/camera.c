@@ -1,6 +1,5 @@
 #include "camera.h"
 #include "common.h"
-#include "dm6300.h"
 #include "global.h"
 #include "hardware.h"
 #include "i2c.h"
@@ -8,6 +7,7 @@
 #include "isr.h"
 #include "msp_displayport.h"
 #include "print.h"
+#include "rf.h"
 #include "runcam.h"
 
 uint8_t camera_type;
@@ -24,9 +24,9 @@ uint8_t video_format = VDO_FMT_720P60;
 uint8_t camRatio = 0; // 0->16:9   1->4:3
 uint8_t camMenuStatus = CAM_STATUS_IDLE;
 uint8_t isp_reset_reqd = 0;
-
+#ifdef USE_TP9950
 uint8_t camera_is_3v3 = 0;
-
+#endif
 extern uint8_t g_camera_id;
 extern uint8_t g_camera_switch;
 
@@ -38,6 +38,9 @@ void camera_type_detect(void) {
         camera_mfr = CAMERA_MFR_HDZERO;
     } else {
         runcam_type_detect();
+#ifdef _DEBUG_MODE
+        debugf("\r\ncamera type %d", camera_type);
+#endif
         if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1 ||
             camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 ||
             camera_type == CAMERA_TYPE_RUNCAM_NANO_90 ||
@@ -62,7 +65,7 @@ void camera_ratio_detect(void) {
         break;
 #ifdef USE_TP9950
     case CAMERA_TYPE_OUTDATED:
-        camRatio = I2C_Read8_Wait(10, ADDR_EEPROM, EEP_ADDR_CAM_RATIO);
+        camRatio = eep_rd(EEP_ADDR_CAM_RATIO);
         if (camRatio > 1)
             camRatio = 1;
         break;
@@ -90,12 +93,14 @@ void camera_mode_detect(uint8_t init) {
     WAIT(100);
 #endif
 
-    Set_720P60_8bit(0);
+    video_format = VDO_FMT_720P60_8bit;
+
+    set_vin(video_format);
     id = I2C_Read8(ADDR_TP9950, 0xfe);
     id = I2C_Read8(ADDR_TP9950, 0xff);
     WAIT(200);
 
-    Set_720P60_8bit(0);
+    set_vin(video_format);
     id = I2C_Read8(ADDR_TP9950, 0xfe);
     id = I2C_Read8(ADDR_TP9950, 0xff);
     WAIT(200);
@@ -160,12 +165,12 @@ void camera_mode_detect(uint8_t init) {
 #ifdef _RF_CALIB
     WAIT(1000);
     if (I2C_Read8(ADDR_TP9950, 0x01) != 0x7E) { // if camera lost
-        WriteReg(0, 0x50, 0x01);                // set to video pattern
+        WriteReg(0x50, 0x01);                   // set to video pattern
     }
     RF_POWER = 0;
     RF_FREQ = 0;
     Init_6300RF(RF_FREQ, RF_POWER);
-    DM6300_AUXADC_Calib();
+    rf_auxadc_calib();
 #endif
 }
 #else
@@ -177,11 +182,11 @@ void camera_mode_detect(uint8_t init) {
     uint8_t status_reg = 0;
 
     // init tc3587 and detect fps
-    WriteReg(0, 0x8F, 0x91);
+    WriteReg(0x8F, 0x91);
     if (camera_type == CAMERA_TYPE_HDZCS_CVBS) {
         Init_TC3587(0);
-        Set_720P60(IS_RX);
         video_format = VDO_FMT_720P60;
+        set_vin(video_format);
         I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
     } else {
         if (probe_device()) {
@@ -190,47 +195,39 @@ void camera_mode_detect(uint8_t init) {
             if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
                 Init_TC3587(1);
                 if (camera_setting_reg_set[11] == 0) {
-                    Set_540P90(0);
                     video_format = VDO_FMT_540P90;
                 } else if (camera_setting_reg_set[11] == 1) {
-                    Set_540P90_crop(0);
                     video_format = VDO_FMT_540P90_CROP;
                 } else if (camera_setting_reg_set[11] == 2) {
-                    Set_540P60(0);
                     video_format = VDO_FMT_540P60;
                 } else if (camera_setting_reg_set[11] == 3) {
-                    Set_960x720P60(0);
                     video_format = VDO_FMT_960x720P60;
                 }
+                set_vin(video_format);
                 I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
             } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V1) {
-                Set_720P60(IS_RX);
-                Init_TC3587(0);
                 video_format = VDO_FMT_720P60;
+                set_vin(video_format);
+                Init_TC3587(0);
                 I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
             } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2 || camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
                 if (camera_setting_reg_set[11] == 3) {
-                    Set_1080P30(IS_RX);
                     video_format = VDO_FMT_1080P30;
                 } else {
-                    Set_720P60(IS_RX);
                     video_format = VDO_FMT_720P60;
                 }
+                set_vin(video_format);
                 Init_TC3587(0);
                 I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
             } else {
                 while (cycles) {
-                    if (video_format == VDO_FMT_720P50) {
-                        Init_TC3587(0);
-                        Set_720P50(IS_RX);
-                    } else if (video_format == VDO_FMT_720P60) {
-                        Init_TC3587(0);
-                        Set_720P60(IS_RX);
-                    }
+                    Init_TC3587(0);
+                    set_vin(video_format);
+
                     WAIT(100);
 
                     for (detect_tries = 0; detect_tries < 5; detect_tries++) {
-                        status_reg = ReadReg(0, 0x02);
+                        status_reg = ReadReg(0x02);
                         if ((status_reg >> 4) != 0) {
                             loss = 1;
                         }
@@ -249,9 +246,9 @@ void camera_mode_detect(uint8_t init) {
                 }
 
                 if (cycles == 0) {
-                    Set_720P60(0);
-                    // WriteReg(0, 0x50, 0x01); // Do not output colorbar
+                    // WriteReg(0x50, 0x01); // Do not output colorbar
                     video_format = VDO_FMT_720P60;
+                    set_vin(video_format);
                     I2C_Write16(ADDR_TC3587, 0x0058, 0x00e0);
                     camera_type = CAMERA_TYPE_RESERVED;
                 }
@@ -267,21 +264,24 @@ void camera_mode_detect(uint8_t init) {
             RF_BW = BW_27M;
         RF_BW_last = RF_BW;
     }
+#ifdef _DEBUG_MODE
+    debugf("\r\nvideo_format:%d", video_format);
+#endif
 }
 #endif
 
 void camera_button_init() {
-    WriteReg(0, 0x17, 0xC0);
-    WriteReg(0, 0x16, 0x00);
-    WriteReg(0, 0x15, 0x02);
-    WriteReg(0, 0x14, 0x00);
+    WriteReg(0x17, 0xC0);
+    WriteReg(0x16, 0x00);
+    WriteReg(0x15, 0x02);
+    WriteReg(0x14, 0x00);
 }
 
 void camera_reg_write_eep(uint16_t addr, uint8_t val) {
-    I2C_Write8_Wait(10, ADDR_EEPROM, addr, val);
+    eep_wr(addr, val);
 }
 uint8_t camera_reg_read_eep(uint16_t addr) {
-    return I2C_Read8_Wait(10, ADDR_EEPROM, addr);
+    return eep_rd(addr);
 }
 
 void camera_setting_profile_read(uint8_t profile) {
@@ -323,11 +323,7 @@ void camera_setting_profile_check(uint8_t profile) {
     }
 }
 void camera_profile_read(void) {
-    if (g_camera_switch) {
-        camera_profile_eep = g_camera_id - 1;
-    } else {
-        camera_profile_eep = camera_reg_read_eep(EEP_ADDR_CAM_PROFILE);
-    }
+    camera_profile_eep = g_camera_switch ? (g_camera_id - 1) : camera_reg_read_eep(EEP_ADDR_CAM_PROFILE);
 }
 void camera_profile_write(void) {
     if (!g_camera_switch) {
@@ -444,6 +440,7 @@ void camera_reinit(void) {
 }
 
 void camera_button_op(uint8_t op) {
+#ifdef USE_TP9950
     switch (op) {
     case BTN_UP:
         camera_button_up;
@@ -466,6 +463,9 @@ void camera_button_op(uint8_t op) {
     default:
         break;
     }
+#else
+    UNUSED(op);
+#endif
 }
 
 void camera_menu_draw_bracket(void) {
@@ -483,6 +483,8 @@ void camera_menu_draw_value(void) {
     const char *resolution_runcam_micro_v2[] = {"      4:3 ", " 16:9CROP ", " 16:9FULL ", "  1080@30 "};
     const char *resolution_runcam_nano_90[] = {"   540P@90", "540@90CROP", "   540P@60", "960X720@60"};
     const char *resolution_runcam_micro_v3[] = {"      4:3 ", " 16:9CROP ", " 16:9FULL ", "  1080@30 "};
+    const char *target_resolution = NULL;
+    uint8_t reg_index;
 
     uint8_t str[4];
     uint8_t i;
@@ -493,7 +495,7 @@ void camera_menu_draw_value(void) {
 
     for (i = CAM_STATUS_BRIGHTNESS; i <= CAM_STATUS_VDO_FMT; i++) {
         if (camera_attribute[i - 1][CAM_SETTING_ITEM_ENABLE] == 0)
-            strcpy(&osd_buf[i][osd_menu_offset + 27], "-");
+            osd_write_string(i, 27, "-");
         else {
             switch (i) {
             case CAM_STATUS_BRIGHTNESS: // brightness
@@ -501,74 +503,79 @@ void camera_menu_draw_value(void) {
                     dat = camera_setting_reg_menu[0] - camera_attribute[0][CAM_SETTING_ITEM_DEFAULT];
                     uint8ToString(dat, str);
                     if (dat > 99) {
-                        strcpy(&osd_buf[1][osd_menu_offset + 24], "+");
-                        strcpy(&osd_buf[1][osd_menu_offset + 25], str);
+                        osd_write_string(1, osd_menu_offset + 24, "+");
+                        osd_write_string(1, osd_menu_offset + 25, str);
                     } else if (dat > 9) {
-                        strcpy(&osd_buf[1][osd_menu_offset + 24], " +");
-                        strcpy(&osd_buf[1][osd_menu_offset + 26], str + 1);
+                        osd_write_string(1, osd_menu_offset + 24, " +");
+                        osd_write_string(1, osd_menu_offset + 26, str + 1);
                     } else {
-                        strcpy(&osd_buf[1][osd_menu_offset + 24], "  +");
-                        strcpy(&osd_buf[1][osd_menu_offset + 27], str + 2);
+                        osd_write_string(1, osd_menu_offset + 24, "  +");
+                        osd_write_string(1, osd_menu_offset + 27, str + 2);
                     }
                 } else if (camera_setting_reg_menu[0] < camera_attribute[0][CAM_SETTING_ITEM_DEFAULT]) {
                     dat = camera_attribute[0][CAM_SETTING_ITEM_DEFAULT] - camera_setting_reg_menu[0];
                     uint8ToString(dat, str);
                     if (dat > 99) {
-                        strcpy(&osd_buf[1][osd_menu_offset + 24], "-  ");
-                        strcpy(&osd_buf[1][osd_menu_offset + 25], str);
+                        osd_write_string(1, osd_menu_offset + 24, "-  ");
+                        osd_write_string(1, osd_menu_offset + 25, str);
                     } else if (dat > 9) {
-                        strcpy(&osd_buf[1][osd_menu_offset + 24], " -");
-                        strcpy(&osd_buf[1][osd_menu_offset + 26], str + 1);
+                        osd_write_string(1, osd_menu_offset + 24, " -");
+                        osd_write_string(1, osd_menu_offset + 26, str + 1);
                     } else {
-                        strcpy(&osd_buf[1][osd_menu_offset + 24], "  -");
-                        strcpy(&osd_buf[1][osd_menu_offset + 27], str + 2);
+                        osd_write_string(1, osd_menu_offset + 24, "  -");
+                        osd_write_string(1, osd_menu_offset + 27, str + 2);
                     }
                 } else {
-                    strcpy(&osd_buf[1][osd_menu_offset + 24], "   0");
+                    osd_write_string(1, osd_menu_offset + 24, "   0");
                 }
                 break;
             case CAM_STATUS_SHARPNESS:
             case CAM_STATUS_CONTRAST:
             case CAM_STATUS_SATURATION:
                 uint8ToString(camera_setting_reg_menu[i - 1] + 1, str);
-                strcpy(&osd_buf[i][osd_menu_offset + 25], str);
+                osd_write_string(i, osd_menu_offset + 25, str);
                 break;
             case CAM_STATUS_SHUTTER:
                 if (camera_setting_reg_menu[i - 1] == 0)
-                    strcpy(&osd_buf[i][osd_menu_offset + 24], "AUTO");
+                    osd_write_string(i, osd_menu_offset + 24, "AUTO");
                 else {
                     uint8ToString(camera_setting_reg_menu[i - 1], str);
                     osd_buf[i][osd_menu_offset + 24] = ' ';
-                    strcpy(&osd_buf[i][osd_menu_offset + 25], str);
+                    osd_write_string(i, osd_menu_offset + 25, str);
                 }
                 break;
 
             case CAM_STATUS_WBRED:  // wb red
             case CAM_STATUS_WBBLUE: // wb blue
                 uint8ToString(camera_setting_reg_menu[i - 1], str);
-                strcpy(&osd_buf[i][osd_menu_offset + 25], str);
+                osd_write_string(i, osd_menu_offset + 25, str);
                 break;
             case CAM_STATUS_HVFLIP: // hv flip
-                strcpy(&osd_buf[i][osd_menu_offset + 21], hv_flip_str[camera_setting_reg_menu[i - 1]]);
+                osd_write_string(i, osd_menu_offset + 21, hv_flip_str[camera_setting_reg_menu[i - 1]]);
                 break;
             case CAM_STATUS_NIGHT_MODE: // night mode
             case CAM_STATUS_LED_MODE:   // led mode
-                strcpy(&osd_buf[i][osd_menu_offset + 21], switch_str[camera_setting_reg_menu[i - 1]]);
+                osd_write_string(i, osd_menu_offset + 21, switch_str[camera_setting_reg_menu[i - 1]]);
                 break;
 
             case CAM_STATUS_WBMODE: // wb mode
-                strcpy(&osd_buf[i][osd_menu_offset + 21], wb_mode_str[camera_setting_reg_menu[i - 1]]);
+                osd_write_string(i, osd_menu_offset + 21, wb_mode_str[camera_setting_reg_menu[i - 1]]);
                 break;
 
             case CAM_STATUS_VDO_FMT: // vdo fmt
+                reg_index = camera_setting_reg_menu[i - 1];
                 if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V2) {
-                    strcpy(&osd_buf[i][osd_menu_offset + 19], resolution_runcam_micro_v2[camera_setting_reg_menu[i - 1]]);
+                    target_resolution = resolution_runcam_micro_v2[reg_index];
                 } else if (camera_type == CAMERA_TYPE_RUNCAM_NANO_90) {
-                    strcpy(&osd_buf[i][osd_menu_offset + 19], resolution_runcam_nano_90[camera_setting_reg_menu[i - 1]]);
+                    target_resolution = resolution_runcam_nano_90[reg_index];
                 } else if (camera_type == CAMERA_TYPE_RUNCAM_MICRO_V3) {
-                    strcpy(&osd_buf[i][osd_menu_offset + 19], resolution_runcam_micro_v3[camera_setting_reg_menu[i - 1]]);
+                    target_resolution = resolution_runcam_micro_v3[reg_index];
                 }
-                osd_buf[i][osd_menu_offset + 29] = '>';
+
+                if (target_resolution != NULL) {
+                    osd_write_string(i, osd_menu_offset + 19, target_resolution);
+                }
+                osd_write_string(i, osd_menu_offset + 29, ">");
                 break;
             default:
                 break;
@@ -596,15 +603,13 @@ void camera_menu_init(void) {
         "EXIT",
         "SAVE&EXIT",
     };
-    char *osd_buf_p;
     uint8_t i;
 
     memset(osd_buf, 0x20, sizeof(osd_buf));
     disp_mode = DISPLAY_CMS;
 
     for (i = 0; i <= 15; i++) {
-        osd_buf_p = osd_buf[i] + osd_menu_offset + 3;
-        strcpy(osd_buf_p, cam_menu_string[i]);
+        osd_write_string(i, osd_menu_offset + 3, cam_menu_string[i]);
     }
     camera_profile_menu = camera_profile_eep;
     camera_setting_reg_menu_update();
@@ -612,29 +617,24 @@ void camera_menu_init(void) {
     camera_menu_draw_value();
 }
 void camera_menu_show_repower(void) {
+    uint8_t col = osd_menu_offset + 3;
     memset(osd_buf, 0x20, sizeof(osd_buf));
-    strcpy(osd_buf[1] + osd_menu_offset + 3, "BW IS CHANGED:");
-    if (RF_BW == BW_17M) {
-        strcpy(osd_buf[2] + osd_menu_offset + 3, "    WIDE -> NARROW");
-    } else {
-        strcpy(osd_buf[2] + osd_menu_offset + 3, "    NARROW -> WIDE");
-    }
-    strcpy(osd_buf[3] + osd_menu_offset + 3, "NEED TO RECONFIG VTX(PRESS OK)");
-    strcpy(osd_buf[4] + osd_menu_offset + 3, "NEED TO RECONFIG BW ON GOGGLE");
-    strcpy(osd_buf[5] + osd_menu_offset + 3, "> OK");
+    osd_write_string(1, col, "BW IS CHANGED:");
+    osd_write_string(2, col, (RF_BW == BW_17M) ? "    WIDE -> NARROW" : "    NARROW -> WIDE");
+    osd_write_string(3, col, "NEED TO RECONFIG VTX(PRESS OK)");
+    osd_write_string(4, col, "NEED TO RECONFIG BW ON GOGGLE");
+    osd_write_string(5, col, "> OK");
 }
 
 void camera_menu_show_saving(void) {
+    uint8_t col = osd_menu_offset + 3;
     memset(osd_buf, 0x20, sizeof(osd_buf));
-    strcpy(osd_buf[1] + osd_menu_offset + 3, "SAVING CAMERA PARAMETERS");
-    strcpy(osd_buf[2] + osd_menu_offset + 3, "DO NOT POWER OFF THE VTX");
+    osd_write_string(1, col, "SAVING CAMERA PARAMETERS");
+    osd_write_string(2, col, "DO NOT POWER OFF THE VTX");
 }
 
 void camera_menu_cursor_update(uint8_t erase) {
-    if (erase)
-        osd_buf[camMenuStatus][osd_menu_offset + 2] = ' ';
-    else
-        osd_buf[camMenuStatus][osd_menu_offset + 2] = '>';
+    osd_buf[camMenuStatus][osd_menu_offset + 2] = erase ? ' ' : '>';
 }
 void camera_menu_item_toggle(uint8_t op) {
     camera_menu_cursor_update(1);
@@ -656,12 +656,13 @@ void camera_profile_menu_toggle(uint8_t op) {
             camera_profile_menu++;
             if (camera_profile_menu == CAMERA_PROFILE_NUM)
                 camera_profile_menu = 0;
-            camera_setting_reg_menu_update();
-            isp_reset_reqd |= camera_set(camera_setting_reg_menu, 0, 0);
         } else if (op == BTN_LEFT) {
             camera_profile_menu--;
             if (camera_profile_menu > CAMERA_PROFILE_NUM)
                 camera_profile_menu = CAMERA_PROFILE_NUM - 1;
+        }
+
+        if (op == BTN_RIGHT || op == BTN_LEFT) {
             camera_setting_reg_menu_update();
             isp_reset_reqd |= camera_set(camera_setting_reg_menu, 0, 0);
         }
@@ -778,12 +779,13 @@ uint8_t camera_status_update(uint8_t op) {
 
     if (op >= BTN_INVALID)
         return ret;
-
+#ifdef USE_TP9950
     if (camera_type == CAMERA_TYPE_UNKNOWN ||
         camera_type == CAMERA_TYPE_OUTDATED) {
         camera_button_op(op);
         return ret;
     }
+#endif
 
     switch (camMenuStatus) {
     case CAM_STATUS_IDLE:
@@ -901,15 +903,15 @@ uint8_t camera_status_update(uint8_t op) {
                 Init_6300RF(RF_FREQ, POWER_MAX + 1);
                 vtx_pit = PIT_P1MW;
             } else {
-                WriteReg(0, 0x8F, 0x00);
-                WriteReg(0, 0x8F, 0x01);
-                DM6300_Init(RF_FREQ, RF_BW);
-                DM6300_SetChannel(RF_FREQ);
-                DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+                WriteReg(0x8F, 0x00);
+                WriteReg(0x8F, 0x01);
+                rf_init(RF_FREQ, RF_BW);
+                rf_set_channel(RF_FREQ);
+                rf_set_power(RF_POWER, pwr_offset);
                 cur_pwr = RF_POWER;
-                WriteReg(0, 0x8F, 0x11);
+                WriteReg(0x8F, 0x11);
             }
-            DM6300_AUXADC_Calib();
+            rf_auxadc_calib();
 
             camera_menu_show_saving();
             saving_start_sec = seconds;
@@ -935,40 +937,41 @@ uint8_t camera_status_update(uint8_t op) {
 #endif
 
 void camera_select_menu_init(void) {
+#ifdef USE_TP9950
     const char *cam_select_menu_string[] = {
         "> ECO CAMERA MENU",
         "  LUX CAMERA MENU",
         "  VTX RATIO FOR LUX CAMERA  <4:3> ",
         "  EXIT",
     };
-    char *osd_buf_p;
     uint8_t i;
 
     for (i = 0; i <= CAM_SELECT_EXIT; i++) {
-        osd_buf_p = osd_buf[i] + osd_menu_offset;
-        strcpy(osd_buf_p, cam_select_menu_string[i]);
+        osd_write_string(i, osd_menu_offset, cam_select_menu_string[i]);
     }
     camera_select_menu_ratio_update();
+#endif
 }
 
 void camera_select_menu_cursor_update(uint8_t index) {
+#ifdef USE_TP9950
     uint8_t i;
     for (i = 0; i <= CAM_SELECT_EXIT; i++) {
-        if (i == index)
-            osd_buf[i][osd_menu_offset] = '>';
-        else
-            osd_buf[i][osd_menu_offset] = ' ';
+        osd_buf[i][osd_menu_offset] = (i == index) ? '>' : ' ';
     }
+#else
+    UNUSED(index);
+#endif
 }
 
 void camera_select_menu_ratio_update() {
-    if (camRatio == 1)
-        strcpy(osd_buf[2] + osd_menu_offset + 28, "<4:3> ");
-    else
-        strcpy(osd_buf[2] + osd_menu_offset + 28, "<16:9>");
+#ifdef USE_TP9950
+    osd_write_string(2, osd_menu_offset + 28, (camRatio == 1) ? "<4:3> " : "<16:9>");
+#endif
 }
 
 void camera_menu_mode_exit_note() {
-    const char note_string[] = "MOVE THROTTLE LEFT TO EXIT CAMERA MENU";
-    strcpy(osd_buf[15] + 5, note_string);
+#ifdef USE_TP9950
+    osd_write_string(15, 5, "MOVE THROTTLE LEFT TO EXIT CAMERA MENU");
+#endif
 }

@@ -1,6 +1,5 @@
 #include "smartaudio_protocol.h"
 #include "common.h"
-#include "dm6300.h"
 #include "global.h"
 #include "hardware.h"
 #include "i2c_device.h"
@@ -8,6 +7,7 @@
 #include "monitor.h"
 #include "msp_displayport.h"
 #include "print.h"
+#include "rf.h"
 #include "rom.h"
 #include "sfr_ext.h"
 #include "uart.h"
@@ -184,8 +184,8 @@ void SA_Update(uint8_t cmd) {
                 if (last_SA_lock && seconds < WAIT_SA_CONFIG) {
                     pwr_init = cur_pwr;
                 } else {
-                    WriteReg(0, 0x8F, 0x10); // reset RF_chip
-                    dm6300_init_done = 0;
+                    WriteReg(0x8F, 0x10); // reset RF_chip
+                    rf_init_done = 0;
                     temp_err = 1;
                 }
             } else if (SA_dbm_last == 0) { // Exit 0mW
@@ -199,7 +199,7 @@ void SA_Update(uint8_t cmd) {
                     Init_6300RF(RF_FREQ, RF_POWER);
                     PIT_MODE = 0;
 
-                    DM6300_AUXADC_Calib();
+                    rf_auxadc_calib();
                 }
             } else {
                 cur_pwr = dbm_to_pwr(SA_dbm);
@@ -218,7 +218,7 @@ void SA_Update(uint8_t cmd) {
                     else
 #endif
 #endif
-                        DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+                        rf_set_power(RF_POWER, pwr_offset);
                 }
 
                 Setting_Save();
@@ -236,7 +236,7 @@ void SA_Update(uint8_t cmd) {
                 if (last_SA_lock && (seconds < WAIT_SA_CONFIG))
                     ch_init = channel;
                 else
-                    DM6300_SetChannel(channel);
+                    rf_set_channel(channel);
                 Setting_Save();
             }
         }
@@ -245,7 +245,7 @@ void SA_Update(uint8_t cmd) {
 
     case SA_SET_FREQ: {
         uint16_t const freq = ((uint16_t)sa_rbuf[0] << 8) + sa_rbuf[1];
-        uint8_t const channel = DM6300_GetChannelByFreq(freq);
+        uint8_t const channel = rf_get_ch_by_freq(freq);
         if (channel < INVALID_CHANNEL) {
             ch_bf = channel_to_bfChannel(channel);
             if (channel != RF_FREQ) {
@@ -253,7 +253,7 @@ void SA_Update(uint8_t cmd) {
                 if (last_SA_lock && (seconds < WAIT_SA_CONFIG))
                     ch_init = channel;
                 else
-                    DM6300_SetChannel(channel);
+                    rf_set_channel(channel);
                 Setting_Save();
             }
         }
@@ -281,11 +281,11 @@ void SA_Update(uint8_t cmd) {
                     cur_pwr = POWER_MAX + 2;
                     PIT_MODE = 0;
                     vtx_pit = PIT_0MW;
-                    WriteReg(0, 0x8F, 0x10); // reset RF_chip
-                    dm6300_init_done = 0;
+                    WriteReg(0x8F, 0x10); // reset RF_chip
+                    rf_init_done = 0;
                     temp_err = 1;
                 } else {
-                    DM6300_SetPower(POWER_MAX + 1, RF_FREQ, 0);
+                    rf_set_power(POWER_MAX + 1, 0);
                     cur_pwr = POWER_MAX + 1;
                 }
             } else {
@@ -295,8 +295,8 @@ void SA_Update(uint8_t cmd) {
                     cur_pwr = POWER_MAX + 2;
                     PIT_MODE = 0;
                     vtx_pit = PIT_0MW;
-                    WriteReg(0, 0x8F, 0x10); // reset RF_chip
-                    dm6300_init_done = 0;
+                    WriteReg(0x8F, 0x10); // reset RF_chip
+                    rf_init_done = 0;
                     temp_err = 1;
                 } else {
 #ifndef VIDEO_PAT
@@ -308,7 +308,7 @@ void SA_Update(uint8_t cmd) {
 #endif
 #endif
                     {
-                        DM6300_SetPower(RF_POWER, RF_FREQ, pwr_offset);
+                        rf_set_power(RF_POWER, pwr_offset);
                         cur_pwr = RF_POWER;
                     }
                 }
@@ -456,7 +456,7 @@ void SA_Init() {
     pwr_init = RF_POWER;
 
     ch_bf = channel_to_bfChannel(ch_init);
-    freq = DM6300_GetFreqByChannel(ch_init);
+    freq = rf_get_freq_by_ch(ch_init);
     freq_new_h = (uint8_t)(freq >> 8);
     freq_new_l = (uint8_t)(freq & 0xff);
 }

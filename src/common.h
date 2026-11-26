@@ -151,6 +151,7 @@
 #define SPI_DO P0_7
 
 // uart
+#include "uart.h"
 #ifndef REV_UART
 #define Mon_tx(ch)  RS_tx1(ch)
 #define Mon_rx()    RS_rx1()
@@ -199,7 +200,7 @@
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
 #if !defined(UNUSED)
-#define UNUSED(x) ((void)(x))    /* To avoid gcc/g++ warnings */
-#endif /* UNUSED */
+#define UNUSED(x) ((void)(x)) /* To avoid gcc/g++ warnings */
+#endif                        /* UNUSED */
 
 #endif /* __COMMON_H_ */

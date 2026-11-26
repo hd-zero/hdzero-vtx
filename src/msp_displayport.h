@@ -4,10 +4,6 @@
 #include "common.h"
 #include "msp_protocol.h"
 
-#define IS_HI(x)  ((x) > 1750)
-#define IS_LO(x)  ((x) < 1250)
-#define IS_MID(x) ((!IS_HI(x)) && (!IS_LO(x)))
-
 #define TXBUF_SIZE 74
 
 typedef enum {
@@ -146,7 +142,6 @@ void mark_flag(uint8_t row, uint8_t col);
 void init_txbuf();
 void fc_init();
 void mark_loc(uint8_t row, uint8_t col);
-uint8_t prepare_tx_buf();
 uint8_t get_tx_data_5680();
 uint8_t get_tx_data_osd(uint8_t index);
 void insert_tx_buf(uint8_t len);
@@ -175,6 +170,7 @@ void set_vtx_param();
 uint8_t channel_to_bfChannel(uint8_t const channel);
 uint8_t bfChannel_to_channel(uint8_t const channel);
 void resync_vrx_vtmg();
+void osd_write_string(uint8_t row, uint8_t col, const char *string);
 
 #ifdef INIT_VTX_TABLE
 void InitVtxTable();
@@ -182,7 +178,6 @@ void InitVtxTable();
 extern uint8_t osd_buf[OSD_CANVAS_HD_VMAX1][OSD_CANVAS_HD_HMAX1];
 extern uint8_t osd_menu_offset;
 extern uint8_t disp_mode;
-extern uint8_t msp_tx_cnt;
 extern uint8_t resolution;
 extern uint8_t first_arm;
 extern uint8_t mspVtxLock;
